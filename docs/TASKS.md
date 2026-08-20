@@ -139,3 +139,53 @@ Préfixes : `ENG` moteur de calcul · `FIS` paramètres fiscaux · `UI` interfac
   est en place et testé — il a été écrit hors dépôt puis copié. À arbitrer : les cocher
   après relecture de la couverture, ticket par ticket.
 - Rien n'est encore committé.
+
+### 20 août 2026 — Dépôt distant, charte graphique, fixtures de design
+
+**Fait**
+
+- Dépôt connecté à `git@github.com:rosariAdr/simulateur-immo.git` et poussé.
+  Le dépôt distant est **public**.
+- **Charte graphique proposée** (`docs/06-design-system.md`). Palette validée par
+  calcul dans les deux thèmes : bande de clarté, plancher de chroma, séparation
+  sous protanopie et deutéranopie, contraste. Deux contraintes découvertes par la
+  validation : le violet ne peut pas descendre jusqu'à l'« ardoise » sans devenir
+  indistinguable du bleu marchés, et la palette ne peut pas être plus désaturée
+  sans qu'une teinte cesse de porter l'identité. Variantes texte ajoutées : quatre
+  couleurs de série n'atteignent pas 4,5:1 en texte.
+- **Typographie proposée** : Archivo, Public Sans, IBM Plex Mono. Toutes libres et
+  auto-hébergées via `next/font`, ce qui évite qu'une fonderie distante reçoive
+  l'adresse IP des visiteurs. *Marianne*, référence évidente de l'univers
+  administratif français, est écartée : sa licence la réserve à l'État.
+- **Textes légaux, première version** (`docs/legal/`). Mentions légales, politique
+  de confidentialité, conditions d'utilisation, avertissement. Brouillons, avec
+  champs à compléter. Le régime d'éditeur non professionnel de la LCEN est
+  documenté dans le fichier. `LEG-001` et `LEG-002` restent ouverts.
+- **Fixtures de design** (`scripts/export-fixtures.mts`, `npm run fixtures`).
+  Quatre scénarios réels : achat modeste, achat tendu non conforme HCSF, PTZ en
+  différé, franchissement du seuil d'usure. Le scénario d'usure a été calibré pour
+  effleurer le seuil (5,42 % contre 5,29 %) plutôt que de le pulvériser : le
+  dépassement vient de l'assurance, pas du taux nominal.
+- **Planche de design** (`fixtures/PLANCHE-DESIGN.md`, 424 lignes) : les chiffres
+  réels, les tableaux à leur longueur réelle, et la largeur du montant le plus
+  large, qui dimensionne les colonnes.
+- **Dossier de passation** (`docs/07-brief-claude-design.md`) : quoi coller, le
+  prompt, et la liste des défauts à refuser en retour.
+
+**Décision technique** — `scripts/run.mjs` exécute les scripts TypeScript en
+réutilisant Vite comme résolveur, plutôt que d'ajouter un exécuteur TypeScript en
+dépendance. Motif : les fichiers de `src/core/` importent sans extension, ce que
+l'ESM natif de Node refuse, et cette convention ne se change pas — `src/core/` est
+intouchable.
+
+**Validation** — `typecheck` ✓ · `test` 95/95 ✓ · `lint` ✓ · `build` ✓.
+`src/core/` toujours non modifié.
+
+**Reste**
+
+- **Arbitrage attendu** : valider ou non la palette et les polices avant l'étape 3.
+- `INF-001` : déploiement Vercel, à faire côté compte.
+- `INF-004` : les jetons ne seront écrits dans `globals.css` qu'au retour de
+  Claude Design.
+- `FIS-002` : inchangé, 4 entrées `TODO_VERIFY`. Toujours bloquant.
+- `LEG-001` / `LEG-002` : brouillons à compléter puis à faire relire par un juriste.
