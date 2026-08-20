@@ -1,0 +1,225 @@
+{
+  "_role": "Note de recherche annotée, PAS la source de vérité. Ces valeurs ont été collectées par recherche web et servent de point de départ documenté, avec leurs sources et leurs incertitudes. La source de vérité utilisée par le moteur est src/core/fiscal/params.ts. Toute valeur doit y être reportée après vérification à la source primaire (Legifrance, BOFiP, service-public.fr, ANIL, Banque de France).",
+  "millesime": "2026",
+  "dateVerification": "2026-08-19",
+  "avertissement": "Valeurs collectées par recherche web en août 2026. Chaque entrée porte sa source. À revérifier avant mise en ligne et à chaque loi de finances.",
+
+  "usure": {
+    "_source": "Banque de France, avis publié au JO fin juin 2026",
+    "_note": "TAEG maximal légal. Révisé chaque trimestre. Le dépassement rend le prêt impossible.",
+    "trimestre": "2026-T3",
+    "applicableDu": "2026-07-01",
+    "applicableAu": "2026-09-30",
+    "tauxFixeMoins10ans": 4.07,
+    "tauxFixe10a20ans": 4.57,
+    "tauxFixe20ansEtPlus": 5.29,
+    "tauxVariable": 5.28,
+    "pretRelais": 6.39,
+    "historique": {
+      "2026-T1": { "moins10": 4.12, "de10a20": 4.59, "plus20": 5.13, "variable": 4.99, "relais": 6.15 },
+      "2026-T2": { "moins10": 4.0, "de10a20": 4.48, "plus20": 5.19 }
+    }
+  },
+
+  "hcsf": {
+    "_source": "HCSF, réunion de mars 2026 confirmant le maintien des règles",
+    "tauxEffortMax": 35,
+    "dureeMaxAnnees": 25,
+    "dureeMaxDerogatoireAnnees": 27,
+    "_conditionDerogation": "VEFA, construction, ou travaux représentant au moins 10 % du montant emprunté (seuil abaissé de 25 % à 10 % en décembre 2023)",
+    "margeFlexibilitePct": 20,
+    "_repartitionMarge": "70 % de la marge réservée à la résidence principale, dont 30 % aux primo-accédants ; 30 % libres",
+    "_note": "Assurance emprunteur incluse dans le taux d'effort. Les banques appliquent aussi un critère de reste à vivre, non normé."
+  },
+
+  "dmto": {
+    "_source": "Loi de finances 2025 ; tableau DGFiP ; relevés départementaux 2026",
+    "_note": "Les départements ont pu relever leur part de 4,50 % à 5,00 %. La hausse est temporaire — les sources consultées divergent entre le 31 mars 2028 et le 30 avril 2028 sur sa date de fin. À vérifier.",
+    "ancienTauxPlein": 6.32,
+    "ancienTauxNonReleve": 5.81,
+    "ancienTauxReduit": 5.09,
+    "_departementsTauxReduit": "Indre, Mayotte, et selon certaines sources le Morbihan — à confirmer département par département",
+    "primoAccedantTaux": 5.81,
+    "_primoAccedantDefinition": "Ne pas avoir été propriétaire de sa résidence principale au cours des deux années précédant l'acte. En indivision, la condition s'apprécie pour chaque acquéreur à hauteur de sa quote-part.",
+    "_primoAccedantNote": "Les primo-accédants sont exclus de plein droit de la hausse de 0,5 point. Certains départements peuvent en outre voter une réduction allant jusqu'à 50 % de la part départementale, mais peu l'ont fait.",
+    "neufTaxePubliciteFonciere": 0.715,
+    "fraisTotauxAncienPct": [7, 8.5],
+    "fraisTotauxNeufPct": [2, 3],
+    "_abattementMobilier": "La valeur du mobilier peut être retirée de l'assiette, dans la limite usuelle de 5 % du prix, sur inventaire justifié.",
+    "_remiseEmoluments": "Article L444-2 du Code de commerce : remise possible jusqu'à 20 % sur la fraction du prix supérieure à 100 000 €."
+  },
+
+  "ptz": {
+    "_source": "Décret n° 2025-299 du 29 mars 2025 ; zonage ABC arrêté du 5 septembre 2025 ; ANIL",
+    "_note": "Dispositif prolongé jusqu'au 31 décembre 2027. Barèmes complets par zone et composition de foyer à récupérer sur data.gouv.fr — non reproduits ici.",
+    "quotitesCollectifNeuf": { "T1": 50, "T2": 40, "T3": 40, "T4": 20 },
+    "quotiteMaxMaisonIndividuelleNeuve": 30,
+    "differeAnnees": { "T1": 10, "T2": 8, "T3": 2, "T4": 0 },
+    "dureeTotaleAnnees": { "min": 10, "max": 25 },
+    "coefficientFamilial": { "1": 1.0, "5etPlus": 2.4 },
+    "_coefficientNote": "Barème complet de 1 à 8 personnes à récupérer à la source (art. D31-10-3-1 CCH).",
+    "formuleMontant": "quotite × min(coutOperation, plafondOperation[zone][nbPersonnes])",
+    "determinationTranche": "revenuFiscalReference / coefficientFamilial, comparé aux seuils de la zone",
+    "ancienAvecTravaux": {
+      "zonesEligibles": ["B2", "C"],
+      "partTravauxMin": 25,
+      "dpeMinApresTravaux": "D",
+      "quotites": { "T1": 50, "T2": 40, "T3": 40, "T4": 20 }
+    }
+  },
+
+  "remboursementAnticipe": {
+    "_source": "Code de la consommation, articles L313-47, L313-48 et R313-25",
+    "plafondPctCapitalRestantDu": 3,
+    "plafondMoisInterets": 6,
+    "_regle": "L'indemnité ne peut excéder la valeur d'un semestre d'intérêt sur le capital remboursé au taux moyen du prêt, sans pouvoir dépasser 3 % du capital restant dû avant le remboursement. Le plus faible des deux s'applique.",
+    "seuilMinimalPctMontantInitial": 10,
+    "_seuilNote": "Le contrat PEUT interdire les remboursements inférieurs ou égaux à 10 % du montant INITIAL du prêt, sauf s'il s'agit du solde. Ce n'est pas une obligation légale mais une faculté contractuelle très répandue.",
+    "exonerations": [
+      "vente du bien faisant suite à un changement du lieu d'activité professionnelle de l'emprunteur ou de son conjoint",
+      "cessation forcée de l'activité professionnelle",
+      "décès de l'emprunteur ou de son conjoint"
+    ],
+    "_exonerationNote": "Applicables de plein droit aux contrats conclus depuis l'entrée en vigueur de la loi du 25 juin 1999, même si le contrat ne les mentionne pas.",
+    "_tauxVariable": "Pour les prêts à taux variable, des intérêts compensateurs peuvent s'ajouter."
+  },
+
+  "assuranceEmprunteur": {
+    "_source": "Code de la consommation art. L313-8 et suivants (TAEA) ; loi n° 2022-270 du 28 février 2022 (Lemoine)",
+    "tauxContratGroupePct": [0.3, 0.42],
+    "tauxDelegationPct": [0.1, 0.2],
+    "ecartCapitalInitialVsRestantDuPct": [30, 45],
+    "_ecartNote": "À taux affiché identique, le calcul sur capital restant dû coûte 30 à 45 % de moins sur la durée. Les contrats groupe sont majoritairement sur capital initial, les délégations souvent sur capital restant dû — c'est une pratique de marché, pas une règle.",
+    "lemoine": {
+      "resiliationATousMoments": true,
+      "seuilSuppressionQuestionnaireSante": 200000,
+      "_seuilNote": "Par assuré, et à condition que le terme du prêt survienne avant le 60e anniversaire de l'emprunteur.",
+      "droitOubliCancerAnnees": 5
+    },
+    "_partDansCoutCredit": "Peut atteindre 30 % du coût total du crédit pour les profils jeunes."
+  },
+
+  "plusValueImmobiliere": {
+    "_source": "CGI art. 150 U, 150 VC, 200 B ; BOI-RFPI-PVI",
+    "exonerationResidencePrincipale": true,
+    "_exonerationNote": "Totale, sans condition de durée de détention, à condition que la vente intervienne dans un délai normal après le déménagement. Un amendement au budget 2026 visant à imposer une occupation minimale de 5 ans n'a pas été retenu.",
+    "tauxIR": 19,
+    "tauxPrelevementsSociaux": 17.2,
+    "_psComposition": "CSG 9,2 % + CRDS 0,5 % + prélèvement de solidarité 7,5 %",
+    "_psNote": "La hausse à 18,6 % de la LFSS 2026 concerne les placements financiers (dividendes, plus-values mobilières), PAS les revenus fonciers ni les plus-values immobilières.",
+    "abattementIR": {
+      "debutAnnee": 6,
+      "tauxAnnuelDe6a21": 6,
+      "tauxAnnee22": 4,
+      "exonerationTotaleAnnees": 22
+    },
+    "abattementPS": {
+      "debutAnnee": 6,
+      "tauxAnnuelDe6a21": 1.65,
+      "tauxAnnee22": 1.6,
+      "tauxAnnuelDe23a30": 9,
+      "exonerationTotaleAnnees": 30
+    },
+    "surtaxe": {
+      "seuil": 50000,
+      "tauxPct": [2, 6],
+      "_note": "S'applique sur le montant TOTAL de la plus-value nette imposable, pas seulement sur la fraction excédant 50 000 €. Barème progressif avec lissage pour éviter les effets de seuil."
+    },
+    "forfaitFraisAcquisition": 7.5,
+    "forfaitTravaux": 15,
+    "_forfaitTravauxCondition": "Détention supérieure à 5 ans. Alternative aux frais réels justifiés.",
+    "_reformeNonAdoptee": "L'amendement I-377 réduisant l'exonération IR de 22 à 17 ans n'a pas été retenu dans la loi de finances 2026."
+  },
+
+  "lmnp": {
+    "_source": "Loi de finances 2025 ; loi Le Meur du 19 novembre 2024 ; CGI art. 50-0",
+    "reintegrationAmortissements": {
+      "applicableDepuis": "2025-02-15",
+      "_regle": "Les amortissements déduits au régime réel viennent diminuer le prix d'acquisition, augmentant mécaniquement la plus-value imposable.",
+      "_pointCritique": "Les amortissements réintégrés ne bénéficient d'AUCUN abattement pour durée de détention. Ils restent imposés à 36,2 % même après 22 ou 30 ans. Seule la plus-value brute bénéficie des abattements.",
+      "plafonnement": false,
+      "exceptions": ["résidences services étudiantes", "résidences seniors", "EHPAD"]
+    },
+    "amortissementAnnuelPct": [2, 3],
+    "_amortissementNote": "Sur la structure. Le mobilier s'amortit plus rapidement. Le terrain n'est pas amortissable — retenir environ 80 % de la valeur comme base."
+  },
+
+  "regimesLocatifs": {
+    "microFoncier": {
+      "seuil": 15000,
+      "abattementPct": 30,
+      "_aVerifier": "Non confirmé par la recherche — à vérifier à la source."
+    },
+    "microBicMeubleLongueDuree": {
+      "seuilRevenus2025": 77700,
+      "seuilRevenus2026": 83600,
+      "abattementPct": 50
+    },
+    "microBicTourismeClasse": {
+      "seuilRevenus2025": 77700,
+      "seuilRevenus2026": 83600,
+      "abattementPct": 50,
+      "_avant": "188 700 € et 71 % avant la réforme"
+    },
+    "microBicTourismeNonClasse": {
+      "seuil": 15000,
+      "abattementPct": 30,
+      "_avant": "77 700 € et 50 % avant la réforme",
+      "_note": "Changement le plus brutal de la loi Le Meur. Au-delà de 15 000 € de recettes, bascule obligatoire au régime réel."
+    },
+    "chambresDHotes": { "seuil": 188700, "abattementPct": 71 },
+    "abattementMinimum": 305,
+    "seuilLMP": {
+      "recettes": 23000,
+      "partRevenusFoyerPct": 50
+    },
+    "classementAtoutFrance": {
+      "coutEuros": [150, 300],
+      "validiteAnnees": 5,
+      "_note": "Le classement multiplie le plafond micro-BIC par cinq et fait passer l'abattement de 30 % à 50 %. Levier économique majeur depuis la loi Le Meur."
+    }
+  },
+
+  "nonResidents": {
+    "_source": "CGI ; arrêt CJUE de Ruyter C-623/13 ; réforme 2019",
+    "tauxMinimumIR": 20,
+    "seuilTauxMinimum": 28797,
+    "_seuilNote": "Revenu net imposable, pour l'imposition des revenus 2025. Au-delà, taux minimum de 30 %. Révisé chaque année.",
+    "prelevementsSociauxAffilieEEE": 7.5,
+    "prelevementsSociauxAutres": 17.2,
+    "_conditionTauxReduit": "Affiliation à un régime obligatoire de sécurité sociale d'un État de l'EEE, de la Suisse ou du Royaume-Uni. Justification par formulaire S1252 auprès de la DGFiP.",
+    "_tauxGlobalIndicatif": {
+      "horsUE": 37.2,
+      "affilieEEE": 27.5
+    },
+    "_reserve": "Les conventions fiscales bilatérales peuvent modifier ces règles. Vérification cas par cas indispensable."
+  },
+
+  "garanties": {
+    "_note": "Ordres de grandeur de marché, non réglementaires. À affiner avec les barèmes des organismes.",
+    "caution": { "coutPct": [1.0, 1.5], "partRestituablePct": [50, 75] },
+    "hypothequeOuPPD": { "coutPct": [1.5, 2.0], "partRestituablePct": 0, "mainleveePct": [0.3, 0.5] },
+    "nantissement": { "coutPct": [0.1, 0.5], "partRestituablePct": 0 }
+  },
+
+  "taeg": {
+    "_source": "Code de la consommation art. R314-3, R314-4, R314-5 et annexe",
+    "methode": "equivalence-actuarielle",
+    "moisNormaliseJours": 30.41666,
+    "_moisNormaliseNote": "Un mois normalisé compte 365/12 jours. L'écart entre dates s'exprime en années ou fractions d'années.",
+    "arrondiDecimales": 1,
+    "fraisInclus": [
+      "frais de dossier",
+      "sommes versées aux intermédiaires",
+      "assurance emprunteur obligatoire",
+      "garanties obligatoires",
+      "frais de tenue de compte imposée",
+      "frais d'évaluation du bien"
+    ],
+    "fraisExclus": [
+      "frais liés à l'acquisition de l'immeuble",
+      "droits de mutation et taxes",
+      "frais d'acte notarié"
+    ]
+  }
+}
