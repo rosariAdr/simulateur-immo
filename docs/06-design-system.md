@@ -1,8 +1,12 @@
-# Charte graphique — proposition
+# Charte graphique
 
-> **Statut : proposition, non validée.** Les valeurs de ce document deviennent
-> `src/app/globals.css` (`INF-004`) une fois arbitrées. Rien n'est encore implémenté.
-> Source de l'intention : `docs/01-brief-design.md` §4 et §5.
+> **Statut : validée le 20 août 2026.** Les valeurs de ce document sont en vigueur
+> dans `src/app/globals.css` et les polices sont chargées par `src/app/layout.tsx`.
+> Source de l'intention : `docs/01-brief-design.md` §4 et §5. Décision : `docs/ADR.md`, ADR-002.
+>
+> **Ce document ne fait plus autorité seul.** La source de vérité des valeurs est
+> `src/app/globals.css`, et `src/app/__tests__/design-tokens.test.ts` échoue si un
+> contraste régresse. Modifier une valeur ici sans la modifier là est sans effet.
 
 ## 1. Méthode
 

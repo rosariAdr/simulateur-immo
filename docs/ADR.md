@@ -79,3 +79,78 @@ doit devenir un paramètre d'entrée.
   du domaine. Elle vit côté interface, jamais dans `src/core/`.
 - Les évolutions futures — `compare/`, `prepayment/`, `markets/`, `aides/` — héritent de la
   contrainte sans discussion.
+
+---
+
+## ADR-002 — Les jetons de design sont nommés par rôle et gardés par un test
+
+**Date** : 20 août 2026 · **Statut** : adoptée · **Tickets** : `INF-004`
+
+### Contexte
+
+Le brief de design fixe un système de couleur **sémantique avant d'être esthétique** :
+chaque couleur porte un sens identique dans tous les modules. Vert pour le capital et
+les gains, brique pour les intérêts et les coûts, violet pour l'assurance, bleu pour
+les marchés.
+
+Deux façons de rater cela, toutes deux courantes. Nommer les jetons par leur couleur
+— `--vert-500` — ce qui rend le nom faux le jour où la teinte change et autorise
+n'importe quel usage. Et choisir les valeurs à l'œil, ce qui produit des palettes
+qui s'effondrent sous déficience de la vision des couleurs ou passent sous les
+seuils de contraste sans que personne ne s'en aperçoive.
+
+Le second risque est réel ici : les quatre couleurs sémantiques sont **aussi** les
+couleurs de séries des graphiques. Elles se touchent dans le ruban d'amortissement.
+Deux d'entre elles, le violet de l'assurance et le bleu des marchés, sont voisines.
+
+### Décision
+
+**Les jetons sont nommés par leur rôle, jamais par leur couleur.** `--capital`, pas
+`--vert`. Le nom décrit ce que la valeur signifie, pas ce à quoi elle ressemble.
+
+**Les valeurs sont calculées, pas choisies.** Chaque couleur sémantique passe cinq
+contrôles : bande de clarté OKLCH, plancher de chroma, séparation sous protanopie et
+deutéranopie simulées (Machado–Oliveira–Fernandes 2009, sévérité 1,0), plancher en
+vision normale, contraste sur la surface.
+
+**Le remplissage et le texte sont deux jetons distincts.** `--capital` remplit une
+forme et satisfait 3:1. `--capital-texte` porte du texte et satisfait 4,5:1. Quatre
+des couleurs de série n'atteignent pas le seuil de texte : les confondre produirait
+un texte illisible sans que rien ne le signale.
+
+**Le thème sombre est choisi, pas dérivé.** Ses valeurs sont des pas distincts,
+validés contre la surface sombre.
+
+### Justification
+
+Deux résultats de la validation montrent pourquoi le calcul n'est pas un ornement.
+
+Le violet **ne peut pas** être aussi sombre que l'« ardoise » du brief : assombri,
+il tombe à ΔE 11,8 du bleu marchés en vision normale, sous le plancher de 15. Deux
+couleurs qu'un lecteur sans déficience visuelle confondrait déjà.
+
+La palette **ne peut pas** être plus désaturée : une variante à chroma 0,095 échoue
+au plancher, en dessous duquel une teinte lit comme un gris et cesse de porter
+l'identité. Les valeurs retenues sont posées exactement sur ce plancher, au plus
+près de l'intention « sourd » du brief.
+
+Aucun de ces deux murs n'était visible à l'œil.
+
+### Ce qui la garde
+
+`src/app/__tests__/design-tokens.test.ts` lit `globals.css` — et non une copie des
+valeurs — puis vérifie chaque seuil. Il échoue aussi si le thème sombre devient
+identique au thème clair, signe qu'une inversion automatique aurait remplacé le
+choix.
+
+Vérifié à l'adoption : remplacer `--assurance-texte` par la couleur de série
+correspondante fait échouer la suite avec `#846cad sur #f1f3f6 : 3.99:1`.
+
+### Conséquences acceptées
+
+- Ajouter une couleur au système n'est pas une modification d'une ligne : il faut la
+  faire passer par la validation. C'est le coût voulu.
+- Un ajustement purement esthétique peut être refusé par le test. Dans ce cas, c'est
+  la valeur qu'on rééchelonne, pas le seuil qu'on abaisse.
+- La palette plafonne à quatre couleurs de série. Une cinquième série ne prend pas
+  une teinte inventée : elle se replie dans « autres », ou passe en petits multiples.

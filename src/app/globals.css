@@ -1,26 +1,104 @@
 @import "tailwindcss";
 
+/**
+ * JETONS DE DESIGN
+ *
+ * Nommés par leur RÔLE, jamais par leur couleur. « capital » et non « vert » :
+ * le jour où le vert change, le nom reste juste. Voir docs/ADR.md, ADR-002.
+ *
+ * Les valeurs ne sont pas choisies à l'œil. Les quatre couleurs sémantiques sont
+ * aussi les couleurs de séries des graphiques, et sont validées par calcul :
+ * bande de clarté OKLCH, plancher de chroma, séparation sous protanopie et
+ * deutéranopie, contraste sur la surface. Voir docs/06-design-system.md.
+ *
+ * Toute modification doit être revalidée. Le test src/app/__tests__/design-tokens.test.ts
+ * échoue si un contraste passe sous son seuil.
+ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Surfaces et encre */
+  --papier: #f1f3f6;
+  --panneau: #f8f9fb;
+  --encre: #14181c;
+  --encre-secondaire: #4a555f;
+  --filet: #c9cfd7;
+  --accent: #7e5f26;
+
+  /* Couleurs sémantiques — remplissage des formes, contraste >= 3:1 */
+  --capital: #207e5d;
+  --interets: #863525;
+  --assurance: #846cad;
+  --marches: #085491;
+
+  /* Variantes texte — contraste >= 4,5:1. Ne jamais utiliser les précédentes
+     pour porter du texte : quatre d'entre elles n'y atteignent pas le seuil. */
+  --capital-texte: #107c5a;
+  --interets-texte: #863525;
+  --assurance-texte: #725b9a;
+  --marches-texte: #085491;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
+/**
+ * Thème sombre — CHOISI, pas dérivé. Chaque valeur est un pas distinct, validé
+ * contre la surface sombre. Une inversion automatique casserait la séparation
+ * entre l'assurance et les marchés.
+ */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --papier: #14181c;
+    --panneau: #1e242a;
+    --encre: #e6eaef;
+    --encre-secondaire: #a9b3bd;
+    --filet: #333c45;
+    --accent: #c79a46;
+
+    --capital: #46a37f;
+    --interets: #ae523f;
+    --assurance: #a581c6;
+    --marches: #2170b0;
+
+    --capital-texte: #46a37f;
+    --interets-texte: #c06956;
+    --assurance-texte: #a581c6;
+    --marches-texte: #4983c3;
   }
 }
 
+@theme inline {
+  --color-papier: var(--papier);
+  --color-panneau: var(--panneau);
+  --color-encre: var(--encre);
+  --color-encre-secondaire: var(--encre-secondaire);
+  --color-filet: var(--filet);
+  --color-accent: var(--accent);
+
+  --color-capital: var(--capital);
+  --color-interets: var(--interets);
+  --color-assurance: var(--assurance);
+  --color-marches: var(--marches);
+
+  --color-capital-texte: var(--capital-texte);
+  --color-interets-texte: var(--interets-texte);
+  --color-assurance-texte: var(--assurance-texte);
+  --color-marches-texte: var(--marches-texte);
+
+  /* Trois rôles, trois familles. Voir docs/06-design-system.md §6. */
+  --font-titre: var(--font-archivo);
+  --font-sans: var(--font-public-sans);
+  --font-mono: var(--font-plex-mono);
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--papier);
+  color: var(--encre);
+  font-family: var(--font-public-sans), system-ui, sans-serif;
+}
+
+/**
+ * Chiffres tabulaires par défaut sur tout ce qui porte un montant hors tableau.
+ * Sans cela, un indicateur qui se met à jour fait sautiller sa propre largeur
+ * à chaque frappe.
+ */
+.tabulaire {
+  font-variant-numeric: tabular-nums;
 }

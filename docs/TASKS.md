@@ -14,8 +14,9 @@ Préfixes : `ENG` moteur de calcul · `FIS` paramètres fiscaux · `UI` interfac
       → `vitest.config.mts` (`globals`, `include: src/**/*.test.ts`), 95 tests verts sur 3 fichiers
 - [x] `INF-003` Règle de lint interdisant les imports UI depuis `src/core/`
       → `no-restricted-imports` en override sur `src/core/**`, vérifiée par sonde temporaire
-- [ ] `INF-004` Jetons de design en variables CSS, nommés par rôle sémantique
-      → `globals.css` est encore le gabarit Next par défaut
+- [x] `INF-004` Jetons de design en variables CSS, nommés par rôle sémantique
+      → `globals.css` + `layout.tsx`, validés par calcul et gardés par un test.
+      Restent les cinq états des composants de saisie, au retour de Claude Design.
 - [x] `FIS-001` Structure des paramètres fiscaux versionnés par millésime
       → `src/core/fiscal/params.ts`, typé, daté, sourcé par JSDoc `@source`/`@see`
 - [ ] `FIS-002` **Vérifier à la source toutes les valeurs réglementaires du prototype**
@@ -189,3 +190,29 @@ intouchable.
   Claude Design.
 - `FIS-002` : inchangé, 4 entrées `TODO_VERIFY`. Toujours bloquant.
 - `LEG-001` / `LEG-002` : brouillons à compléter puis à faire relire par un juriste.
+
+### 20 août 2026 (suite) — Charte figée dans le code
+
+**Fait**
+
+- Palette et typographie **validées** par Adrian, puis écrites dans le code :
+  `src/app/globals.css` (jetons nommés par rôle) et `src/app/layout.tsx`
+  (Archivo, Public Sans, IBM Plex Mono via `next/font`, auto-hébergées).
+- `src/app/__tests__/design-tokens.test.ts` — 27 tests qui lisent `globals.css`
+  et échouent si un contraste régresse ou si le thème sombre cesse d'être choisi.
+  Vérifié par sonde : remplacer `--assurance-texte` par la couleur de série
+  correspondante fait bien échouer la suite à 3,99:1.
+- ADR-002 : nommage par rôle, valeurs calculées, séparation remplissage/texte.
+- `docs/07-brief-claude-design.md` mis à jour : la palette et les polices ne sont
+  plus une proposition mais une contrainte d'entrée.
+- `INF-004` cochée pour sa partie couleurs et typographie.
+
+**Validation** — `typecheck` ✓ · `test` **122/122 sur 4 fichiers** ✓ · `lint` ✓ · `build` ✓
+
+**Reste**
+
+- Étape 3 : la passation à Claude Design, côté Adrian.
+- `INF-004` résiduel : les cinq états des composants de saisie, au retour du design.
+- `INF-001` : déploiement Vercel, toujours à faire côté compte.
+- `FIS-002` : inchangé, 4 entrées `TODO_VERIFY`. Toujours bloquant avant mise en ligne.
+- `LEG-001` / `LEG-002` : brouillons à compléter, puis relecture juridique.

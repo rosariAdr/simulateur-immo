@@ -11,7 +11,7 @@ Ce document ne se colle pas lui-même : c'est ta feuille de route.
 |---|---|---|---|
 | 1 | `docs/01-brief-design.md` | L'intention : métaphore, interdits, couleurs sémantiques, typographie, écrans attendus | **tel quel, intégralement**. Il est écrit pour ça. |
 | 2 | `fixtures/PLANCHE-DESIGN.md` | Les données réelles : vrais montants, vrais tableaux, vrais cas non conformes | **tel quel**. 424 lignes. |
-| 3 | `docs/06-design-system.md` §2 et §3 | Les jetons de couleur déjà validés | **seulement si tu valides la palette proposée** (voir §4 ci-dessous) |
+| 3 | `docs/06-design-system.md` | La palette et la typographie, arrêtées | **tel quel**. Ce sont des contraintes, pas des suggestions (voir §4). |
 
 Ne colle pas `docs/02-architecture.md`, ni `docs/03-spec-domaine.md`, ni le code du
 moteur. Claude Design n'a pas besoin de savoir comment le calcul est fait, seulement
@@ -80,37 +80,50 @@ qualité par ailleurs. Ce sont les interdits du brief, rendus vérifiables.
 
 ---
 
-## 4. La décision qui te revient avant de commencer
+## 4. Palette et typographie — tranchées
 
-**La palette.** `docs/06-design-system.md` propose un jeu de valeurs déjà validé par
-calcul : bande de clarté, plancher de chroma, séparation sous deutéranopie et
-protanopie, contraste. Deux options :
+**Décidées le 20 août 2026, et déjà en vigueur dans le code.** Elles ne sont pas une
+proposition soumise à Claude Design : ce sont des contraintes d'entrée.
 
-- **Tu la valides** → tu la colles à Claude Design comme contrainte, et il compose
-  avec. C'est le chemin court, et il garantit l'accessibilité.
-- **Tu préfères la laisser ouverte** → tu ne colles que le brief, et tu demandes à
-  Claude Design de proposer. Il faudra alors revalider ses valeurs par le même
-  calcul, et accepter qu'elles bougent.
+- Palette validée par calcul dans les deux thèmes, écrite dans `src/app/globals.css`
+- Trois familles chargées par `src/app/layout.tsx` : Archivo, Public Sans, IBM Plex Mono
+- `src/app/__tests__/design-tokens.test.ts` échoue si un contraste régresse
 
-**La typographie.** Trois familles proposées — Archivo, Public Sans, IBM Plex Mono —
-avec deux variantes documentées. Même choix : imposer, ou laisser proposer. Si tu
-laisses proposer, exige que la monospace ait de vrais chiffres tabulaires et que
-toutes les familles soient sous licence libre et auto-hébergeables.
+Formule à ajouter au prompt :
+
+> La palette et la typographie sont **arrêtées**, elles ne sont pas à reproposer.
+> Elles sont validées par calcul — bande de clarté, plancher de chroma, séparation
+> sous protanopie et deutéranopie, contraste — et gardées par un test. Compose avec
+> ces valeurs. Si l'une d'elles t'empêche de résoudre un problème de conception,
+> dis-le explicitement et explique pourquoi, plutôt que de la remplacer en silence.
+
+Deux points à connaître, parce qu'ils vont revenir :
+
+- **Le violet de l'assurance ne peut pas être plus sombre.** Assombri vers
+  l'« ardoise » que décrit le brief, il tombe à ΔE 11,8 du bleu marchés en vision
+  normale, sous le plancher de 15. Ce n'est pas un choix esthétique, c'est une limite.
+- **L'assurance ne pèse que 4 % de l'échéance**, donc sa bande dans le ruban est très
+  fine. Question ouverte, légitime à poser à Claude Design : ce troisième poste
+  mérite-t-il une lecture dédiée ailleurs plutôt qu'une bande de 5 pixels ?
 
 ---
 
 ## 5. Ce qui se passe au retour
 
-1. Je transcris les jetons dans `src/app/globals.css` et je **vérifie les contrastes
-   par calcul**, pas à l'œil (`INF-004`).
-2. Je consigne la palette retenue et les réponses aux trois questions dans
-   `docs/06-design-system.md`, pour que cette connaissance ne vive pas seulement
-   dans un fil de conversation.
-3. J'ouvre ADR-002 sur la convention de nommage des jetons.
-4. **Les jetons sont commités avant le premier composant.** Poser les couleurs après
-   avoir écrit des composants, c'est un retrofit qui coûte cher.
-5. J'implémente le module crédit, avec la skill `impeccable`.
-6. Passe d'audit `impeccable` contre la liste du §3 ci-dessus.
+Les jetons sont **déjà** dans `globals.css`, gardés par un test, et ADR-002 est
+écrite. Poser les couleurs après avoir écrit des composants aurait été un retrofit
+coûteux ; c'est fait, il reste :
+
+1. Je consigne dans `docs/06-design-system.md` les **réponses aux trois questions**
+   de la section 9 du brief, pour que cette connaissance ne vive pas seulement dans
+   un fil de conversation.
+2. Je transcris les **cinq états des composants de saisie** en jetons et en classes.
+3. J'implémente le module crédit, avec la skill `impeccable`, en partant de l'écran
+   de référence sur écran large.
+4. Passe d'audit `impeccable` contre la liste du §3 ci-dessus.
+
+Si Claude Design propose un jeton **supplémentaire** — un état d'erreur, une trame,
+un gris intermédiaire — il rejoint `globals.css` et le test avant d'être utilisé.
 
 ---
 
