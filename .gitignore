@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# dossier de passation, reconstruit par npm run design-pack
+/design-pack/
+/design-pack.zip

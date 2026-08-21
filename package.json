@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
-    "fixtures": "node scripts/run.mjs scripts/export-fixtures.mts && node scripts/run.mjs scripts/export-design-sheet.mts"
+    "fixtures": "node scripts/run.mjs scripts/export-fixtures.mts && node scripts/run.mjs scripts/export-design-sheet.mts",
+    "design-pack": "node scripts/build-design-pack.mjs"
   },
   "dependencies": {
     "next": "16.3.1",

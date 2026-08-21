@@ -26,12 +26,21 @@ ce qu'il produit.
 > primo-accédant qui ne connaît ni le TAEG ni la différence entre caution et
 > hypothèque, et qui doit décider d'un engagement de vingt ans.
 >
-> Je te donne deux documents. Le premier décrit **l'intention de design** :
-> métaphore directrice, interdits fermes, système de couleur sémantique,
-> typographie, principes de composition. Lis-le comme un cahier des charges, pas
-> comme une suggestion — les interdits de la section 3 sont fermes.
+> Je te donne trois documents.
 >
-> Le second contient les **sorties réelles du moteur de calcul**, sur quatre
+> Le premier décrit **l'intention de design** : métaphore directrice, interdits
+> fermes, système de couleur sémantique, typographie, principes de composition.
+> Lis-le comme un cahier des charges, pas comme une suggestion — les interdits de
+> la section 3 sont fermes.
+>
+> Le deuxième contient la **palette et la typographie, arrêtées**. Elles ne sont
+> pas à reproposer. Leurs valeurs sont validées par calcul — bande de clarté,
+> plancher de chroma, séparation sous protanopie et deutéranopie, contraste — et
+> gardées par un test automatisé. Compose avec elles. Si l'une d'elles t'empêche
+> de résoudre un problème de conception, dis-le explicitement et explique
+> pourquoi, plutôt que de la remplacer en silence.
+>
+> Le troisième contient les **sorties réelles du moteur de calcul**, sur quatre
 > scénarios. Tous les chiffres en sont issus, aucun n'est inventé. Utilise ces
 > chiffres et eux seuls : n'invente aucun montant, aucune durée, aucun taux. Deux
 > des quatre scénarios sont non conformes à une règle — c'est délibéré.
@@ -43,11 +52,13 @@ ce qu'il produit.
 >
 > Trois livrables sont attendus en plus des écrans :
 >
-> 1. **Les jetons de design en variables CSS**, nommés par leur rôle sémantique et
->    jamais par leur couleur. Un thème clair et un thème sombre. Tout texte doit
->    atteindre un contraste de 4,5:1.
-> 2. **Les cinq états de chaque composant de saisie** : repos, survol, focus,
->    erreur, désactivé.
+> 1. **Les cinq états de chaque composant de saisie** : repos, survol, focus,
+>    erreur, désactivé. En variables CSS nommées par leur rôle, jamais par leur
+>    couleur, dans les deux thèmes.
+> 2. **Tout jeton supplémentaire** que ta conception rend nécessaire — un état
+>    d'erreur, une trame, un gris intermédiaire, une couleur de sélection. Nomme-le
+>    par son rôle et donne sa valeur dans les deux thèmes. Tout texte doit
+>    atteindre un contraste de 4,5:1, tout élément non textuel porteur de sens 3:1.
 > 3. **Une réponse argumentée aux trois questions de la section 9.** Ce sont des
 >    décisions de conception. Si tu ne les tranches pas, elles reviendront à
 >    l'implémentation où elles coûteront dix fois plus cher.
