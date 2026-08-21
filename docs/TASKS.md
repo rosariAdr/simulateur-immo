@@ -7,9 +7,9 @@ Préfixes : `ENG` moteur de calcul · `FIS` paramètres fiscaux · `UI` interfac
 
 ## Phase 0 — Fondations
 
-- [ ] `INF-001` Initialiser Next.js, TypeScript strict, Tailwind, déploiement Vercel
+- [x] `INF-001` Initialiser Next.js, TypeScript strict, Tailwind, déploiement Vercel
       → socle en place (Next 16 App Router, `strict` + `noUncheckedIndexedAccess` +
-      `exactOptionalPropertyTypes`, Tailwind 4). **Reste le déploiement Vercel.**
+      `exactOptionalPropertyTypes`, Tailwind 4). Déploiement Vercel actif depuis le 21 août 2026.
 - [x] `INF-002` Configurer Vitest et fast-check
       → `vitest.config.mts` (`globals`, `include: src/**/*.test.ts`), 95 tests verts sur 3 fichiers
 - [x] `INF-003` Règle de lint interdisant les imports UI depuis `src/core/`
@@ -35,6 +35,11 @@ Préfixes : `ENG` moteur de calcul · `FIS` paramètres fiscaux · `UI` interfac
 - [ ] `ENG-009` Tests de propriétés sur les invariants d'échéancier
 
 ## Phase 2 — Interface crédit
+
+- [ ] `UI-000` Galerie `/composants` — les primitives dans leurs cinq états, banc
+      d’essai des tests de bout en bout et documentation vivante
+- [ ] `INF-007` Playwright : scénario partagé par URL, navigation au clavier,
+      tableau long sur fenêtre étroite
 
 - [ ] `UI-001` Grille de base, panneau de paramètres, zone de résultats
 - [ ] `UI-002` Composants de saisie et leurs états
@@ -80,6 +85,10 @@ Préfixes : `ENG` moteur de calcul · `FIS` paramètres fiscaux · `UI` interfac
 
 - [ ] `ENG-026` Moteur de règles d'éligibilité alimenté par données
 - [ ] `FIS-003` Barèmes, zonage, plafonds de ressources, avec sources
+- [ ] `FIS-004` Exonération de la hausse DMTO pour première propriété — non modélisée,
+      concerne le public prioritaire. Voir `docs/reference/FIS-002-verification.md`
+- [ ] `FIS-005` Sortir les barèmes de caution de `params.ts` : ce sont des hypothèses
+      de marché, aucune loi ne les fixe. Décision d’architecture à prendre
 - [ ] `UI-010` Assistant d'éligibilité
 
 ## Phase 7 — Contenus et mise en ligne
@@ -255,3 +264,40 @@ intouchable.
 - `INF-001` : déploiement Vercel, toujours côté compte.
 - `LEG-001` / `LEG-002` : brouillons à compléter, puis relecture juridique.
 - Prochain jalon : les premiers composants React, à partir des planches.
+
+### 21 août 2026 (suite) — Déploiement, arbitrages, vérification réglementaire
+
+**Décisions prises**
+
+- **`FIS-002`** : recherche menée à la source plutôt qu'acceptation en l'état.
+  Résultats dans `docs/reference/FIS-002-verification.md`.
+- **Page publique** : le gabarit Next reste en ligne jusqu'au premier module.
+  Choix assumé — à noter que le dépôt GitHub étant public, l'URL Vercel se déduit
+  du nom du projet.
+- **Première tranche d'implémentation** : les primitives de saisie d'abord, en
+  isolation, dans leurs cinq états et sur les deux thèmes. Le câblage vient après.
+- **Tests d'interface** : Playwright, bout en bout. Conséquence de séquencement :
+  des tests de bout en bout ont besoin d'une page à piloter, or des primitives
+  isolées n'en ont pas. D'où `UI-000`, une galerie `/composants` qui sert de banc
+  d'essai maintenant et de documentation vivante ensuite.
+
+**Fait**
+
+- `INF-001` cochée : déploiement Vercel actif.
+- Recherche `FIS-002` : la fin de la hausse des DMTO est confirmée au 31 mars 2028
+  par deux sources concordantes. Une loi de finances pour 2026 non anticipée par la
+  documentation du projet est intervenue sur le dispositif — sans déplacer ce terme,
+  d'après le BOFiP.
+- Trois tickets nés de la recherche : `FIS-004` exonération primo-accédants,
+  `FIS-005` requalification des barèmes de caution, plus `INF-007` Playwright.
+
+**Reste, et bloque**
+
+- **La liste des départements à taux réduit n'est toujours pas résolue.** Deux
+  sources consultées le même jour se contredisent. Le document qui tranche est
+  identifié — le PDF de la DGFiP au 1er février 2026 — mais il encode son texte
+  avec des polices propriétaires. Il faut soit le transcrire à la main, soit
+  installer `poppler-utils` sur la machine.
+- **Le report dans `src/core/fiscal/params.ts` n'a pas été fait** : la consigne
+  interdit de toucher à `src/core/`. À faire par quelqu'un qui en a le droit, ou
+  lever la consigne pour ce fichier.
