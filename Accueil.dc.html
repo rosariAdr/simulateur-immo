@@ -1,0 +1,116 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <style>
+    body { margin: 0; background: #f1f3f6; }
+    a { color: #7e5f26; } a:hover { color: #5f4718; }
+    .mo { font-family: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace; font-variant-numeric: tabular-nums; }
+    .ps { font-family: 'Public Sans', 'Helvetica Neue', Arial, sans-serif; }
+    .ar { font-family: 'Archivo', 'Helvetica Neue', Arial, sans-serif; }
+  </style>
+</helmet>
+
+<div class="ps" style="width: 1240px; background: #f1f3f6; color: #14181c">
+
+  <div style="display: flex; align-items: baseline; justify-content: space-between; border-bottom: 1px solid #c9cfd7; padding: 14px 40px">
+    <span class="ar" style="font-weight: 700; font-size: 16px; letter-spacing: -0.015em">Simulateur d'acquisition</span>
+    <div style="display: flex; gap: 20px">
+      <span class="ps" style="font-size: 12px; color: #4a555f">Fiches</span>
+      <span class="ps" style="font-size: 12px; color: #4a555f">Glossaire</span>
+      <span class="ps" style="font-size: 12px; color: #4a555f">Sources</span>
+    </div>
+  </div>
+
+  <div style="padding: 52px 40px 40px; border-bottom: 1px solid #c9cfd7">
+    <p class="ar" style="font-weight: 700; font-size: 46px; line-height: 1.12; margin: 0 0 18px; letter-spacing: -0.028em; max-width: 20ch">L'immobilier n'est pas mécaniquement supérieur aux autres placements.</p>
+    <p class="ps" style="font-size: 17px; line-height: 1.6; margin: 0 0 12px; max-width: 62ch">Ce simulateur calcule votre opération en entier — crédit, frais, aides, comparaison avec la location, remboursements anticipés — et explique chaque paramètre au moment où il apparaît.</p>
+    <p class="ps" style="font-size: 15px; line-height: 1.6; color: #4a555f; margin: 0 0 28px; max-width: 62ch">Gratuit, sans compte, sans publicité. Aucun chiffre que vous saisissez ne quitte votre navigateur. Nous ne vendons rien et ne mettons en relation avec personne.</p>
+    <div style="display: flex; align-items: center; gap: 16px">
+      <span class="ps" style="display: inline-flex; align-items: center; gap: 9px; background: #14181c; color: #f1f3f6; font-size: 14px; padding: 11px 20px">
+        Calculer mon crédit
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f1f3f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+      </span>
+      <span class="ps" style="font-size: 13px; color: #4a555f">Deux minutes, six paramètres.</span>
+    </div>
+  </div>
+
+  <div style="padding: 34px 40px; border-bottom: 1px solid #c9cfd7">
+    <p class="ps" style="font-size: 11px; color: #4a555f; letter-spacing: 0.07em; text-transform: uppercase; margin: 0 0 16px">Ce que vous ne trouverez pas ailleurs</p>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 26px">
+      <div>
+        <p class="ar" style="font-weight: 600; font-size: 16px; margin: 0 0 7px">Chaque paramètre porte sa nature</p>
+        <p class="ps" style="font-size: 13px; color: #4a555f; margin: 0 0 11px; line-height: 1.6">Négociable, contraint, ou réglementaire. Vous savez en permanence sur quoi vous avez prise, ce qui dépend de votre projet, et où se trouve le mur.</p>
+        <div style="display: flex; flex-direction: column; gap: 5px">
+          <span style="display: flex; align-items: center; gap: 7px"><span style="width: 11px; height: 11px; border: 1px solid #7e5f26; background: #f8f9fb; display: inline-block"></span><span class="ps" style="font-size: 12px">taux, assurance, frais de dossier</span></span>
+          <span style="display: flex; align-items: center; gap: 7px"><span style="width: 11px; height: 11px; border: 1px solid #c9cfd7; background: #f8f9fb; display: inline-block"></span><span class="ps" style="font-size: 12px">apport, durée, revenus, prix</span></span>
+          <span style="display: flex; align-items: center; gap: 7px"><span style="width: 11px; height: 11px; border: 1px dashed #4a555f; background: #eceff3; display: inline-block"></span><span class="ps" style="font-size: 12px">usure, HCSF, droits de mutation</span></span>
+        </div>
+      </div>
+      <div>
+        <p class="ar" style="font-weight: 600; font-size: 16px; margin: 0 0 7px">Chaque valeur porte sa source</p>
+        <p class="ps" style="font-size: 13px; color: #4a555f; margin: 0 0 11px; line-height: 1.6">Taux d'usure, plafonds, abattements : chaque nombre réglementaire affiche sa date d'application et d'où il vient. Vous pouvez le vérifier.</p>
+        <div style="border: 1px solid #c9cfd7; background: #f8f9fb; padding: 8px 10px">
+          <p class="mo" style="font-size: 12px; margin: 0 0 3px">5,29 %</p>
+          <p class="ps" style="font-size: 10px; color: #4a555f; margin: 0; line-height: 1.45">Taux d'usure, prêts à taux fixe de 20 ans et plus. Banque de France, 3<sup>e</sup> trimestre 2026. Révisé le 1<sup>er</sup> octobre.</p>
+        </div>
+      </div>
+      <div>
+        <p class="ar" style="font-weight: 600; font-size: 16px; margin: 0 0 7px">Chaque module dit ses limites</p>
+        <p class="ps" style="font-size: 13px; color: #4a555f; margin: 0 0 11px; line-height: 1.6">Un encadré « ce que ce calcul ne dit pas » ferme chaque module. Ce n'est pas une note de bas de page : c'est ce qui sépare un outil honnête d'un argumentaire.</p>
+        <div style="border-left: 3px solid #7e5f26; padding-left: 11px">
+          <p class="ps" style="font-size: 12px; margin: 0; line-height: 1.55; color: #14181c">« Il suppose que le locataire place réellement la différence chaque mois. C'est l'hypothèse la plus fragile du module. »</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding: 34px 40px; border-bottom: 1px solid #c9cfd7">
+    <p class="ps" style="font-size: 11px; color: #4a555f; letter-spacing: 0.07em; text-transform: uppercase; margin: 0 0 16px">Par où commencer</p>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+      <div style="border: 1px solid #c9cfd7; background: #f8f9fb; padding: 15px 17px">
+        <p class="ar" style="font-weight: 600; font-size: 15px; margin: 0 0 5px">Je regarde un bien précis</p>
+        <p class="ps" style="font-size: 13px; color: #4a555f; margin: 0 0 9px; line-height: 1.55">Mensualité, coût total, TAEG, conformité aux plafonds. Le module crédit répond en six paramètres.</p>
+        <span class="ps" style="font-size: 13px; color: #7e5f26; border-bottom: 1px solid #7e5f26; padding-bottom: 1px">Module crédit</span>
+      </div>
+      <div style="border: 1px solid #c9cfd7; background: #f8f9fb; padding: 15px 17px">
+        <p class="ar" style="font-weight: 600; font-size: 15px; margin: 0 0 5px">J'hésite encore à acheter</p>
+        <p class="ps" style="font-size: 13px; color: #4a555f; margin: 0 0 9px; line-height: 1.55">Comparaison avec la location, et l'année à partir de laquelle revendre cesse d'être perdant.</p>
+        <span class="ps" style="font-size: 13px; color: #7e5f26; border-bottom: 1px solid #7e5f26; padding-bottom: 1px">Acheter ou louer</span>
+      </div>
+      <div style="border: 1px solid #c9cfd7; background: #f8f9fb; padding: 15px 17px">
+        <p class="ar" style="font-weight: 600; font-size: 15px; margin: 0 0 5px">J'ai un crédit en cours</p>
+        <p class="ps" style="font-size: 13px; color: #4a555f; margin: 0 0 9px; line-height: 1.55">Où se situe la fenêtre pendant laquelle un versement anticipé rapporte encore, et ce qu'il coûte.</p>
+        <span class="ps" style="font-size: 13px; color: #7e5f26; border-bottom: 1px solid #7e5f26; padding-bottom: 1px">Remboursements anticipés</span>
+      </div>
+      <div style="border: 1px solid #c9cfd7; background: #f8f9fb; padding: 15px 17px">
+        <p class="ar" style="font-weight: 600; font-size: 15px; margin: 0 0 5px">Je compare avec un placement</p>
+        <p class="ps" style="font-size: 13px; color: #4a555f; margin: 0 0 9px; line-height: 1.55">Deux faisceaux de trajectoires à effort d'épargne identique. C'est le module qui porte la thèse.</p>
+        <span class="ps" style="font-size: 13px; color: #7e5f26; border-bottom: 1px solid #7e5f26; padding-bottom: 1px">Pierre ou marchés</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding: 26px 40px 34px">
+    <p class="ps" style="font-size: 12px; color: #4a555f; margin: 0 0 8px; line-height: 1.6; max-width: 100ch">Cet outil ne constitue ni un conseil en investissement, ni un conseil fiscal, ni une offre de crédit. Il calcule des scénarios à partir des hypothèses que vous posez ; vous décidez. En cas d'écart avec le calcul de votre banque, c'est l'offre de prêt qui fait foi.</p>
+    <p class="ps" style="font-size: 12px; color: #4a555f; margin: 0; line-height: 1.6">Simulateur en cours de construction. Son modèle de calcul est régulièrement affiné et certaines valeurs réglementaires n'ont pas encore été vérifiées à leur source officielle — elles sont signalées comme telles.</p>
+  </div>
+
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

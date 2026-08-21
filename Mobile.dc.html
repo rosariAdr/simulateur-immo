@@ -1,0 +1,161 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <style>
+    body { margin: 0; background: #f1f3f6; }
+    a { color: #7e5f26; } a:hover { color: #5f4718; }
+    .mo { font-family: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace; font-variant-numeric: tabular-nums; }
+    .ps { font-family: 'Public Sans', 'Helvetica Neue', Arial, sans-serif; }
+    .ar { font-family: 'Archivo', 'Helvetica Neue', Arial, sans-serif; }
+  </style>
+</helmet>
+
+<div class="ps" style="width: 390px; background: #f1f3f6; color: #14181c">
+
+  <div style="background: #14181c; padding: 12px 16px 13px">
+    <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 9px">
+      <span class="ps" style="font-size: 11px; color: #a9b3bd">Mensualité, assurance comprise</span>
+      <span class="ps" style="font-size: 11px; color: #c79a46">Modifier</span>
+    </div>
+    <div style="display: flex; align-items: baseline; gap: 12px">
+      <span class="ar mo" style="font-weight: 600; font-size: 30px; color: #e6eaef; letter-spacing: -0.02em">1 061,39 €</span>
+      <span class="ps" style="font-size: 11px; color: #a9b3bd; line-height: 1.35">180 000 € sur 20 ans<br>à 3,20 %</span>
+    </div>
+    <div style="display: flex; gap: 18px; margin-top: 11px; border-top: 1px solid #333c45; padding-top: 9px">
+      <span style="display: flex; flex-direction: column"><span class="ps" style="font-size: 10px; color: #a9b3bd">Coût du crédit</span><span class="mo" style="font-size: 13px; color: #e6eaef">77 884,62 €</span></span>
+      <span style="display: flex; flex-direction: column"><span class="ps" style="font-size: 10px; color: #a9b3bd">TAEG</span><span class="mo" style="font-size: 13px; color: #e6eaef">3,96 %</span></span>
+      <span style="display: flex; flex-direction: column"><span class="ps" style="font-size: 10px; color: #a9b3bd">Effort</span><span class="mo" style="font-size: 13px; color: #e6eaef">27,96 %</span></span>
+    </div>
+  </div>
+
+  <div style="padding: 16px">
+
+    <div style="border: 1px solid #c9cfd7; background: #f8f9fb; margin-bottom: 18px">
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 11px 13px">
+        <span class="ps" style="font-size: 13px; color: #14181c">Paramètres</span>
+        <span style="display: flex; align-items: center; gap: 8px">
+          <span class="ps" style="font-size: 11px; color: #4a555f">6 renseignés</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4a555f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </span>
+      </div>
+      <div style="border-top: 1px solid #c9cfd7; padding: 11px 13px; display: flex; flex-direction: column; gap: 10px">
+        <div style="border: 1px solid #7e5f26; background: #f1f3f6; padding: 7px 9px">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 3px">
+            <span class="ps" style="font-size: 11px; color: #4a555f">Taux nominal</span>
+            <span class="ps" style="font-size: 9px; color: #7e5f26; letter-spacing: 0.05em; text-transform: uppercase; border: 1px solid #7e5f26; padding: 1px 5px">négociable</span>
+          </div>
+          <span class="mo" style="font-size: 17px">3,20 %</span>
+          <span style="display: block; height: 3px; background: #c9cfd7; position: relative; margin-top: 9px">
+            <span style="position: absolute; left: 0; top: 0; height: 3px; width: 42%; background: #7e5f26; display: block"></span>
+            <span style="position: absolute; left: 42%; top: -7px; width: 4px; height: 17px; background: #14181c; display: block"></span>
+          </span>
+        </div>
+        <div style="border: 1px solid #c9cfd7; background: #f1f3f6; padding: 7px 9px">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 3px">
+            <span class="ps" style="font-size: 11px; color: #4a555f">Prix du bien</span>
+            <span class="ps" style="font-size: 9px; color: #4a555f; letter-spacing: 0.05em; text-transform: uppercase; border: 1px solid #c9cfd7; padding: 1px 5px">contraint</span>
+          </div>
+          <span class="mo" style="font-size: 17px">205 000,00 €</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px">
+      <span class="ar" style="font-weight: 600; font-size: 14px">Ruban d'amortissement</span>
+      <span class="ps" style="font-size: 10px; color: #4a555f">20 ans</span>
+    </div>
+
+    <div style="background: #f8f9fb; border: 1px solid #c9cfd7; padding: 11px 12px 8px; margin-bottom: 6px">
+      <div style="display: flex; align-items: flex-end; gap: 2px; height: 108px">
+        <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-end"><div style="height: 47px; background: #863525"></div><div style="height: 2px"></div><div style="height: 4px; background: #846cad"></div><div style="height: 2px"></div><div style="height: 53px; background: #207e5d"></div></div>
+        <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-end"><div style="height: 45px; background: #863525"></div><div style="height: 2px"></div><div style="height: 4px; background: #846cad"></div><div style="height: 2px"></div><div style="height: 55px; background: #207e5d"></div></div>
+        <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-end"><div style="height: 43px; background: #863525"></div><div style="height: 2px"></div><div style="height: 4px; background: #846cad"></div><div style="height: 2px"></div><div style="height: 57px; background: #207e5d"></div></div>
+        <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-end"><div style="height: 41px; background: #863525"></div><div style="height: 2px"></div><div style="height: 4px; background: #846cad"></div><div style="height: 2px"></div><div style="height: 59px; background: #207e5d"></div></div>
+        <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-end"><div style="height: 39px; background: #863525"></div><div style="height: 2px"></div><div style="height: 4px; background: #846cad"></div><div style="height: 2px"></div><div style="height: 61px; background: #207e5d"></div></div>
+        <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-end"><div style="height: 37px; background: #863525"></div><div style="height: 2px"></div><div style="height: 4px; background: #846cad"></div><div style="height: 2px"></div><div style="height: 63px; background: #207e5d"></div></div>
+        <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-end"><div style="height: 35px; background: #863525"></div><div style="height: 2px"></div><div style="height: 4px; background: #846cad"></div><div style="height: 2px"></div><div style="height: 65px; background: #207e5d"></div></div>
+        <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-end"><div style="height: 33px; background: #863525"></div><div style="height: 2px"></div><div style="height: 4px; background: #846cad"></div><div style="height: 2px"></div><div style="height: 67px; background: #207e5d"></div></div>
+        <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-end"><div style="height: 31px; background: #863525"></div><div style="height: 2px"></div><div style="height: 4px; background: #846cad"></div><div style="height: 2px"></div><div style="height: 69px; background: #207e5d"></div></div>
+        <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-end; outline: 2px solid #14181c; outline-offset: 2px"><div style="height: 29px; background: #863525"></div><div style="height: 2px"></div><div style="height: 4px; background: #846cad"></div><div style="height: 2px"></div><div style="height: 71px; background: #207e5d"></div></div>
+        <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-end"><div style="height: 27px; background: #863525"></div><div style="height: 2px"></div><div style="height: 4px; background: #846cad"></div><div style="height: 2px"></div><div style="height: 73px; background: #207e5d"></div></div>
+        <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-end"><div style="height: 24px; background: #863525"></div><div style="height: 2px"></div><div style="height: 4px; background: #846cad"></div><div style="height: 2px"></div><div style="height: 76px; background: #207e5d"></div></div>
+        <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-end"><div style="height: 22px; background: #863525"></div><div style="height: 2px"></div><div style="height: 4px; background: #846cad"></div><div style="height: 2px"></div><div style="height: 78px; background: #207e5d"></div></div>
+        <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-end"><div style="height: 19px; background: #863525"></div><div style="height: 2px"></div><div style="height: 4px; background: #846cad"></div><div style="height: 2px"></div><div style="height: 81px; background: #207e5d"></div></div>
+        <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-end"><div style="height: 16px; background: #863525"></div><div style="height: 2px"></div><div style="height: 4px; background: #846cad"></div><div style="height: 2px"></div><div style="height: 84px; background: #207e5d"></div></div>
+        <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-end"><div style="height: 13px; background: #863525"></div><div style="height: 2px"></div><div style="height: 4px; background: #846cad"></div><div style="height: 2px"></div><div style="height: 87px; background: #207e5d"></div></div>
+        <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-end"><div style="height: 10px; background: #863525"></div><div style="height: 2px"></div><div style="height: 4px; background: #846cad"></div><div style="height: 2px"></div><div style="height: 90px; background: #207e5d"></div></div>
+        <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-end"><div style="height: 8px; background: #863525"></div><div style="height: 2px"></div><div style="height: 4px; background: #846cad"></div><div style="height: 2px"></div><div style="height: 92px; background: #207e5d"></div></div>
+        <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-end"><div style="height: 5px; background: #863525"></div><div style="height: 2px"></div><div style="height: 4px; background: #846cad"></div><div style="height: 2px"></div><div style="height: 95px; background: #207e5d"></div></div>
+        <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-end"><div style="height: 2px; background: #863525"></div><div style="height: 2px"></div><div style="height: 4px; background: #846cad"></div><div style="height: 2px"></div><div style="height: 98px; background: #207e5d"></div></div>
+      </div>
+      <div style="display: flex; justify-content: space-between; border-top: 1px solid #c9cfd7; margin-top: 5px; padding-top: 4px">
+        <span class="mo" style="font-size: 9px; color: #4a555f">an 1</span>
+        <span class="mo" style="font-size: 9px; color: #14181c">an 10</span>
+        <span class="mo" style="font-size: 9px; color: #4a555f">an 20</span>
+      </div>
+    </div>
+
+    <div style="border: 1px solid #c9cfd7; border-top: none; background: #f1f3f6; padding: 8px 12px; margin-bottom: 8px">
+      <p class="ps" style="font-size: 11px; color: #4a555f; margin: 0 0 4px">Année 10 · il reste <span class="mo" style="color: #14181c">104 260,11 €</span></p>
+      <div style="display: flex; gap: 12px">
+        <span class="mo" style="font-size: 11px; color: #863525">3 487,99 €</span>
+        <span class="mo" style="font-size: 11px; color: #725b9a">540,00 €</span>
+        <span class="mo" style="font-size: 11px; color: #107c5a">8 708,69 €</span>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 13px; margin-bottom: 20px">
+      <span style="display: flex; align-items: center; gap: 4px"><span style="width: 8px; height: 8px; background: #863525; display: inline-block"></span><span class="ps" style="font-size: 10px">Intérêts</span></span>
+      <span style="display: flex; align-items: center; gap: 4px"><span style="width: 8px; height: 8px; background: #846cad; display: inline-block"></span><span class="ps" style="font-size: 10px">Assurance</span></span>
+      <span style="display: flex; align-items: center; gap: 4px"><span style="width: 8px; height: 8px; background: #207e5d; display: inline-block"></span><span class="ps" style="font-size: 10px">Capital</span></span>
+    </div>
+
+    <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px">
+      <span class="ar" style="font-weight: 600; font-size: 14px">Tableau</span>
+      <div style="display: flex; border: 1px solid #c9cfd7">
+        <span class="ps" style="font-size: 10px; padding: 3px 9px; background: #14181c; color: #f1f3f6">année</span>
+        <span class="ps" style="font-size: 10px; padding: 3px 9px; background: #f8f9fb; color: #4a555f">mois</span>
+      </div>
+    </div>
+
+    <table style="width: 100%; border-collapse: collapse; table-layout: fixed; background: #f8f9fb; border: 1px solid #c9cfd7; margin-bottom: 10px">
+      <tr style="border-bottom: 1px solid #c9cfd7">
+        <th class="ps" style="font-size: 10px; color: #4a555f; font-weight: 400; text-align: left; padding: 6px 8px; width: 34px">An</th>
+        <th class="ps" style="font-size: 10px; color: #4a555f; font-weight: 400; text-align: right; padding: 6px 8px">Intérêts</th>
+        <th class="ps" style="font-size: 10px; color: #4a555f; font-weight: 400; text-align: right; padding: 6px 8px">Capital</th>
+        <th class="ps" style="font-size: 10px; color: #4a555f; font-weight: 400; text-align: right; padding: 6px 8px">Restant dû</th>
+      </tr>
+      <tr><td class="mo" style="font-size: 11px; padding: 4px 8px">1</td><td class="mo" style="font-size: 11px; padding: 4px 8px; text-align: right; color: #863525">5 664,76 €</td><td class="mo" style="font-size: 11px; padding: 4px 8px; text-align: right; color: #107c5a">6 531,92 €</td><td class="mo" style="font-size: 11px; padding: 4px 8px; text-align: right">173 468,08 €</td></tr>
+      <tr><td class="mo" style="font-size: 11px; padding: 4px 8px">2</td><td class="mo" style="font-size: 11px; padding: 4px 8px; text-align: right; color: #863525">5 452,63 €</td><td class="mo" style="font-size: 11px; padding: 4px 8px; text-align: right; color: #107c5a">6 744,05 €</td><td class="mo" style="font-size: 11px; padding: 4px 8px; text-align: right">166 724,03 €</td></tr>
+      <tr><td class="mo" style="font-size: 11px; padding: 4px 8px">3</td><td class="mo" style="font-size: 11px; padding: 4px 8px; text-align: right; color: #863525">5 233,63 €</td><td class="mo" style="font-size: 11px; padding: 4px 8px; text-align: right; color: #107c5a">6 963,05 €</td><td class="mo" style="font-size: 11px; padding: 4px 8px; text-align: right">159 760,98 €</td></tr>
+      <tr style="background: #eceff3"><td class="ps" style="font-size: 11px; padding: 6px 8px; color: #4a555f" colspan="4">16 années masquées</td></tr>
+      <tr style="border-top: 1px solid #14181c"><td class="mo" style="font-size: 11px; padding: 4px 8px">20</td><td class="mo" style="font-size: 11px; padding: 4px 8px; text-align: right; color: #863525">208,83 €</td><td class="mo" style="font-size: 11px; padding: 4px 8px; text-align: right; color: #107c5a">11 988,87 €</td><td class="mo" style="font-size: 11px; padding: 4px 8px; text-align: right">0,00 €</td></tr>
+    </table>
+
+    <p class="ps" style="font-size: 11px; color: #4a555f; margin: 0 0 20px; line-height: 1.5">Sur mobile, le tableau se lit par ses extrémités : les trois premières années, les dernières, et le reste sur demande. Les 240 lignes mensuelles restent accessibles, elles ne sont simplement pas le mode de lecture par défaut.</p>
+
+    <div style="border-top: 1px solid #c9cfd7; padding-top: 11px">
+      <p class="ps" style="font-size: 10px; color: #4a555f; letter-spacing: 0.07em; text-transform: uppercase; margin: 0 0 5px">Ce que ce calcul ne dit pas</p>
+      <p class="ps" style="font-size: 12px; margin: 0; line-height: 1.55">Il ignore les frais d'acquisition, la taxe foncière, les charges et l'entretien. Il suppose vos revenus stables, ce qu'ils ne sont pas.</p>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

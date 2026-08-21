@@ -1,0 +1,336 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <style>
+    body { margin: 0; background: #f1f3f6; }
+    a { color: #7e5f26; text-decoration: underline; text-underline-offset: 2px; }
+    a:hover { color: #5f4718; }
+    .mo { font-family: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace; font-variant-numeric: tabular-nums; }
+    .ps { font-family: 'Public Sans', 'Helvetica Neue', Arial, sans-serif; }
+    .ar { font-family: 'Archivo', 'Helvetica Neue', Arial, sans-serif; }
+  </style>
+</helmet>
+
+<div class="ps" style="width: 1400px; background: #f1f3f6; color: #14181c; padding: 28px 32px 32px">
+
+  <div style="display: flex; align-items: baseline; justify-content: space-between; border-bottom: 2px solid #14181c; padding-bottom: 10px; margin-bottom: 20px">
+    <div style="display: flex; align-items: baseline; gap: 16px">
+      <span class="ar" style="font-weight: 700; font-size: 21px; letter-spacing: -0.02em">Simulateur d'acquisition</span>
+      <span style="font-size: 13px; color: #4a555f">Module crédit</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 18px">
+      <span class="ps" style="font-size: 12px; color: #4a555f">Barèmes du 3<sup>e</sup> trimestre 2026</span>
+      <span class="ps" style="font-size: 12px; color: #7e5f26; border-bottom: 1px solid #7e5f26; padding-bottom: 1px">Copier le lien de ce scénario</span>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 296px minmax(0, 1fr); gap: 28px">
+
+    <div style="display: flex; flex-direction: column; gap: 0">
+
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px">
+        <span class="ps" style="font-size: 11px; color: #4a555f; letter-spacing: 0.07em; text-transform: uppercase">Paramètres</span>
+        <span style="flex-grow: 1; height: 1px; background: #c9cfd7"></span>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 16px">
+        <span style="display: flex; align-items: center; gap: 5px"><span style="width: 9px; height: 9px; border: 1px solid #7e5f26; background: #f8f9fb; display: inline-block"></span><span class="ps" style="font-size: 11px; color: #4a555f">négociable</span></span>
+        <span style="display: flex; align-items: center; gap: 5px"><span style="width: 9px; height: 9px; border: 1px solid #c9cfd7; background: #f8f9fb; display: inline-block"></span><span class="ps" style="font-size: 11px; color: #4a555f">contraint</span></span>
+        <span style="display: flex; align-items: center; gap: 5px"><span style="width: 9px; height: 9px; border: 1px dashed #4a555f; background: #eceff3; display: inline-block"></span><span class="ps" style="font-size: 11px; color: #4a555f">réglementaire</span></span>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px">
+
+        <div style="border: 1px solid #c9cfd7; background: #f8f9fb; padding: 8px 10px">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px">
+            <span class="ps" style="font-size: 11px; color: #4a555f">Prix du bien</span>
+            <span class="ps" style="font-size: 9px; color: #4a555f; letter-spacing: 0.05em; text-transform: uppercase; border: 1px solid #c9cfd7; padding: 1px 5px">contraint</span>
+          </div>
+          <span class="mo" style="font-size: 16px; color: #14181c">205 000,00 €</span>
+        </div>
+
+        <div style="border: 1px solid #c9cfd7; background: #f8f9fb; padding: 8px 10px">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px">
+            <span class="ps" style="font-size: 11px; color: #4a555f">Apport</span>
+            <span class="ps" style="font-size: 9px; color: #4a555f; letter-spacing: 0.05em; text-transform: uppercase; border: 1px solid #c9cfd7; padding: 1px 5px">contraint</span>
+          </div>
+          <span class="mo" style="font-size: 16px; color: #14181c">25 000,00 €</span>
+        </div>
+
+        <div style="border: 1px solid #7e5f26; background: #f8f9fb; padding: 8px 10px">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px">
+            <span class="ps" style="font-size: 11px; color: #4a555f">Taux nominal</span>
+            <span class="ps" style="font-size: 9px; color: #7e5f26; letter-spacing: 0.05em; text-transform: uppercase; border: 1px solid #7e5f26; padding: 1px 5px">négociable</span>
+          </div>
+          <span class="mo" style="font-size: 16px; color: #14181c">3,20 %</span>
+          <div style="display: flex; align-items: center; gap: 8px; margin-top: 7px">
+            <span style="flex-grow: 1; height: 3px; background: #c9cfd7; position: relative; display: block">
+              <span style="position: absolute; left: 0; top: 0; height: 3px; width: 42%; background: #7e5f26; display: block"></span>
+              <span style="position: absolute; left: 42%; top: -4px; width: 3px; height: 11px; background: #14181c; display: block"></span>
+            </span>
+          </div>
+          <p class="ps" style="font-size: 10px; color: #4a555f; margin: 6px 0 0; line-height: 1.45">Le taux se négocie. Un dixième de point sur 20 ans, c'est environ 2 200 €.</p>
+        </div>
+
+        <div style="border: 1px solid #7e5f26; background: #f8f9fb; padding: 8px 10px">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px">
+            <span class="ps" style="font-size: 11px; color: #4a555f">Assurance emprunteur</span>
+            <span class="ps" style="font-size: 9px; color: #7e5f26; letter-spacing: 0.05em; text-transform: uppercase; border: 1px solid #7e5f26; padding: 1px 5px">négociable</span>
+          </div>
+          <span class="mo" style="font-size: 16px; color: #14181c">0,30 %</span>
+          <div style="display: flex; gap: 0; margin-top: 7px; border: 1px solid #c9cfd7">
+            <span class="ps" style="flex-grow: 1; text-align: center; font-size: 10px; padding: 4px 0; background: #14181c; color: #f1f3f6">capital initial</span>
+            <span class="ps" style="flex-grow: 1; text-align: center; font-size: 10px; padding: 4px 0; background: #f8f9fb; color: #4a555f">capital restant dû</span>
+          </div>
+          <p class="ps" style="font-size: 10px; color: #4a555f; margin: 6px 0 0; line-height: 1.45">La base de calcul compte plus que le taux : de 30 à 45 % d'écart sur la durée.</p>
+        </div>
+
+        <div style="border: 1px solid #c9cfd7; background: #f8f9fb; padding: 8px 10px">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px">
+            <span class="ps" style="font-size: 11px; color: #4a555f">Durée</span>
+            <span class="ps" style="font-size: 9px; color: #4a555f; letter-spacing: 0.05em; text-transform: uppercase; border: 1px solid #c9cfd7; padding: 1px 5px">contraint</span>
+          </div>
+          <span class="mo" style="font-size: 16px; color: #14181c">20 ans</span>
+          <span class="mo" style="font-size: 11px; color: #4a555f"> · 240 échéances</span>
+        </div>
+
+        <div style="border: 1px solid #c9cfd7; background: #f8f9fb; padding: 8px 10px">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px">
+            <span class="ps" style="font-size: 11px; color: #4a555f">Revenu net mensuel du foyer</span>
+            <span class="ps" style="font-size: 9px; color: #4a555f; letter-spacing: 0.05em; text-transform: uppercase; border: 1px solid #c9cfd7; padding: 1px 5px">contraint</span>
+          </div>
+          <span class="mo" style="font-size: 16px; color: #14181c">3 800,00 €</span>
+        </div>
+
+        <div style="border: 1px dashed #4a555f; background: #eceff3; padding: 8px 10px">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px">
+            <span class="ps" style="font-size: 11px; color: #4a555f">Garantie</span>
+            <span class="ps" style="font-size: 9px; color: #4a555f; letter-spacing: 0.05em; text-transform: uppercase; border: 1px solid #4a555f; padding: 1px 5px">réglementaire</span>
+          </div>
+          <span class="ps" style="font-size: 14px; color: #14181c">Caution</span>
+          <p class="mo" style="font-size: 11px; color: #4a555f; margin: 5px 0 0">2 250,00 € · 1 237,50 € restitués au terme</p>
+        </div>
+
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 0">
+
+      <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin-bottom: 22px">
+
+        <div style="background: #f8f9fb; border: 1px solid #c9cfd7; padding: 11px 13px">
+          <p class="ps" style="font-size: 11px; color: #4a555f; margin: 0 0 5px">Mensualité</p>
+          <p class="ar mo" style="font-weight: 600; font-size: 23px; color: #14181c; margin: 0; letter-spacing: -0.01em">1 061,39 €</p>
+          <p class="ps" style="font-size: 10px; color: #4a555f; margin: 4px 0 0; line-height: 1.4">assurance comprise</p>
+        </div>
+
+        <div style="background: #f8f9fb; border: 1px solid #c9cfd7; padding: 11px 13px">
+          <p class="ps" style="font-size: 11px; color: #4a555f; margin: 0 0 5px">Coût du crédit</p>
+          <p class="ar mo" style="font-weight: 600; font-size: 23px; color: #14181c; margin: 0; letter-spacing: -0.01em">77 884,62 €</p>
+          <p class="ps" style="font-size: 10px; color: #4a555f; margin: 4px 0 0; line-height: 1.4">43 % du capital emprunté</p>
+        </div>
+
+        <div style="background: #f8f9fb; border: 1px solid #c9cfd7; padding: 11px 13px">
+          <p class="ps" style="font-size: 11px; color: #4a555f; margin: 0 0 5px">TAEG</p>
+          <p class="ar mo" style="font-weight: 600; font-size: 23px; color: #14181c; margin: 0; letter-spacing: -0.01em">3,96 %</p>
+          <p class="ps" style="font-size: 10px; color: #4a555f; margin: 4px 0 0; line-height: 1.4">1,33 point sous le plafond d'usure</p>
+        </div>
+
+        <div style="background: #f8f9fb; border: 1px solid #c9cfd7; padding: 11px 13px">
+          <p class="ps" style="font-size: 11px; color: #4a555f; margin: 0 0 5px">Taux d'effort</p>
+          <p class="ar mo" style="font-weight: 600; font-size: 23px; color: #14181c; margin: 0; letter-spacing: -0.01em">27,96 %</p>
+          <p class="ps" style="font-size: 10px; color: #4a555f; margin: 4px 0 0; line-height: 1.4">plafond HCSF 35,00 %</p>
+        </div>
+
+        <div style="background: #f8f9fb; border: 1px solid #c9cfd7; padding: 11px 13px">
+          <p class="ps" style="font-size: 11px; color: #4a555f; margin: 0 0 5px">Coût de l'assurance</p>
+          <p class="ar mo" style="font-weight: 600; font-size: 23px; color: #14181c; margin: 0; letter-spacing: -0.01em">10 800,00 €</p>
+          <p class="ps" style="font-size: 10px; color: #4a555f; margin: 4px 0 0; line-height: 1.4">TAEA 0,51 %</p>
+        </div>
+
+      </div>
+
+      <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 9px">
+        <span class="ar" style="font-weight: 600; font-size: 15px; color: #14181c">Ruban d'amortissement</span>
+        <div style="display: flex; gap: 15px">
+          <span style="display: flex; align-items: center; gap: 5px"><span style="width: 10px; height: 10px; background: #863525; display: inline-block"></span><span class="ps" style="font-size: 11px; color: #14181c">Intérêts</span></span>
+          <span style="display: flex; align-items: center; gap: 5px"><span style="width: 10px; height: 10px; background: #846cad; display: inline-block"></span><span class="ps" style="font-size: 11px; color: #14181c">Assurance</span></span>
+          <span style="display: flex; align-items: center; gap: 5px"><span style="width: 10px; height: 10px; background: #207e5d; display: inline-block"></span><span class="ps" style="font-size: 11px; color: #14181c">Capital</span></span>
+        </div>
+      </div>
+
+      <div style="background: #f8f9fb; border: 1px solid #c9cfd7; padding: 14px 16px 10px">
+        <div style="display: flex; align-items: flex-end; gap: 4px; height: 154px">
+          <sc-for list="{{annees}}" as="a" hint-placeholder-count="20">
+            <div onClick="{{ a.pick }}" style="flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-end; cursor: pointer; outline-offset: 2px; outline: {{ a.contour }}">
+              <div style="height: {{ a.hi }}px; background: #863525"></div>
+              <div style="height: 2px"></div>
+              <div style="height: 6px; background: #846cad"></div>
+              <div style="height: 2px"></div>
+              <div style="height: {{ a.hc }}px; background: #207e5d"></div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display: flex; gap: 4px; border-top: 1px solid #c9cfd7; margin-top: 6px; padding-top: 5px">
+          <sc-for list="{{annees}}" as="a" hint-placeholder-count="20">
+            <span class="mo" style="flex-grow: 1; text-align: center; font-size: 9px; color: {{ a.encre }}">{{ a.annee }}</span>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 0; border: 1px solid #c9cfd7; border-top: none; background: #f1f3f6; padding: 9px 16px; margin-bottom: 20px">
+        <span class="ps" style="font-size: 11px; color: #4a555f; width: 92px">Année {{ selection.annee }}</span>
+        <span class="mo" style="font-size: 12px; color: #863525; width: 168px">{{ selection.interets }} d'intérêts</span>
+        <span class="mo" style="font-size: 12px; color: #725b9a; width: 152px">{{ selection.assurance }} d'assurance</span>
+        <span class="mo" style="font-size: 12px; color: #107c5a; width: 168px">{{ selection.capital }} de capital</span>
+        <span class="ps" style="font-size: 11px; color: #4a555f; flex-grow: 1">Il reste <span class="mo" style="color: #14181c">{{ selection.restant }}</span> à rembourser</span>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; margin-bottom: 22px">
+
+        <div>
+          <p class="ar" style="font-weight: 600; font-size: 14px; color: #14181c; margin: 0 0 7px">Où en est le crédit</p>
+          <table style="width: 100%; border-collapse: collapse; table-layout: fixed">
+            <tr style="border-bottom: 1px solid #c9cfd7">
+              <td class="ps" style="font-size: 11px; color: #4a555f; padding: 5px 0">La part d'intérêts passe sous…</td>
+              <td class="ps" style="font-size: 11px; color: #4a555f; padding: 5px 0; text-align: right; width: 96px">au mois</td>
+            </tr>
+            <tr><td class="ps" style="font-size: 12px; padding: 4px 0">25 % de l'échéance</td><td class="mo" style="font-size: 12px; padding: 4px 0; text-align: right">128</td></tr>
+            <tr><td class="ps" style="font-size: 12px; padding: 4px 0">15 % de l'échéance</td><td class="mo" style="font-size: 12px; padding: 4px 0; text-align: right">178</td></tr>
+            <tr><td class="ps" style="font-size: 12px; padding: 4px 0">10 % de l'échéance</td><td class="mo" style="font-size: 12px; padding: 4px 0; text-align: right">200</td></tr>
+            <tr><td class="ps" style="font-size: 12px; padding: 4px 0">5 % de l'échéance</td><td class="mo" style="font-size: 12px; padding: 4px 0; text-align: right">221</td></tr>
+          </table>
+        </div>
+
+        <div>
+          <p class="ar" style="font-weight: 600; font-size: 14px; color: #14181c; margin: 0 0 7px">Où agir</p>
+          <table style="width: 100%; border-collapse: collapse; table-layout: fixed">
+            <tr style="border-bottom: 1px solid #c9cfd7">
+              <td class="ps" style="font-size: 11px; color: #4a555f; padding: 5px 0">1 € remboursé par anticipation rapporte…</td>
+              <td class="ps" style="font-size: 11px; color: #4a555f; padding: 5px 0; text-align: right; width: 96px">jusqu'au mois</td>
+            </tr>
+            <tr><td class="ps" style="font-size: 12px; padding: 4px 0">au moins 50 %</td><td class="mo" style="font-size: 12px; padding: 4px 0; text-align: right">87</td></tr>
+            <tr><td class="ps" style="font-size: 12px; padding: 4px 0">au moins 25 %</td><td class="mo" style="font-size: 12px; padding: 4px 0; text-align: right">156</td></tr>
+            <tr><td class="ps" style="font-size: 12px; padding: 4px 0">au moins 10 %</td><td class="mo" style="font-size: 12px; padding: 4px 0; text-align: right">204</td></tr>
+            <tr><td class="ps" style="font-size: 12px; padding: 4px 0; color: #4a555f">au moins 100 %</td><td class="ps" style="font-size: 12px; padding: 4px 0; text-align: right; color: #4a555f">jamais, à ce taux</td></tr>
+          </table>
+        </div>
+
+      </div>
+
+      <div style="border-left: 3px solid #7e5f26; padding: 2px 0 2px 12px; margin-bottom: 24px">
+        <p class="ps" style="font-size: 12px; color: #14181c; margin: 0; line-height: 1.55; max-width: 82ch">Ces deux lectures pointent en sens opposés. À gauche, où en est la constitution de votre patrimoine. À droite, quand un versement anticipé est encore rentable — et cette fenêtre se referme <span style="color: #14181c; border-bottom: 1px solid #7e5f26">avant</span> que la part d'intérêts ne devienne faible.</p>
+      </div>
+
+      <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 9px">
+        <span class="ar" style="font-weight: 600; font-size: 15px; color: #14181c">Tableau d'amortissement</span>
+        <div style="display: flex; gap: 0; border: 1px solid #c9cfd7">
+          <span class="ps" style="font-size: 11px; padding: 3px 11px; background: #14181c; color: #f1f3f6">par année</span>
+          <span class="ps" style="font-size: 11px; padding: 3px 11px; background: #f8f9fb; color: #4a555f">par mois</span>
+        </div>
+      </div>
+
+      <table style="width: 100%; border-collapse: collapse; table-layout: fixed; background: #f8f9fb; border: 1px solid #c9cfd7">
+        <tr style="border-bottom: 1px solid #c9cfd7">
+          <th class="ps" style="font-size: 11px; color: #4a555f; font-weight: 400; text-align: left; padding: 7px 10px; width: 62px">Année</th>
+          <th class="ps" style="font-size: 11px; color: #4a555f; font-weight: 400; text-align: right; padding: 7px 10px">Intérêts</th>
+          <th class="ps" style="font-size: 11px; color: #4a555f; font-weight: 400; text-align: right; padding: 7px 10px">Capital</th>
+          <th class="ps" style="font-size: 11px; color: #4a555f; font-weight: 400; text-align: right; padding: 7px 10px">Assurance</th>
+          <th class="ps" style="font-size: 11px; color: #4a555f; font-weight: 400; text-align: right; padding: 7px 10px">Total versé</th>
+          <th class="ps" style="font-size: 11px; color: #4a555f; font-weight: 400; text-align: right; padding: 7px 10px">Restant dû</th>
+        </tr>
+        <tr><td class="mo" style="font-size: 12px; padding: 4px 10px">1</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #863525">5 664,76 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #107c5a">6 531,92 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #725b9a">540,00 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">12 736,68 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">173 468,08 €</td></tr>
+        <tr><td class="mo" style="font-size: 12px; padding: 4px 10px">2</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #863525">5 452,63 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #107c5a">6 744,05 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #725b9a">540,00 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">12 736,68 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">166 724,03 €</td></tr>
+        <tr><td class="mo" style="font-size: 12px; padding: 4px 10px">3</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #863525">5 233,63 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #107c5a">6 963,05 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #725b9a">540,00 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">12 736,68 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">159 760,98 €</td></tr>
+        <tr><td class="mo" style="font-size: 12px; padding: 4px 10px">4</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #863525">5 007,53 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #107c5a">7 189,15 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #725b9a">540,00 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">12 736,68 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">152 571,83 €</td></tr>
+        <tr><td class="mo" style="font-size: 12px; padding: 4px 10px">5</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #863525">4 774,06 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #107c5a">7 422,62 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #725b9a">540,00 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">12 736,68 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">145 149,21 €</td></tr>
+        <tr><td class="mo" style="font-size: 12px; padding: 4px 10px">6</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #863525">4 533,02 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #107c5a">7 663,66 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #725b9a">540,00 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">12 736,68 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">137 485,55 €</td></tr>
+        <tr><td class="mo" style="font-size: 12px; padding: 4px 10px">7</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #863525">4 284,17 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #107c5a">7 912,51 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #725b9a">540,00 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">12 736,68 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">129 573,04 €</td></tr>
+        <tr><td class="mo" style="font-size: 12px; padding: 4px 10px">8</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #863525">4 027,20 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #107c5a">8 169,48 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #725b9a">540,00 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">12 736,68 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">121 403,56 €</td></tr>
+        <tr><td class="mo" style="font-size: 12px; padding: 4px 10px">9</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #863525">3 761,92 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #107c5a">8 434,76 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #725b9a">540,00 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">12 736,68 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">112 968,80 €</td></tr>
+        <tr style="background: #eceff3"><td class="mo" style="font-size: 12px; padding: 4px 10px">10</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #863525">3 487,99 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #107c5a">8 708,69 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #725b9a">540,00 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">12 736,68 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">104 260,11 €</td></tr>
+        <tr><td class="mo" style="font-size: 12px; padding: 4px 10px">11</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #863525">3 205,21 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #107c5a">8 991,47 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #725b9a">540,00 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">12 736,68 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">95 268,64 €</td></tr>
+        <tr><td class="mo" style="font-size: 12px; padding: 4px 10px">12</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #863525">2 913,23 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #107c5a">9 283,45 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #725b9a">540,00 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">12 736,68 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">85 985,19 €</td></tr>
+        <tr><td class="mo" style="font-size: 12px; padding: 4px 10px">13</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #863525">2 611,74 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #107c5a">9 584,94 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #725b9a">540,00 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">12 736,68 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">76 400,25 €</td></tr>
+        <tr><td class="mo" style="font-size: 12px; padding: 4px 10px">14</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #863525">2 300,49 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #107c5a">9 896,19 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #725b9a">540,00 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">12 736,68 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">66 504,06 €</td></tr>
+        <tr><td class="mo" style="font-size: 12px; padding: 4px 10px">15</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #863525">1 979,14 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #107c5a">10 217,54 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #725b9a">540,00 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">12 736,68 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">56 286,52 €</td></tr>
+        <tr><td class="mo" style="font-size: 12px; padding: 4px 10px">16</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #863525">1 647,34 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #107c5a">10 549,34 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #725b9a">540,00 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">12 736,68 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">45 737,18 €</td></tr>
+        <tr><td class="mo" style="font-size: 12px; padding: 4px 10px">17</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #863525">1 304,79 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #107c5a">10 891,89 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #725b9a">540,00 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">12 736,68 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">34 845,29 €</td></tr>
+        <tr><td class="mo" style="font-size: 12px; padding: 4px 10px">18</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #863525">951,07 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #107c5a">11 245,61 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #725b9a">540,00 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">12 736,68 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">23 599,68 €</td></tr>
+        <tr><td class="mo" style="font-size: 12px; padding: 4px 10px">19</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #863525">585,87 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #107c5a">11 610,81 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #725b9a">540,00 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">12 736,68 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">11 988,87 €</td></tr>
+        <tr style="border-top: 1px solid #14181c"><td class="mo" style="font-size: 12px; padding: 4px 10px">20</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #863525">208,83 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #107c5a">11 988,87 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right; color: #725b9a">540,00 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">12 737,70 €</td><td class="mo" style="font-size: 12px; padding: 4px 10px; text-align: right">0,00 €</td></tr>
+      </table>
+
+      <p class="ps" style="font-size: 11px; color: #4a555f; margin: 8px 0 22px; line-height: 1.5">La dernière échéance est supérieure d'un euro et deux centimes aux précédentes : elle solde exactement le capital. C'est normal, et c'est vérifié.</p>
+
+      <div style="border-top: 1px solid #c9cfd7; padding-top: 12px">
+        <p class="ps" style="font-size: 11px; color: #4a555f; letter-spacing: 0.07em; text-transform: uppercase; margin: 0 0 6px">Ce que ce calcul ne dit pas</p>
+        <p class="ps" style="font-size: 12px; color: #14181c; margin: 0; line-height: 1.6; max-width: 88ch">Il ignore les frais d'acquisition, la taxe foncière, les charges de copropriété et l'entretien — comptez 1 % de la valeur du bien par an pour ce dernier poste. Il suppose votre taux figé sur vingt ans, ce qu'il est, et vos revenus stables, ce qu'ils ne sont pas. Il ne dit pas si acheter vaut mieux que louer : c'est un autre module, et sa réponse dépend d'hypothèses que vous poserez vous-même.</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"annee_lue":{"editor":"int","default":10,"min":1,"max":20,"section":"Ruban"}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { annee: null };
+  }
+
+  renderVals() {
+    const brut = [
+      [1, 67, 77, '5 664,76 €', '6 531,92 €', '173 468,08 €'],
+      [2, 64, 79, '5 452,63 €', '6 744,05 €', '166 724,03 €'],
+      [3, 62, 82, '5 233,63 €', '6 963,05 €', '159 760,98 €'],
+      [4, 59, 85, '5 007,53 €', '7 189,15 €', '152 571,83 €'],
+      [5, 56, 87, '4 774,06 €', '7 422,62 €', '145 149,21 €'],
+      [6, 53, 90, '4 533,02 €', '7 663,66 €', '137 485,55 €'],
+      [7, 51, 93, '4 284,17 €', '7 912,51 €', '129 573,04 €'],
+      [8, 47, 96, '4 027,20 €', '8 169,48 €', '121 403,56 €'],
+      [9, 44, 99, '3 761,92 €', '8 434,76 €', '112 968,80 €'],
+      [10, 41, 103, '3 487,99 €', '8 708,69 €', '104 260,11 €'],
+      [11, 38, 106, '3 205,21 €', '8 991,47 €', '95 268,64 €'],
+      [12, 34, 109, '2 913,23 €', '9 283,45 €', '85 985,19 €'],
+      [13, 31, 113, '2 611,74 €', '9 584,94 €', '76 400,25 €'],
+      [14, 27, 117, '2 300,49 €', '9 896,19 €', '66 504,06 €'],
+      [15, 23, 120, '1 979,14 €', '10 217,54 €', '56 286,52 €'],
+      [16, 19, 124, '1 647,34 €', '10 549,34 €', '45 737,18 €'],
+      [17, 15, 128, '1 304,79 €', '10 891,89 €', '34 845,29 €'],
+      [18, 11, 132, '951,07 €', '11 245,61 €', '23 599,68 €'],
+      [19, 7, 137, '585,87 €', '11 610,81 €', '11 988,87 €'],
+      [20, 3, 141, '208,83 €', '11 988,87 €', '0,00 €']
+    ];
+
+    const lue = this.state.annee ?? this.props.annee_lue ?? 10;
+
+    const annees = brut.map((r) => ({
+      annee: r[0],
+      hi: r[1],
+      hc: r[2],
+      interets: r[3],
+      capital: r[4],
+      restant: r[5],
+      assurance: '540,00 €',
+      contour: r[0] === lue ? '2px solid #14181c' : 'none',
+      encre: r[0] === lue ? '#14181c' : '#4a555f',
+      pick: () => this.setState({ annee: r[0] })
+    }));
+
+    const selection = annees.find((a) => a.annee === lue) ?? annees[9];
+
+    return { annees: annees, selection: selection };
+  }
+}
+</script>
+</body>
+</html>

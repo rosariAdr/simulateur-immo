@@ -1,0 +1,50 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "title": "Module crédit — écran de référence", "x": 0, "y": 0, "w": 1400, "h": 1340 },
+    { "file": "Contraintes.dc.html", "title": "États non conformes", "x": 1480, "y": 0, "w": 1080, "h": 800 },
+    { "file": "Composants.dc.html", "title": "Composants de saisie et jetons", "x": 2640, "y": 0, "w": 1240, "h": 1000 },
+    { "file": "Mobile.dc.html", "title": "Module crédit — mobile", "x": 0, "y": 1440, "w": 390, "h": 1580 },
+    { "file": "PierreOuMarches.dc.html", "title": "Pierre ou marchés", "x": 470, "y": 1440, "w": 1240, "h": 1020 },
+    { "file": "Revelation.dc.html", "title": "Acheter ou louer — la révélation", "x": 1790, "y": 1440, "w": 900, "h": 1240 },
+    { "file": "Accueil.dc.html", "title": "Page d'accueil", "x": 2770, "y": 1440, "w": 1240, "h": 1220 },
+    { "file": "Fiche.dc.html", "title": "Fiche pédagogique", "x": 4090, "y": 1440, "w": 900, "h": 1480 }
+  ],
+  "annotations": [
+    {
+      "id": "ordre-de-lecture",
+      "x": 0,
+      "y": -190,
+      "w": 620,
+      "text": "Ordre de priorité du brief, section 8.\n\nRangée du haut : l'écran de référence, qui fixe la grille, puis les deux planches qui le complètent — les états non conformes et la feuille de composants.\n\nRangée du bas : mobile, pierre ou marchés, le moment de révélation, l'accueil, la fiche.\n\nTous les chiffres sortent du moteur. Aucun n'est inventé."
+    },
+    {
+      "id": "question-un-provisoire",
+      "x": 470,
+      "y": 2500,
+      "w": 460,
+      "text": "Question 9.1 — représenter une fourchette : PARTI PROVISOIRE, à trancher sur prototype.\n\nRetenu ici : une bande unique couvrant 8 trajectoires sur 10, un trait pour la médiane, et la phrase « un cas sur deux dépasse ». Pas de quantiles multiples, pas de vocabulaire statistique.\n\nLe vrai travail est fait par le texte sous le graphique, qui nomme le recouvrement des deux faisceaux."
+    },
+    {
+      "id": "question-trois-provisoire",
+      "x": 1480,
+      "y": 850,
+      "w": 460,
+      "text": "Question 9.3 — signaler un mauvais scénario sans juger : PARTI PROVISOIRE.\n\nRetenu ici : pas de rouge d'alarme ni de pictogramme. La brique des intérêts, déjà porteuse de sens dans tout le produit, sert aussi au dépassement. Toujours doublée d'un libellé et d'un chiffre.\n\nLe ton fait le reste : dire où est le mur, pourquoi il existe, ce qui reste possible."
+    },
+    {
+      "id": "question-deux-tranchee",
+      "x": 0,
+      "y": 3060,
+      "w": 460,
+      "text": "Question 9.2 — le tableau de 300 lignes sur mobile : TRANCHÉE.\n\nLe tableau annuel est le mode de lecture par défaut. Sur mobile il se lit par ses extrémités : les premières années, les dernières, le reste sur demande.\n\nLes 240 lignes mensuelles restent accessibles, elles ne sont simplement pas ce qu'on ouvre en premier."
+    },
+    {
+      "id": "jetons-ajoutes",
+      "x": 2640,
+      "y": 1050,
+      "w": 460,
+      "text": "Quatre jetons ajoutés par la feuille de composants : survol-fond, erreur-fond, desactive-encre, desactive-filet.\n\nÀ verser dans globals.css et dans le test de contraste avant d'écrire le premier composant."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}

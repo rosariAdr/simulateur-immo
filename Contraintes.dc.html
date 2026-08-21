@@ -1,0 +1,121 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <style>
+    body { margin: 0; background: #f1f3f6; }
+    a { color: #7e5f26; } a:hover { color: #5f4718; }
+    .mo { font-family: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace; font-variant-numeric: tabular-nums; }
+    .ps { font-family: 'Public Sans', 'Helvetica Neue', Arial, sans-serif; }
+    .ar { font-family: 'Archivo', 'Helvetica Neue', Arial, sans-serif; }
+  </style>
+</helmet>
+
+<div class="ps" style="width: 1080px; background: #f1f3f6; color: #14181c; padding: 28px 32px">
+
+  <p class="ar" style="font-weight: 700; font-size: 19px; margin: 0 0 4px; letter-spacing: -0.02em">Quand une règle est franchie</p>
+  <p class="ps" style="font-size: 13px; color: #4a555f; margin: 0 0 6px; line-height: 1.55; max-width: 86ch">Le mur n'est pas une erreur de saisie : c'est une information sur le projet. L'interface le montre, dit où il se trouve, pourquoi il existe, et ce qui reste possible — sans jamais dire à l'utilisateur ce qu'il devrait faire.</p>
+  <p class="ps" style="font-size: 12px; color: #4a555f; margin: 0 0 24px; line-height: 1.55; max-width: 86ch">Aucun rouge d'alarme, aucun pictogramme d'avertissement. La couleur employée est celle des intérêts et des coûts, déjà porteuse de sens dans tout le produit. Elle est toujours doublée d'un libellé et d'un chiffre.</p>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px">
+
+    <div>
+      <p class="ps" style="font-size: 11px; color: #4a555f; letter-spacing: 0.07em; text-transform: uppercase; margin: 0 0 10px">Plafond d'endettement dépassé</p>
+
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; margin-bottom: 12px">
+        <div style="background: #f8f9fb; border: 1px solid #c9cfd7; padding: 10px 12px">
+          <p class="ps" style="font-size: 11px; color: #4a555f; margin: 0 0 4px">Mensualité</p>
+          <p class="ar mo" style="font-weight: 600; font-size: 21px; margin: 0">2 312,79 €</p>
+          <p class="ps" style="font-size: 10px; color: #4a555f; margin: 4px 0 0">assurance comprise</p>
+        </div>
+        <div style="background: #f8f9fb; border: 1px solid #863525; padding: 10px 12px">
+          <p class="ps" style="font-size: 11px; color: #4a555f; margin: 0 0 4px">Taux d'effort</p>
+          <p class="ar mo" style="font-weight: 600; font-size: 21px; margin: 0; color: #863525">41,00 %</p>
+          <p class="ps" style="font-size: 10px; color: #4a555f; margin: 4px 0 0">plafond HCSF 35,00 %</p>
+        </div>
+      </div>
+
+      <div style="border: 1px solid #863525; border-left-width: 4px; background: #f8f9fb; padding: 12px 14px; margin-bottom: 14px">
+        <p class="ps" style="font-size: 13px; margin: 0 0 8px; line-height: 1.55"><span style="font-weight: 600">Six points au-dessus du plafond réglementaire.</span> Le Haut Conseil de stabilité financière limite le taux d'effort à 35 % des revenus nets, assurance comprise.</p>
+        <p class="ps" style="font-size: 12px; color: #4a555f; margin: 0 0 8px; line-height: 1.55">Ce plafond s'impose aux banques, pas à vous. Elles disposent d'une marge de dérogation portant sur 20 % de leur production trimestrielle, dont 70 % réservés à la résidence principale et, à l'intérieur, 30 % aux primo-accédants. Un dossier au-delà du seuil n'est donc pas refusé d'office — il consomme cette marge.</p>
+        <p class="ps" style="font-size: 12px; color: #4a555f; margin: 0; line-height: 1.55">Non modélisé ici : le reste à vivre, que les banques appliquent sans qu'il soit normé, et qui peut être plus contraignant que le ratio lui-même.</p>
+      </div>
+
+      <p class="ps" style="font-size: 11px; color: #4a555f; letter-spacing: 0.07em; text-transform: uppercase; margin: 0 0 8px">Ce qui ramènerait sous le seuil</p>
+      <table style="width: 100%; border-collapse: collapse; background: #f8f9fb; border: 1px solid #c9cfd7">
+        <tr style="border-bottom: 1px solid #c9cfd7">
+          <th class="ps" style="font-size: 11px; color: #4a555f; font-weight: 400; text-align: left; padding: 6px 10px">Levier</th>
+          <th class="ps" style="font-size: 11px; color: #4a555f; font-weight: 400; text-align: right; padding: 6px 10px">Effort</th>
+          <th class="ps" style="font-size: 11px; color: #4a555f; font-weight: 400; text-align: right; padding: 6px 10px">Coût du crédit</th>
+        </tr>
+        <tr><td class="ps" style="font-size: 12px; padding: 5px 10px">Apport porté à 60 000 €</td><td class="mo" style="font-size: 12px; padding: 5px 10px; text-align: right; color: #107c5a">37,4 %</td><td class="mo" style="font-size: 12px; padding: 5px 10px; text-align: right">−34 200 €</td></tr>
+        <tr><td class="ps" style="font-size: 12px; padding: 5px 10px">Prix négocié à 445 000 €</td><td class="mo" style="font-size: 12px; padding: 5px 10px; text-align: right; color: #107c5a">39,2 %</td><td class="mo" style="font-size: 12px; padding: 5px 10px; text-align: right">−11 300 €</td></tr>
+        <tr><td class="ps" style="font-size: 12px; padding: 5px 10px">Assurance déléguée à 0,18 %</td><td class="mo" style="font-size: 12px; padding: 5px 10px; text-align: right; color: #107c5a">40,0 %</td><td class="mo" style="font-size: 12px; padding: 5px 10px; text-align: right">−16 800 €</td></tr>
+      </table>
+      <p class="ps" style="font-size: 11px; color: #4a555f; margin: 8px 0 0; line-height: 1.5">Aucun de ces leviers ne suffit seul. Le produit les affiche, il ne les recommande pas : le choix dépend de ce qui est négociable dans votre situation.</p>
+    </div>
+
+    <div>
+      <p class="ps" style="font-size: 11px; color: #4a555f; letter-spacing: 0.07em; text-transform: uppercase; margin: 0 0 10px">Seuil d'usure franchi</p>
+
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; margin-bottom: 12px">
+        <div style="background: #f8f9fb; border: 1px solid #c9cfd7; padding: 10px 12px">
+          <p class="ps" style="font-size: 11px; color: #4a555f; margin: 0 0 4px">Taux nominal</p>
+          <p class="ar mo" style="font-weight: 600; font-size: 21px; margin: 0">4,35 %</p>
+          <p class="ps" style="font-size: 10px; color: #4a555f; margin: 4px 0 0">celui-ci passe</p>
+        </div>
+        <div style="background: #f8f9fb; border: 1px solid #863525; padding: 10px 12px">
+          <p class="ps" style="font-size: 11px; color: #4a555f; margin: 0 0 4px">TAEG</p>
+          <p class="ar mo" style="font-weight: 600; font-size: 21px; margin: 0; color: #863525">5,42 %</p>
+          <p class="ps" style="font-size: 10px; color: #4a555f; margin: 4px 0 0">plafond légal 5,29 %</p>
+        </div>
+      </div>
+
+      <div style="background: #f8f9fb; border: 1px solid #c9cfd7; padding: 13px 14px 11px; margin-bottom: 12px">
+        <p class="ps" style="font-size: 11px; color: #4a555f; margin: 0 0 9px">Ce qui compose le TAEG</p>
+        <div style="display: flex; height: 26px; gap: 2px; margin-bottom: 7px">
+          <div style="width: 78%; background: #863525; display: flex; align-items: center; padding-left: 8px"><span class="mo" style="font-size: 11px; color: #f1f3f6">4,35</span></div>
+          <div style="width: 14%; background: #846cad; display: flex; align-items: center; padding-left: 6px"><span class="mo" style="font-size: 11px; color: #f1f3f6">0,77</span></div>
+          <div style="width: 8%; background: #4a555f; display: flex; align-items: center; padding-left: 5px"><span class="mo" style="font-size: 11px; color: #f1f3f6">0,30</span></div>
+        </div>
+        <div style="display: flex; gap: 14px">
+          <span style="display: flex; align-items: center; gap: 5px"><span style="width: 9px; height: 9px; background: #863525; display: inline-block"></span><span class="ps" style="font-size: 11px">taux nominal</span></span>
+          <span style="display: flex; align-items: center; gap: 5px"><span style="width: 9px; height: 9px; background: #846cad; display: inline-block"></span><span class="ps" style="font-size: 11px">assurance</span></span>
+          <span style="display: flex; align-items: center; gap: 5px"><span style="width: 9px; height: 9px; background: #4a555f; display: inline-block"></span><span class="ps" style="font-size: 11px">frais et garantie</span></span>
+        </div>
+        <div style="position: relative; height: 20px; margin-top: 6px; border-top: 1px solid #c9cfd7">
+          <span style="position: absolute; left: 97.6%; top: -1px; width: 2px; height: 12px; background: #14181c; display: block"></span>
+          <span class="mo" style="position: absolute; right: 0; top: 12px; font-size: 10px; color: #14181c">seuil 5,29 %</span>
+        </div>
+      </div>
+
+      <div style="border: 1px solid #863525; border-left-width: 4px; background: #f8f9fb; padding: 12px 14px; margin-bottom: 14px">
+        <p class="ps" style="font-size: 13px; margin: 0 0 8px; line-height: 1.55"><span style="font-weight: 600">Le taux passe, c'est l'assurance qui fait franchir le seuil.</span> Elle pèse 0,77 point de TAEG ; le dépassement est de 0,13 point.</p>
+        <p class="ps" style="font-size: 12px; color: #4a555f; margin: 0 0 8px; line-height: 1.55">Le taux d'usure est le TAEG maximal légal, publié chaque trimestre par la Banque de France. Au-delà, la banque n'a pas le droit de prêter : ce n'est pas une négociation, c'est une interdiction.</p>
+        <p class="ps" style="font-size: 12px; color: #4a555f; margin: 0; line-height: 1.55">La loi Lemoine permet de changer d'assurance emprunteur à tout moment, sans frais. Une délégation à 0,18 % ramènerait le TAEG à 4,85 %.</p>
+      </div>
+
+      <div style="border-left: 3px solid #7e5f26; padding-left: 12px">
+        <p class="ps" style="font-size: 12px; color: #14181c; margin: 0; line-height: 1.55">Ces seuils sont datés. Celui-ci vaut pour le troisième trimestre 2026 et sera révisé fin septembre. Le produit affiche toujours la date de la valeur qu'il utilise, et sa source.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>
