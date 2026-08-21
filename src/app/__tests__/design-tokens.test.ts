@@ -34,15 +34,16 @@ function contrast(a: string, b: string): number {
 }
 
 /**
- * Les jetons du thème clair vivent dans le premier bloc, ceux du thème sombre
- * dans la surcharge `@media`. Découper là dessus suffit et évite d'embarquer un
- * analyseur CSS.
+ * Le thème par défaut est SOMBRE : il vit dans le premier bloc. Le thème clair
+ * est la variante, dans la surcharge `@media`. Découper là dessus suffit et
+ * évite d'embarquer un analyseur CSS.
  */
-function tokens(theme: "clair" | "sombre"): Record<string, string> {
-  const marker = "@media (prefers-color-scheme: dark)";
-  const at = CSS.indexOf(marker);
-  expect(at, "la surcharge de thème sombre a disparu de globals.css").toBeGreaterThan(0);
-  const block = theme === "clair" ? CSS.slice(0, at) : CSS.slice(at);
+const BASCULE = "@media (prefers-color-scheme: light)";
+
+function tokens(theme: "sombre" | "clair"): Record<string, string> {
+  const at = CSS.indexOf(BASCULE);
+  expect(at, "la variante de thème clair a disparu de globals.css").toBeGreaterThan(0);
+  const block = theme === "sombre" ? CSS.slice(0, at) : CSS.slice(at);
 
   const found: Record<string, string> = {};
   for (const m of block.matchAll(/--([a-z-]+):\s*(#[0-9a-f]{6})\s*;/g)) {
@@ -66,11 +67,27 @@ const TEXTE = [
 /** Ne sert qu'à REMPLIR une forme : seuil des éléments non textuels. */
 const REMPLISSAGE = ["capital", "interets", "assurance", "marches"] as const;
 
-describe.each(["clair", "sombre"] as const)("jetons — thème %s", (theme) => {
+/** Doivent exister, sans contrainte de contraste propre. */
+const STRUCTURE = [
+  "papier",
+  "panneau",
+  "filet",
+  "filet-grille",
+  "survol-fond",
+  "accent-survol",
+  "erreur-fond",
+  "desactive-encre",
+  "desactive-filet",
+  "infobulle-fond",
+  "infobulle-filet",
+  "pastille-filet",
+] as const;
+
+describe.each(["sombre", "clair"] as const)("jetons — thème %s", (theme) => {
   const t = tokens(theme);
 
   it("définit tous les jetons attendus", () => {
-    for (const name of [...TEXTE, ...REMPLISSAGE, "papier", "panneau", "filet"]) {
+    for (const name of [...TEXTE, ...REMPLISSAGE, ...STRUCTURE]) {
       expect(t[name], `jeton --${name} absent du thème ${theme}`).toBeDefined();
     }
   });
@@ -93,21 +110,38 @@ describe.each(["clair", "sombre"] as const)("jetons — thème %s", (theme) => {
     expect(ratio, `--${name} (${fg}) sur --papier (${bg}) : ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(3);
   });
 
-  it("garde le texte lisible sur un panneau de saisie", () => {
-    const ratio = contrast(t["encre"] as string, t["panneau"] as string);
-    expect(ratio, `--encre sur --panneau : ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(4.5);
-  });
+  it.each(["panneau", "infobulle-fond", "erreur-fond", "survol-fond"] as const)(
+    "l'encre reste lisible sur --%s",
+    (surface) => {
+      const ratio = contrast(t["encre"] as string, t[surface] as string);
+      expect(ratio, `--encre sur --${surface} : ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(4.5);
+    },
+  );
 });
 
 /**
- * Le thème sombre est choisi, pas dérivé. Si ses valeurs devenaient identiques
- * à celles du thème clair, c'est qu'une inversion automatique aurait remplacé
- * le choix — exactement ce que l'ADR-002 interdit.
+ * Le thème clair est choisi, pas dérivé. Si ses valeurs devenaient identiques à
+ * celles du thème sombre, c'est qu'une inversion automatique aurait remplacé le
+ * choix — exactement ce que l'ADR-002 interdit.
  */
-it("le thème sombre a ses propres pas", () => {
-  const clair = tokens("clair");
+it("les deux thèmes ont leurs propres pas", () => {
   const sombre = tokens("sombre");
+  const clair = tokens("clair");
   for (const name of REMPLISSAGE) {
-    expect(sombre[name], `--${name} identique dans les deux thèmes`).not.toBe(clair[name]);
+    expect(clair[name], `--${name} identique dans les deux thèmes`).not.toBe(sombre[name]);
   }
+});
+
+/**
+ * La séparation remplissage / texte n'est pas cosmétique : sur la surface
+ * sombre, la couleur de série des marchés ne tient que 3,4:1, très en dessous
+ * du seuil de texte. Si quelqu'un les réunifiait, ce test le dirait.
+ */
+it("le texte et le remplissage divergent là où ils le doivent", () => {
+  const sombre = tokens("sombre");
+  const serie = sombre["marches"] as string;
+  const texte = sombre["marches-texte"] as string;
+  expect(serie).not.toBe(texte);
+  expect(contrast(serie, sombre["papier"] as string)).toBeLessThan(4.5);
+  expect(contrast(texte, sombre["papier"] as string)).toBeGreaterThanOrEqual(4.5);
 });

@@ -1,5 +1,11 @@
 # Dossier pour Claude Design — étape 3
 
+> **Statut au 21 août 2026 : les écrans ont été conçus, ce dossier est conservé
+> comme trace de la commande.** Les huit planches vivent dans le dépôt (`*.dc.html`,
+> `canvas.json`) et la charte est en vigueur dans `src/app/globals.css`. Le thème par
+> défaut est désormais **sombre** — voir `docs/06-design-system.md` et l'ADR-003.
+> Ce document reste utile pour repartir vers un prestataire externe.
+
 Tout ce qu'il faut coller, dans quel ordre, et ce qu'il faut exiger en retour.
 Ce document ne se colle pas lui-même : c'est ta feuille de route.
 

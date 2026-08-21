@@ -6,61 +6,96 @@
  * Nommés par leur RÔLE, jamais par leur couleur. « capital » et non « vert » :
  * le jour où le vert change, le nom reste juste. Voir docs/ADR.md, ADR-002.
  *
+ * Le thème par défaut est SOMBRE — ardoise bleutée. Décision du 21 août 2026,
+ * voir docs/ADR.md, ADR-003. Le thème clair est la variante, servie aux
+ * navigateurs qui la demandent.
+ *
  * Les valeurs ne sont pas choisies à l'œil. Les quatre couleurs sémantiques sont
  * aussi les couleurs de séries des graphiques, et sont validées par calcul :
  * bande de clarté OKLCH, plancher de chroma, séparation sous protanopie et
- * deutéranopie, contraste sur la surface. Voir docs/06-design-system.md.
+ * deutéranopie, contraste. Voir docs/06-design-system.md.
  *
  * Toute modification doit être revalidée. Le test src/app/__tests__/design-tokens.test.ts
  * échoue si un contraste passe sous son seuil.
  */
 
 :root {
-  /* Surfaces et encre */
-  --papier: #f1f3f6;
-  --panneau: #f8f9fb;
-  --encre: #14181c;
-  --encre-secondaire: #4a555f;
-  --filet: #c9cfd7;
-  --accent: #7e5f26;
+  /* Surfaces et encre — ardoise nocturne */
+  --papier: #161c24;
+  --panneau: #1e2632;
+  --encre: #e6eaef;
+  --encre-secondaire: #a9b3bd;
+  --filet: #2f3945;
+  --filet-grille: #232c36;
+  --survol-fond: #262f3a;
+  --accent: #c79a46;
+  --accent-survol: #dcb267;
+
+  /* États */
+  --erreur-fond: #2a1f1c;
+  --desactive-encre: #6b757f;
+  --desactive-filet: #2a333d;
+
+  /* Pédagogie — la pastille « i » et sa bulle */
+  --infobulle-fond: #2e2718;
+  --infobulle-filet: #6b5a2e;
+  --pastille-filet: #8a7238;
 
   /* Couleurs sémantiques — remplissage des formes, contraste >= 3:1 */
-  --capital: #207e5d;
-  --interets: #863525;
-  --assurance: #846cad;
-  --marches: #085491;
+  --capital: #46a37f;
+  --interets: #ae523f;
+  --assurance: #a581c6;
+  --marches: #2170b0;
 
-  /* Variantes texte — contraste >= 4,5:1. Ne jamais utiliser les précédentes
-     pour porter du texte : quatre d'entre elles n'y atteignent pas le seuil. */
-  --capital-texte: #107c5a;
-  --interets-texte: #863525;
-  --assurance-texte: #725b9a;
-  --marches-texte: #085491;
+  /**
+   * Variantes texte — contraste >= 4,5:1.
+   *
+   * Ne JAMAIS employer les précédentes pour porter du texte. Sur fond sombre,
+   * forcer les quatre remplissages à tenir 4,5:1 les tasse dans une bande de
+   * clarté si étroite que l'assurance et les marchés deviennent indiscernables
+   * — ΔE 14,4 en vision normale, sous le plancher de 15. Vérifié par recherche
+   * exhaustive : aucun quadruplet ne satisfait les deux rôles à la fois.
+   */
+  --capital-texte: #46a37f;
+  --interets-texte: #c46c5a;
+  --assurance-texte: #a581c6;
+  --marches-texte: #4d87c7;
 }
 
 /**
- * Thème sombre — CHOISI, pas dérivé. Chaque valeur est un pas distinct, validé
- * contre la surface sombre. Une inversion automatique casserait la séparation
+ * Thème clair — CHOISI, pas dérivé. Chaque valeur est un pas distinct, validé
+ * contre la surface claire. Une inversion automatique casserait la séparation
  * entre l'assurance et les marchés.
  */
-@media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: light) {
   :root {
-    --papier: #14181c;
-    --panneau: #1e242a;
-    --encre: #e6eaef;
-    --encre-secondaire: #a9b3bd;
-    --filet: #333c45;
-    --accent: #c79a46;
+    --papier: #dfe5ed;
+    --panneau: #eef2f7;
+    --encre: #14181c;
+    --encre-secondaire: #4a555f;
+    --filet: #b9c2cd;
+    --filet-grille: #ccd4de;
+    --survol-fond: #d5dce6;
+    --accent: #7e5f26;
+    --accent-survol: #5f4718;
 
-    --capital: #46a37f;
-    --interets: #ae523f;
-    --assurance: #a581c6;
-    --marches: #2170b0;
+    --erreur-fond: #efe0db;
+    --desactive-encre: #8b949d;
+    --desactive-filet: #cbd3dd;
 
-    --capital-texte: #46a37f;
-    --interets-texte: #c06956;
-    --assurance-texte: #a581c6;
-    --marches-texte: #4983c3;
+    --infobulle-fond: #f2e7ca;
+    --infobulle-filet: #d9c48c;
+    --pastille-filet: #a58a4e;
+
+    --capital: #207e5d;
+    --interets: #863525;
+    --assurance: #846cad;
+    --marches: #085491;
+
+    --capital-texte: #007453;
+    --interets-texte: #863525;
+    --assurance-texte: #715999;
+    --marches-texte: #085491;
   }
 }
 
@@ -70,7 +105,18 @@
   --color-encre: var(--encre);
   --color-encre-secondaire: var(--encre-secondaire);
   --color-filet: var(--filet);
+  --color-filet-grille: var(--filet-grille);
+  --color-survol-fond: var(--survol-fond);
   --color-accent: var(--accent);
+  --color-accent-survol: var(--accent-survol);
+
+  --color-erreur-fond: var(--erreur-fond);
+  --color-desactive-encre: var(--desactive-encre);
+  --color-desactive-filet: var(--desactive-filet);
+
+  --color-infobulle-fond: var(--infobulle-fond);
+  --color-infobulle-filet: var(--infobulle-filet);
+  --color-pastille-filet: var(--pastille-filet);
 
   --color-capital: var(--capital);
   --color-interets: var(--interets);

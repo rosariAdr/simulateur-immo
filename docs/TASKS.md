@@ -16,7 +16,7 @@ Préfixes : `ENG` moteur de calcul · `FIS` paramètres fiscaux · `UI` interfac
       → `no-restricted-imports` en override sur `src/core/**`, vérifiée par sonde temporaire
 - [x] `INF-004` Jetons de design en variables CSS, nommés par rôle sémantique
       → `globals.css` + `layout.tsx`, validés par calcul et gardés par un test.
-      Restent les cinq états des composants de saisie, au retour de Claude Design.
+      Thème sombre par défaut, états de saisie et pastilles pédagogiques compris.
 - [x] `FIS-001` Structure des paramètres fiscaux versionnés par millésime
       → `src/core/fiscal/params.ts`, typé, daté, sourcé par JSDoc `@source`/`@see`
 - [ ] `FIS-002` **Vérifier à la source toutes les valeurs réglementaires du prototype**
@@ -216,3 +216,42 @@ intouchable.
 - `INF-001` : déploiement Vercel, toujours à faire côté compte.
 - `FIS-002` : inchangé, 4 entrées `TODO_VERIFY`. Toujours bloquant avant mise en ligne.
 - `LEG-001` / `LEG-002` : brouillons à compléter, puis relecture juridique.
+
+### 21 août 2026 — Ardoise nocturne, coquille persistante, pédagogie au survol
+
+**Fait**
+
+- **Surfaces arbitrées sur pièce.** Deux canevas complets ont été construits et
+  comparés — « ardoise nocturne » et « bleu-gris franc ». L'ardoise est retenue
+  comme thème par défaut ; le bleu-gris devient le thème clair, l'ancien
+  `#f1f3f6` est abandonné. Voir ADR-003.
+- **Le thème est devenu un paramètre.** `scripts/design-themes.mjs` rebranche les
+  jetons plutôt que de dupliquer huit fichiers. Une troisième variante ne coûte
+  presque rien.
+- **Séparation remplissage / texte** dans `globals.css` — huit jetons sémantiques
+  au lieu de quatre. Découverte par la validation : sur fond sombre, aucun
+  quadruplet ne satisfait 3:1 en remplissage et 4,5:1 en texte sans que
+  l'assurance et les marchés se rejoignent. 48 candidats testés.
+- **Coquille persistante** (`scripts/design-shell.mjs`) : toutes les planches de
+  bureau à 1240 px, même barre de navigation à icônes, barre d'onglets en pied
+  sur mobile.
+- **Pédagogie au survol** : pastilles « i » cerclées, bulle sur fond laiton pâle.
+  Six jetons ajoutés — infobulle-fond, infobulle-filet, pastille-filet,
+  survol-fond, erreur-fond, desactive-encre, desactive-filet, accent-survol.
+- **Module « pierre ou marchés » refondu** en deux questions ordonnées : où placer
+  un matelas de sécurité (Livret A, PEL, assurance-vie, PEA comparés sur rendement
+  net, disponibilité, risque), puis acheter contre louer un bien comparable.
+- `INF-004` cochée en entier : jetons, typographie et états de saisie.
+
+**Validation** — `typecheck` ✓ · `test` **129/129 sur 4 fichiers** ✓ · `lint` ✓ · `build` ✓
+
+**Reste**
+
+- Les rendements et taux de la table des enveloppes sont des hypothèses affichées
+  comme telles. Elles rejoignent `FIS-002` : à verser dans `fiscal/params.ts`,
+  datées et sourcées, avant tout calcul réel.
+- Questions 9.1 et 9.3 du brief design : partis provisoires, à trancher sur
+  prototype vivant.
+- `INF-001` : déploiement Vercel, toujours côté compte.
+- `LEG-001` / `LEG-002` : brouillons à compléter, puis relecture juridique.
+- Prochain jalon : les premiers composants React, à partir des planches.

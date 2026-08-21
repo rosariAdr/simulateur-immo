@@ -154,3 +154,68 @@ correspondante fait échouer la suite avec `#846cad sur #f1f3f6 : 3.99:1`.
   la valeur qu'on rééchelonne, pas le seuil qu'on abaisse.
 - La palette plafonne à quatre couleurs de série. Une cinquième série ne prend pas
   une teinte inventée : elle se replie dans « autres », ou passe en petits multiples.
+
+---
+
+## ADR-003 — Le thème par défaut est sombre, et le texte a ses propres jetons
+
+**Date** : 21 août 2026 · **Statut** : adoptée · **Tickets** : `INF-004`
+
+### Contexte
+
+La première charte posait un papier gris très clair, `#f1f3f6`. À l'usage il a été
+jugé trop proche du blanc et trop peu engagé — « blanc beige », sans registre. La
+demande était d'aller vers un gris ou un bleu foncé, quelque chose qui évoque la
+sérénité et la finance.
+
+Deux lectures s'offraient : rendre les surfaces claires simplement plus colorées, ou
+basculer le produit en sombre. Elles ne donnent pas le même produit, et le coût de se
+tromper était de redessiner huit planches. Les deux ont donc été construites et
+comparées sur pièce — « bleu-gris franc » sur papier `#dfe5ed`, « ardoise nocturne »
+sur papier `#161c24`.
+
+### Décision
+
+**Le thème par défaut est l'ardoise nocturne.** Le thème clair reste complet et
+validé, servi aux navigateurs qui le demandent via `prefers-color-scheme: light`. Sa
+surface est le bleu-gris franc, pas l'ancien gris presque blanc, qui est abandonné.
+
+**Le remplissage et le texte deviennent deux familles de jetons distinctes** —
+`--marches` et `--marches-texte`, et ainsi de suite pour les quatre rôles.
+
+### Justification de la seconde décision
+
+Elle n'est pas esthétique, elle est arithmétique.
+
+Une couleur qui remplit une forme doit atteindre 3:1 sur sa surface ; une couleur qui
+porte du texte doit atteindre 4,5:1. En thème clair, deux des quatre couleurs
+satisfaisaient les deux seuils avec la même valeur — coïncidence, pas identité.
+
+Sur la surface sombre, la coïncidence disparaît. Forcer les quatre couleurs de série
+à tenir 4,5:1 les remonte toutes dans une bande de clarté étroite, où l'assurance et
+les marchés se rejoignent : **ΔE 14,4 en vision normale, sous le plancher de 15**.
+Une recherche exhaustive sur 48 combinaisons de clarté, chroma et teinte n'a produit
+aucun quadruplet satisfaisant les deux rôles à la fois.
+
+La séparation en deux familles n'est donc pas un raffinement : c'est la seule sortie.
+
+### Conséquences acceptées
+
+- Huit jetons sémantiques au lieu de quatre, et la discipline de choisir le bon selon
+  qu'on remplit ou qu'on écrit. Le test le vérifie sur le cas le plus tranché : la
+  couleur de série des marchés ne tient que 3,3:1 sur la surface sombre.
+- Le thème clair doit être maintenu en parallèle, sans jamais être dérivé par
+  inversion — une inversion automatique recasserait exactement la séparation que
+  cette décision protège.
+- Les planches de design restent authorées en clair et le sombre en est dérivé par
+  script. C'est un héritage de la phase de comparaison, pas une hiérarchie.
+
+### Ce qui la garde
+
+`src/app/__tests__/design-tokens.test.ts`, étendu : il vérifie les deux thèmes, les
+quinze jetons de structure, la lisibilité de l'encre sur panneau, infobulle, fond
+d'erreur et survol, et il échoue si quelqu'un réunifie une couleur de série avec sa
+variante texte.
+
+Vérifié à l'adoption : ramener `--marches-texte` à `#2170b0` fait échouer deux tests,
+dont celui qui nomme la divergence.

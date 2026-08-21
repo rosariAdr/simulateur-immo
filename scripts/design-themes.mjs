@@ -7,6 +7,10 @@
  *
  *   node scripts/design-themes.mjs
  *
+ * « ardoise-nocturne » est le thème par défaut du produit ; « bleu-gris-franc »
+ * est la variante claire. Les planches sont authorées en clair et les deux thèmes
+ * en sont dérivés — héritage de la phase de comparaison, pas une hiérarchie.
+ *
  * Composants.dc.html est exclu : cette planche montre délibérément les deux
  * thèmes côte à côte, la reteinter n'aurait pas de sens.
  */
