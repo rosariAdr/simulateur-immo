@@ -151,6 +151,15 @@ Le découpage en versions, le modèle de branches et les portes sont dans
       de marché, aucune loi ne les fixe. Décision d’architecture à prendre
       → `src/core/assumptions/market.ts`. Chaque valeur porte son intervalle observé, sa
       fiabilité et sa provenance. Aucun chiffre modifié, et un test le garde. Voir ADR-008
+- [ ] `FIS-006` Recouper les hypothèses de marché sur des grilles publiées. Les cinq
+      coûts de garantie, les deux fourchettes de taux d'assurance et les deux de frais
+      d'acquisition sont toutes en fiabilité `estimee`. **Un contre-exemple est déjà
+      documenté** : l'exemple représentatif de la Société Générale donne 0,26 % d'assurance
+      pour un emprunteur de 35 ans, sous la borne basse de 0,30 % (voir `ENG-008`)
+- [ ] `TST-002` `reference.test.ts` compare la mensualité de référence avec
+      `toBeCloseTo(908.97, 1)` — une tolérance muette de 5 centimes, quand la valeur
+      exacte est 908,9705 €. Le test passerait encore si le moteur dérivait. Fichier
+      gelé : la correction demande une raison écrite, elle en a une
 - [x] `UI-013` Le champ « Garantie » était étiqueté **réglementaire** alors que
       `docs/CONTEXT.md` §2 range le choix de la garantie parmi les **négociables**.
       L'erreur dans le pire sens : elle disait à quelqu'un qu'il n'a pas la main sur ce
