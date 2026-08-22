@@ -71,6 +71,14 @@ export type NatureDuBien = "immeuble-bati" | "immeuble-non-bati" | "terrain-a-ba
  * détenus par un fonds de placement immobilier. La restriction figure dans les
  * commentaires de `params.ts` sans figurer dans sa structure — dette signalée
  * par `FIS-007` et traitée ici.
+ *
+ * Elle a été confrontée au texte le 23 août 2026, et non seulement à la note
+ * interne qui l'avait signalée : l'article exclut les immeubles détenus
+ * « directement ou indirectement » par un tel fonds. C'est ce « indirectement »
+ * que ce module ne sait pas voir — il croit la qualité qu'on lui déclare.
+ *
+ * @source CGI, art. 150 VB, II, 3°, renvoyant à l'art. 239 nonies.
+ * @see https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000051202577
  */
 export type QualiteDuCedant = "personne-physique" | "fonds-de-placement-immobilier";
 

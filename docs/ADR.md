@@ -954,3 +954,133 @@ deux ; annuler la décote de lissage de la surtaxe, trois.
   soient dans `params.ts` : il dépend d'un engagement de démolition ou de reconstruction
   pris par l'**acquéreur**, que le simulateur ne connaît pas. Les valeurs restent
   disponibles pour un ticket ultérieur.
+## ADR-014 — Le décompte d'une vente sort poste par poste, et son total peut être négatif
+
+**Date** : 23 août 2026 · **Statut** : adoptée · **Tickets** : `ENG-012`
+
+### Contexte
+
+`docs/03-spec-domaine.md` §2 décrit le scénario de vente à l'horizon en une phrase :
+« Valeur appréciée, moins les frais d'agence, le capital restant dû, les indemnités de
+remboursement anticipé et la mainlevée éventuelle, plus la restitution du fonds de
+garantie. » Six postes, deux dans un sens et quatre dans l'autre.
+
+Trois questions se posaient, et aucune des trois n'avait de réponse évidente.
+
+**La forme de la sortie.** Un simulateur qui rend « produit net : 80 800 € » a répondu à
+la question posée et n'a rien enseigné. Or deux des six postes — l'indemnité de
+remboursement anticipé et la mainlevée — sont ignorés de la plupart des vendeurs jusqu'au
+décompte du notaire, et ils se chiffrent en milliers d'euros.
+
+**Le signe du total.** Une revente précoce sur un marché qui a reculé peut ne pas couvrir
+le capital restant dû. Le vendeur doit alors apporter de l'argent pour que la vente se
+fasse. Fallait-il rendre ce nombre, ou le ramener à zéro ?
+
+**La frontière fiscale.** L'exonération de la résidence principale est acquise sans
+condition de durée de détention. Le cas imposable, lui, demande deux barèmes d'abattement
+aux cadences différentes, une surtaxe à dix tranches et un taux de prélèvements sociaux
+qui dépend de la résidence fiscale — un module entier, `ENG-014`, écrit en parallèle.
+Comment écrire le premier sans préempter le second ni le mettre à zéro en silence ?
+
+### Décision
+
+**1. Chaque poste sort séparément ; le total n'est que leur somme.** `PostesDeVente`
+porte les sept montants — les six de la spécification, plus l'impôt — en valeur absolue,
+le sens de chacun étant fixé par la formule de `produitNet` et non par un signe porté par
+le montant. Un test de propriété vérifie sur chaque tirage que le total est exactement la
+somme algébrique des postes rendus.
+
+**2. Le produit net n'a pas de plancher.** Il est négatif quand la vente ne couvre pas ce
+qu'elle doit solder, et il est rendu tel quel. Les postes pris isolément, eux, sont
+plafonnés à zéro : une commission négative ne veut rien dire, un total négatif si.
+
+**3. Le régime fiscal est une union discriminée, pas un champ optionnel.**
+
+```
+type RegimePlusValue =
+  | { nature: "residence-principale"; moisDepuisDemenagement?: number }
+  | { nature: "imposable"; impotTotal: Cents; origine?: string }
+```
+
+Ce module calcule la première branche — un zéro, et c'est un zéro *calculé*. La seconde
+reçoit un montant déjà établi par `plus-value.ts`. Le module ne l'importe pas.
+
+**4. L'appréciation du bien n'a pas de valeur par défaut.** Le bloc `vente` de
+`assumptions/market.ts` publie un intervalle sans valeur centrale — le type
+`FourchetteObservee`, celui-là même qui existait déjà pour les taux d'assurance — et le
+champ est obligatoire dans l'entrée du calcul. La commission d'agence, elle, est une
+`HypotheseChiffree` avec sa valeur centrale, et sert de défaut.
+
+### Justification
+
+**Sur le décompte détaillé.** L'écart entre une vente garantie par une caution et la même
+vente sous hypothèque tient en deux lignes qui vont dans des sens opposés : la restitution
+du fonds mutuel d'un côté, la mainlevée de l'autre. Sur le cas de référence E, l'écart
+fait 2 575 € — invisible dans deux totaux, évident dans deux tableaux. C'est exactement le
+genre de chiffre que le produit existe pour montrer.
+
+**Sur le total négatif.** C'est le seul cas où le résultat change une décision. Le
+ramener à zéro reviendrait à dire au vendeur qu'il ne gagne rien, alors qu'il doit
+*apporter* vingt-cinq mille euros. Un simulateur qui tronque son résultat là où il devient
+inconfortable ne se trompe pas par accident.
+
+**Sur l'union discriminée.** Un champ `impot?: Cents` aurait confondu deux situations
+opposées : « aucun impôt n'est dû » et « personne n'a renseigné l'impôt ». La première est
+un résultat, la seconde un oubli, et l'oubli se serait lu comme un résultat. L'union rend
+l'oubli impossible à écrire : on ne peut pas choisir `imposable` sans fournir un montant.
+
+Le cas du bien déjà quitté a été traité dans le même esprit. Au-delà du délai normal de
+vente — doctrine BOFiP, lu dans `params.ts` et non écrit en dur —, le module ne maintient
+pas l'exonération d'office, ne la refuse pas d'office, et surtout n'invente pas un impôt
+qu'il ne sait pas calculer : il pose `acquise: false` et rend une réserve rédigée, qui
+renvoie au régime imposable.
+
+**Sur l'appréciation sans valeur centrale.** Retenir un chiffre reviendrait à publier une
+prévision de marché, ce que `docs/CONTEXT.md` §8 exclut. Le mécanisme est le même que pour
+`RENDEMENTS_NETS_OBSERVES` dans `portefeuille.ts` : l'absence de `valeur` dans le type
+*empêche* le calcul d'avoir un défaut, elle ne se contente pas de le décourager.
+
+### Ce qui la garde
+
+- `src/core/compare/__tests__/vente.test.ts` — six cas de référence calculés à la main
+  dans leurs commentaires : horizon zéro comptant, revente immédiate sous hypothèque,
+  vente qui ne couvre pas le capital restant dû, vente au terme, caution contre
+  hypothèque, capitalisation de l'appréciation.
+- Le même fichier, sous `fast-check` : le produit net est la somme algébrique des postes ;
+  aucun poste n'est négatif ni fractionnaire ; l'indemnité respecte les deux plafonds de
+  l'art. R313-25 ; passé le terme, ni indemnité ni mainlevée ; le produit net croît avec
+  l'appréciation ; l'impôt fourni se retranche à l'euro près ; la résidence principale
+  occupée n'est jamais imposée, **quelle que soit la durée de détention**.
+- Le bloc `vente` des hypothèses de marché y est couvert aussi, faute de l'être ailleurs —
+  voir « Conséquences acceptées ». La garde la plus utile de ce bloc vérifie que
+  l'appréciation ne porte **pas** de champ `valeur`.
+
+Vérifié à l'adoption, quatre gardes cassées puis rétablies : retirer le plancher sur une
+base d'appréciation négative fait rougir deux tests ; lire `rows[m − 1]` à l'horizon zéro
+au lieu de `totalPrincipal`, quatre ; remplacer le `??` de la commission par un `||`,
+trois ; rendre la mainlevée inconditionnelle, **un seul** — et c'est ce qui a manqué être
+raté, le cas de référence de la vente au terme étant garanti par une caution, dont la
+mainlevée vaut zéro de toute façon. Un cas sous hypothèque a été ajouté, et la garde
+rougit désormais deux fois.
+
+### Conséquences acceptées
+
+- **Le taux moyen du prêt entre en paramètre obligatoire.** L'art. R313-25 plafonne
+  l'indemnité à six mois d'intérêts « au taux moyen du prêt » ; sur un financement à
+  plusieurs lignes, ce taux dépend d'une convention de pondération que le moteur ne
+  connaît pas. Un défaut à zéro annulerait silencieusement l'indemnité, ce qui est
+  précisément le poste que le module existe pour rendre visible. L'appelant doit donc le
+  fournir, et l'interface devra l'expliquer.
+- **Le bloc `vente` des hypothèses de marché échappe à
+  `assumptions/__tests__/market.test.ts`**, dont la boucle n'itère nommément que sur
+  `guarantee`. La dette était déjà signalée ; elle grossit d'un bloc. Il est couvert dans
+  `vente.test.ts` en attendant, ce qui met la garde d'un fichier au mauvais endroit.
+- **La restitution du fonds mutuel est acquise dès que le prêt s'éteint**, que ce soit à
+  son terme ou par la vente. Le champ du moteur crédit s'appelle `refundAtTerm` ; le
+  module l'entend comme « à l'extinction ». La part réellement restituée par un organisme
+  de caution lors d'un remboursement anticipé peut être moindre, et aucune grille publiée
+  ne permet de le chiffrer. C'est une hypothèse, elle est écrite dans le code.
+- **Le module ne compare pas deux horizons.** Il chiffre une vente à un horizon donné, et
+  rien n'y désigne un moment favorable. Balayer l'horizon pour tracer une courbe est le
+  travail de l'appelant ; il devra le faire sans laisser croire que le maximum de cette
+  courbe est une recommandation.

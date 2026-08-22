@@ -112,12 +112,6 @@ Le découpage en versions, le modèle de branches et les portes sont dans
 
 ## Phase 3 — Acheter ou louer
 
-- [ ] `FIS-007` Valeurs fiscales de la phase 3 : prélèvements sociaux et taux réduit
-      EEE/Suisse, les **deux** barèmes d'abattement pour durée de détention — cadences et
-      durées d'exonération différentes —, surtaxe sur plus-values élevées, forfaits de
-      majoration du prix d'acquisition, exonération de la résidence principale. Sourcées,
-      datées. Bloquant pour `ENG-012`, `ENG-014` et `ENG-016`
-- [ ] `ENG-010` Coûts de détention et flux mensuels comparés
 - [x] `ENG-011` Portefeuille du locataire de référence
       → `src/core/compare/portefeuille.ts`. Le retrait qui dépasse le solde est tronqué,
       jamais mis en négatif, et le manque est rendu explicite. Voir ADR-011
@@ -127,8 +121,12 @@ Le découpage en versions, le modèle de branches et les portes sont dans
       annuelle, l'échéance de crédit reprise d'un `CreditPlan` sans jamais être
       recalculée. Les deux côtés sont indexés, pas seulement le loyer — voir ADR-012.
       Quatre hypothèses de marché ajoutées à `assumptions/market.ts`.
-- [ ] `ENG-011` Portefeuille du locataire de référence
-- [ ] `ENG-012` Scénario de vente, exonération résidence principale
+- [x] `ENG-012` Scénario de vente, exonération résidence principale
+      → `src/core/compare/vente.ts`. Le produit net sort **poste par poste**, pas en un
+      total : prix de cession, commission d'agence, capital restant dû lu dans le plan,
+      indemnité sous son double plafond légal, mainlevée, restitution du fonds. Le total
+      peut être négatif, et il l'est rendu tel quel. Le cas imposable entre par une union
+      discriminée `RegimePlusValue`, jamais importé. Voir ADR-014
 - [ ] `ENG-013` Régimes fiscaux locatifs
 - [x] `ENG-014` Plus-value hors résidence principale, abattements par durée
       → `src/core/compare/plus-value.ts`. **Deux abattements, deux assiettes** —
@@ -1625,3 +1623,84 @@ l'art. 150 VB, II, 3°.
 **Porte verte** — `PORT_E2E=3131 npm run porte` : typecheck, lint, **820 tests Vitest sur
 17 fichiers**, build, **242 tests Playwright passés et 10 ignorés**. Le ticket en apporte
 36, dans `src/core/compare/__tests__/plus-value.test.ts`.
+### 23 août 2026 — `ENG-012`, scénario de vente à l'horizon
+
+**Ce qui est livré.** `src/core/compare/vente.ts`, une fonction publique —
+`produitDeVente(entree, params): ProduitDeVente` — et un utilitaire exporté,
+`valeurAppreciee(valeurInitiale, pctAnnuel, mois)`. Aucun autre fichier de `compare/` n'a
+été touché : les types du module vivent dans `vente.ts`, pour ne pas entrer en collision
+avec `plus-value.ts`, écrit en parallèle.
+
+**La décision de fond.** Le module rend **sept postes séparés**, et le produit net n'est
+que leur somme algébrique. Rendre un total unique aurait répondu à la question sans rien
+enseigner : deux des postes — l'indemnité de remboursement anticipé et la mainlevée — sont
+ignorés de la plupart des vendeurs jusqu'au décompte du notaire, et ils pèsent des
+milliers d'euros. L'écart entre une caution et une hypothèque, sur le cas de référence E,
+fait 2 575 € et tient en deux lignes qui vont dans des sens opposés. Voir ADR-014.
+
+**Le produit net peut être négatif, et il n'est pas tronqué.** Cas de référence C : bien
+acheté 200 000 €, marché en recul de 5 % par an, revente au bout de deux ans avec un prêt
+encore à 195 000 €. Produit net : **−25 075 €**. C'est la somme que le vendeur doit
+apporter au notaire pour que la vente se fasse, et c'est le seul cas où le chiffre change
+une décision. Aucun plancher n'a été posé sur le total. Les postes pris isolément, eux, le
+sont : une commission négative ne veut rien dire.
+
+**Rien n'est recalculé.** Le capital restant dû est lu dans `plan.rows[m − 1].balance`, la
+mainlevée et la restitution sortent du `GuaranteeCost` du moteur crédit, l'indemnité passe
+par `prepaymentPenalty` et son double plafond. Le type d'entrée le dit : il ne demande que
+`rows`, `guarantee` et `totalPrincipal`. Ce dernier est là pour l'horizon zéro, le seul
+instant qu'aucune ligne ne décrit — lire `rows[0]` y rendrait le solde *après* la première
+échéance.
+
+**La place laissée au cas imposable.** Une **union discriminée**, `RegimePlusValue`, dont
+la branche `residence-principale` est calculée ici — un zéro, et c'est un zéro calculé —
+et dont la branche `imposable` reçoit un `impotTotal: Cents` établi ailleurs. Un champ
+`impot?: Cents` optionnel aurait confondu « aucun impôt n'est dû » et « personne n'a
+renseigné l'impôt » ; l'union rend le second inécrivable. `plus-value.ts` n'est ni importé
+ni supposé.
+
+**Deux hypothèses de marché ajoutées** en fin de `assumptions/market.ts`, sous `vente`, et
+**elles n'ont volontairement pas le même type**. L'appréciation annuelle du bien est une
+`FourchetteObservee` — intervalle [−2 ; +4], **sans valeur centrale** —, ce qui la rend
+obligatoire dans l'entrée du calcul : lui donner un défaut reviendrait à publier une
+prévision de marché. La commission d'agence est une `HypotheseChiffree`, 5 % dans [3 ; 8],
+et sert de défaut. Elles portent le compte de `FIS-006` de treize à quinze.
+
+**Ce que les gardes cassées ont appris.** Quatre cassées puis rétablies. Retirer le
+plancher qui absorbe une base d'appréciation négative — sans lui, `Math.pow` d'une base
+négative à un exposant fractionnaire rend `NaN`, et un `NaN` traverse un décompte
+monétaire sans bruit : deux rouges. Lire `rows[m − 1]` à l'horizon zéro : quatre rouges.
+Remplacer le `??` de la commission par un `||`, ce qui écrase une saisie à zéro — la vente
+de particulier à particulier — par la valeur de marché : trois rouges.
+
+Le quatrième est le seul intéressant. Rendre la mainlevée inconditionnelle, donc la
+facturer même après la dernière échéance : **un seul rouge**, celui du test de propriété.
+Le cas de référence de la vente au terme aurait dû mordre et n'a pas mordu, parce qu'il
+est garanti par une **caution**, dont la mainlevée vaut zéro de toute façon. Un cas sous
+hypothèque a été ajouté ; la garde rougit maintenant deux fois. Un cas de référence qui ne
+distingue pas les deux garanties ne garde pas la condition qui les sépare.
+
+**Trouvé sans être corrigé.** Trois points.
+
+`assumptions/__tests__/market.test.ts` n'itère nommément que sur le bloc `guarantee` : le
+bloc `vente` échappe entièrement à sa boucle, comme `detention` avant lui. La dette était
+déjà signalée ; elle grossit. Le bloc est couvert dans `vente.test.ts`, ce qui met la
+garde d'un fichier au mauvais endroit. À reprendre avec `FIS-006`.
+
+`GuaranteeCost.refundAtTerm` est entendu ici comme « à l'extinction du prêt », la vente
+l'éteignant tout autant que sa dernière échéance. Ce que restitue réellement un organisme
+de caution lors d'un remboursement anticipé peut être moindre, et aucune grille publiée ne
+permet de le chiffrer. L'hypothèse est écrite dans le code, elle n'est pas vérifiée.
+
+Le taux moyen du prêt est un paramètre **obligatoire** du module. Sur un financement à
+plusieurs lignes — prêt principal et prêt à taux zéro —, il dépend d'une convention de
+pondération que le moteur crédit ne porte pas. Le rendre obligatoire évite qu'un défaut à
+zéro annule silencieusement l'indemnité, mais ne dit pas à l'appelant comment le calculer.
+C'est un trou de spécification, pas un trou de code.
+
+**Une réserve à porter dans l'interface.** Le module ne compare pas deux horizons et ne
+désigne aucun moment favorable. Balayer l'horizon pour tracer une courbe est légitime ; en
+présenter le maximum comme un moment où vendre ne le serait pas.
+
+**Porte** — `PORT_E2E=3132 npm run porte`, verte : typecheck, lint, **824 tests Vitest sur
+17 fichiers**, build, **242 tests Playwright passés et 10 ignorés**.

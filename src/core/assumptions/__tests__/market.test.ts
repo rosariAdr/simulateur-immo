@@ -3,10 +3,10 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { MARKET_2026 } from "../market";
 import type { FourchetteObservee, HypotheseChiffree } from "../market";
+import { PARAMS_2026 } from "../../fiscal/params";
 
 /** Ce que porte une entrée d'hypothèse, avec ou sans valeur centrale. */
 type Hypothese = HypotheseChiffree | FourchetteObservee;
-import { PARAMS_2026 } from "../../fiscal/params";
 
 /**
  * LA SÉPARATION LOI / MARCHÉ — `FIS-005`
@@ -95,6 +95,7 @@ describe("chaque hypothèse de marché déclare ce qu'elle vaut", () => {
       "detention",
       "guarantee",
       "insurance",
+      "vente",
     ]);
   });
 
@@ -116,9 +117,21 @@ describe("chaque hypothèse de marché déclare ce qu'elle vaut", () => {
         });
 
         it("déclare un intervalle ordonné et plausible", () => {
+          // La borne basse n'est PAS plancherée à zéro, et ce n'est pas un oubli.
+          //
+          // Cette garde l'exigeait, parce qu'elle était née sur des coûts — une
+          // commission, une prime, des frais, qui ne sont jamais négatifs. Le
+          // premier taux de variation entré dans le fichier l'a fait rougir :
+          // l'appréciation d'un bien immobilier a pour intervalle [−2 ; +4], et
+          // un marché qui baisse est précisément ce qu'un simulateur honnête doit
+          // pouvoir représenter. La garde encodait une hypothèse sur le monde,
+          // pas un invariant.
+          //
+          // Reste ce qui vaut pour tous : des bornes ordonnées, et des grandeurs
+          // qui restent des pourcentages.
           const [bas, haut] = h.intervalle;
           expect(bas, `${bloc}.${nom} : intervalle inversé`).toBeLessThanOrEqual(haut);
-          expect(bas, `${bloc}.${nom} : borne basse négative`).toBeGreaterThanOrEqual(0);
+          expect(bas, `${bloc}.${nom} : borne basse invraisemblable`).toBeGreaterThanOrEqual(-100);
           expect(haut, `${bloc}.${nom} : borne haute invraisemblable`).toBeLessThanOrEqual(100);
         });
 
