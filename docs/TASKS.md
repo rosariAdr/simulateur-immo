@@ -20,7 +20,9 @@ Préfixes : `ENG` moteur de calcul · `FIS` paramètres fiscaux · `UI` interfac
 - [x] `FIS-001` Structure des paramètres fiscaux versionnés par millésime
       → `src/core/fiscal/params.ts`, typé, daté, sourcé par JSDoc `@source`/`@see`
 - [ ] `FIS-002` **Vérifier à la source toutes les valeurs réglementaires du prototype**
-      → 4 entrées `TODO_VERIFY` subsistent dans `params.ts`. Bloquant avant mise en ligne.
+      → 3 entrées `TODO_VERIFY` dans `params.ts`. Recherche menée le 21 août :
+      voir `docs/reference/FIS-002-verification.md`. Une seule reste non résolue,
+      la liste des départements à taux réduit. Bloquant avant mise en ligne.
 
 ## Phase 1 — Moteur crédit
 
