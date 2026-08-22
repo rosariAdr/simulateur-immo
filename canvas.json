@@ -100,6 +100,13 @@
       "y": 1090,
       "w": 460,
       "text": "Pastilles pédagogiques : un « i » cerclé, discret mais constant, à côté de chaque terme technique. Au survol, une bulle sur fond laiton pâle.\n\nUne bulle est laissée ouverte sur la planche du module crédit, sous le champ Assurance, pour montrer le traitement.\n\nJetons ajoutés : infobulle-fond, infobulle-filet, survol-fond, erreur-fond, desactive-encre, desactive-filet."
+    },
+    {
+      "id": "etat-implementation",
+      "x": 1320,
+      "y": -190,
+      "w": 620,
+      "text": "ÉTAT AU 22 AOÛT 2026 — ces planches sont partiellement implémentées.\n\nFAIT en code : les jetons de la charte (globals.css, thème sombre par défaut), les trois polices, et les sept primitives de saisie avec leurs cinq états. Visibles sur /composants, gardées par 13 tests de bout en bout.\n\nRESTE : la grille du module, l’état d’URL, le bandeau d’indicateurs, le ruban et le tableau.\n\nLes planches restent la référence visuelle ; le code ne les a pas encore rattrapées."
     }
   ],
   "launch": {
