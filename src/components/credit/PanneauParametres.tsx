@@ -1,8 +1,10 @@
 "use client";
 
 import { ChampMontant, ChampTaux, ListeDeroulante, SelecteurSegmente } from "@/components/ui";
+import { avec, GLOSSAIRE, GLOSSAIRE_PARAMETRE } from "@/content/glossaire";
+import type { FiscalParams } from "@/core/fiscal/params";
 import { euros, toEuros } from "@/core/money";
-import { formatEurosCourt, formatDuree } from "@/lib/format";
+import { formatEurosCourt, formatDuree, formatPourcentage } from "@/lib/format";
 import { BASES_ASSURANCE, GARANTIES, type Scenario } from "@/lib/scenario";
 import type { useScenario } from "./useScenario";
 
@@ -24,6 +26,11 @@ interface Props {
   readonly definir: ReturnType<typeof useScenario>["definir"];
   /** Plafond légal du trimestre, affiché sur la piste du taux. */
   readonly seuilUsure: number;
+  /**
+   * Millésime réglementaire. Les infobulles qui citent un seuil le reçoivent
+   * d'ici : aucune valeur réglementaire n'est écrite dans le texte.
+   */
+  readonly params: FiscalParams;
 }
 
 /**
@@ -36,8 +43,15 @@ interface Props {
  * L'ordre des champs suit celui de la décision, pas celui du calcul : on part
  * du bien, on descend vers le financement, on finit par ce qui contraint.
  */
-export function PanneauParametres({ scenario, definir, seuilUsure }: Props) {
+export function PanneauParametres({ scenario, definir, seuilUsure, params }: Props) {
   const capital = Math.max(scenario.prix - scenario.apport, 0);
+
+  // Les trois valeurs que l'infobulle de la durée cite, prises à la source.
+  const duree = avec(GLOSSAIRE_PARAMETRE.duree, {
+    plafond: formatDuree(params.hcsf.maxDurationMonths),
+    derogatoire: formatDuree(params.hcsf.maxDurationDerogatoryMonths),
+    partTravaux: formatPourcentage(params.hcsf.derogatoryWorksSharePct, 1),
+  });
 
   return (
     <div className="flex flex-col gap-2.5">
@@ -61,13 +75,7 @@ export function PanneauParametres({ scenario, definir, seuilUsure }: Props) {
         valeur={euros(scenario.apport)}
         onChange={(c) => void definir({ apport: Math.round(toEuros(c)) })}
         aide={`Vous empruntez ${formatEurosCourt(euros(capital))}.`}
-        explication={
-          <>
-            <strong>L&apos;apport ne réduit pas que la mensualité.</strong> Il réduit le capital, donc
-            les intérêts qu&apos;il aurait produits pendant toute la durée — c&apos;est là que se
-            joue l&apos;essentiel de l&apos;économie.
-          </>
-        }
+        explication={GLOSSAIRE.apport}
       />
 
       <ChampTaux
@@ -79,13 +87,12 @@ export function PanneauParametres({ scenario, definir, seuilUsure }: Props) {
         min={0}
         max={8}
         pas={0.05}
-        seuil={{ valeur: seuilUsure, libelle: "Plafond d'usure du trimestre" }}
-        explication={
-          <>
-            <strong>Il se négocie, et c&apos;est le levier le plus rentable.</strong> Un dixième de
-            point sur vingt ans pèse environ 2 200 € sur un prêt de 180 000 €.
-          </>
-        }
+        seuil={{
+          valeur: seuilUsure,
+          libelle: "Plafond d'usure du trimestre",
+          explication: GLOSSAIRE.tauxUsure,
+        }}
+        explication={GLOSSAIRE.tauxNominal}
       />
 
       <ChampTaux
@@ -97,12 +104,7 @@ export function PanneauParametres({ scenario, definir, seuilUsure }: Props) {
         min={0}
         max={1.5}
         pas={0.01}
-        explication={
-          <>
-            <strong>La loi Lemoine permet d&apos;en changer à tout moment</strong>, sans frais. Une
-            délégation coûte souvent la moitié du contrat de groupe de la banque.
-          </>
-        }
+        explication={GLOSSAIRE.assuranceEmprunteur}
       />
 
       <SelecteurSegmente
@@ -112,13 +114,7 @@ export function PanneauParametres({ scenario, definir, seuilUsure }: Props) {
         options={BASES}
         valeur={scenario.assuranceBase}
         onChange={(v) => void definir({ assuranceBase: v })}
-        explication={
-          <>
-            <strong>Elle compte plus que le taux affiché.</strong> Sur le capital initial la prime ne
-            bouge jamais ; sur le capital restant dû elle décroît. À taux identique, l&apos;écart
-            atteint 30 à 45 % du coût total de l&apos;assurance.
-          </>
-        }
+        explication={GLOSSAIRE.baseAssurance}
       />
 
       <ListeDeroulante
@@ -128,12 +124,7 @@ export function PanneauParametres({ scenario, definir, seuilUsure }: Props) {
         options={DUREES.map((m) => ({ valeur: String(m), libelle: `${formatDuree(m)} · ${m} échéances` }))}
         valeur={String(scenario.dureeMois)}
         onChange={(v) => void definir({ dureeMois: Number(v) })}
-        explication={
-          <>
-            <strong>Allonger réduit la mensualité et augmente le coût total.</strong> Le HCSF plafonne
-            à vingt-cinq ans, vingt-sept si des travaux atteignent 10 % du montant emprunté.
-          </>
-        }
+        explication={duree}
       />
 
       <ListeDeroulante
@@ -143,13 +134,7 @@ export function PanneauParametres({ scenario, definir, seuilUsure }: Props) {
         options={OPTIONS_GARANTIE}
         valeur={scenario.garantie}
         onChange={(v) => void definir({ garantie: v })}
-        explication={
-          <>
-            <strong>La caution restitue une part au terme</strong>, l&apos;hypothèque coûte une
-            mainlevée si vous revendez avant. Le bon choix dépend de votre horizon, pas du seul prix
-            affiché.
-          </>
-        }
+        explication={GLOSSAIRE.garantie}
       />
 
       <ChampMontant
@@ -158,13 +143,7 @@ export function PanneauParametres({ scenario, definir, seuilUsure }: Props) {
         famille="contraint"
         valeur={euros(scenario.revenu)}
         onChange={(c) => void definir({ revenu: Math.round(toEuros(c)) })}
-        explication={
-          <>
-            <strong>Le taux d&apos;effort se calcule dessus</strong>, assurance comprise. Le plafond
-            réglementaire est de 35 %, mais les banques regardent aussi le reste à vivre, qui
-            n&apos;est pas normé.
-          </>
-        }
+        explication={GLOSSAIRE.revenuFoyer}
       />
 
       <ChampMontant

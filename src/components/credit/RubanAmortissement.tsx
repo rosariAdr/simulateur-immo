@@ -3,6 +3,8 @@
 import { useRef } from "react";
 import type { CreditPlan } from "@/core/credit/plan";
 import { formatEuros } from "@/lib/format";
+import { Pastille } from "@/components/ui";
+import { GLOSSAIRE } from "@/content/glossaire";
 
 /**
  * RUBAN D'AMORTISSEMENT — `VIZ-001`
@@ -70,8 +72,10 @@ export function RubanAmortissement({ plan, annee, onAnnee }: Props) {
   return (
     <section aria-labelledby="titre-ruban">
       <div className="mb-2 flex flex-wrap items-baseline justify-between gap-3">
-        <h2 id="titre-ruban" className="font-titre text-[15px] font-semibold">
+        <h2 id="titre-ruban" className="flex items-center font-titre text-[15px] font-semibold">
           Ruban d&apos;amortissement
+          {/* Le mot qui donne son nom au graphique n'était expliqué nulle part. */}
+          <Pastille entree={GLOSSAIRE.amortissement} />
         </h2>
         <Legende />
       </div>

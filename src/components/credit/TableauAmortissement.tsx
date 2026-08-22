@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { CreditPlan } from "@/core/credit/plan";
 import { formatEuros } from "@/lib/format";
+import { Pastille } from "@/components/ui";
+import { GLOSSAIRE, type Entree } from "@/content/glossaire";
 
 /**
  * TABLEAU D'AMORTISSEMENT — `VIZ-002`
@@ -121,7 +123,7 @@ export function TableauAmortissement({ plan, annee, onAnnee }: Props) {
               <Entete>Capital</Entete>
               <Entete>Assurance</Entete>
               <Entete>Total versé</Entete>
-              <Entete>Restant dû</Entete>
+              <Entete explication={GLOSSAIRE.capitalRestantDu}>Restant dû</Entete>
             </tr>
           </thead>
           <tbody>
@@ -156,10 +158,19 @@ export function TableauAmortissement({ plan, annee, onAnnee }: Props) {
   );
 }
 
-function Entete({ children }: { children: React.ReactNode }) {
+/**
+ * Un en-tête de colonne, éventuellement porteur d'une explication.
+ *
+ * La pastille se pose sur l'en-tête et non sur chaque cellule : le terme est
+ * celui de la colonne, et le répéter trois cents fois ferait du bruit.
+ */
+function Entete({ children, explication }: { children: React.ReactNode; explication?: Entree }) {
   return (
-    <th scope="col" className="px-2.5 py-1.5 text-right text-[11px] font-normal text-encre-secondaire">
-      {children}
+    <th scope="col" className="px-2.5 py-1.5 text-[11px] font-normal text-encre-secondaire">
+      <span className="flex items-center justify-end">
+        {children}
+        {explication && <Pastille entree={explication} />}
+      </span>
     </th>
   );
 }

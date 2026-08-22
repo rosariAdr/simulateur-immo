@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import type { Entree } from "@/content/glossaire";
 import { formatPourcentage, parseSaisiePourcentage } from "@/lib/format";
 import { Champ, type ChampProps } from "./Champ";
+import { Pastille } from "./Pastille";
 
 type Herite = Omit<ChampProps, "children" | "id">;
 
@@ -14,8 +16,16 @@ export interface ChampTauxProps extends Herite {
   readonly min?: number;
   readonly max?: number;
   readonly pas?: number;
-  /** Repère réglementaire porté sur la piste, par exemple le taux d'usure. */
-  readonly seuil?: { readonly valeur: number; readonly libelle: string };
+  /**
+   * Repère réglementaire porté sur la piste, par exemple le taux d'usure.
+   * Le seuil peut porter sa propre explication : c'est là que le terme apparaît
+   * sous les yeux de l'utilisateur, donc là que la pastille se pose.
+   */
+  readonly seuil?: {
+    readonly valeur: number;
+    readonly libelle: string;
+    readonly explication?: Entree;
+  };
 }
 
 /**
@@ -102,9 +112,16 @@ export function ChampTaux({
       </div>
 
       {seuil && (
-        <p className={`mt-1.5 text-[10px] leading-[1.45] ${depasse ? "text-interets-texte" : "text-encre-secondaire"}`}>
-          {seuil.libelle} : {formatPourcentage(seuil.valeur)}
-          {depasse && " — franchi"}
+        <p
+          className={`mt-1.5 flex flex-wrap items-center text-[10px] leading-[1.45] ${
+            depasse ? "text-interets-texte" : "text-encre-secondaire"
+          }`}
+        >
+          <span>
+            {seuil.libelle} : {formatPourcentage(seuil.valeur)}
+            {depasse && " — franchi"}
+          </span>
+          {seuil.explication && !champ.desactive && <Pastille entree={seuil.explication} />}
         </p>
       )}
     </Champ>

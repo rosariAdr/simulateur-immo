@@ -381,3 +381,68 @@ mais la correction s'explique.
   aura deux, il faudra une règle côté serveur.
 - Les tests de bout en bout tournent sur un build de production. La porte reconstruit
   donc le site à chaque passage.
+
+## ADR-007 — Le contenu pédagogique est une donnée typée, pas du texte dans un composant
+
+**Date** : 22 août 2026 · **Statut** : adoptée
+
+### Contexte
+
+La charte fixe une règle nette pour les infobulles : « une bulle sur fond laiton donne
+deux phrases — jamais plus » (`docs/06-design-system.md` §8). Elle tenait à la seule
+relecture.
+
+Au moment d'ouvrir `UI-005`, onze contenus existaient, écrits en JSX dans les
+composants qui les affichent. **Deux en comptaient trois** — le TAEG et la base de
+calcul de l'assurance. Personne ne l'avait vu, et rien ne pouvait le voir : une règle
+de forme n'a aucune prise sur un fragment de JSX.
+
+Trois autres citaient une valeur réglementaire en toutes lettres — « vingt-cinq ans »,
+« 10 % du montant emprunté », « le plafond réglementaire est de 35 % ». Le jour où le
+HCSF change un seuil, `params.ts` change, les chiffres affichés changent, et les
+infobulles continuent d'énoncer l'ancien droit avec aplomb.
+
+### Décision
+
+**Un répertoire `src/content/`**, distinct des composants, qui porte le texte destiné
+à l'utilisateur.
+
+**Une entrée n'est pas une chaîne libre** : c'est `{ terme, accroche, suite }`, où
+`accroche` et `suite` sont contraintes **au type** à n'être qu'une phrase, terminée
+par une ponctuation. Le mécanisme tient en deux types conditionnels sur les littéraux
+de gabarit : une ponctuation finale suivie d'une espace fait basculer le type à
+`never`, et l'appel ne compile plus.
+
+**Une valeur réglementaire ne s'écrit pas dans le texte** : l'entrée pose un jeton
+`{plafond}` et le reçoit par `avec()`, dont les clés attendues sont elles aussi
+extraites du littéral. En oublier une ne compile pas.
+
+**La pastille reçoit une entrée, pas des enfants.** Il n'existe donc aucun chemin par
+lequel du texte libre atteindrait une bulle.
+
+### Justification
+
+Une contrainte de forme vérifiée par un test se contourne sans le vouloir : on ajoute
+une phrase, le test passe au rouge, on ajuste le test. Portée par le type, elle se
+présente au moment où l'on écrit, avant même d'avoir enregistré le fichier — et elle
+**force le resserrement** au lieu de le signaler après coup. Les deux contenus à trois
+phrases ont été réécrits en deux ; l'information perdue — « aucune banque n'a le droit
+de prêter au-delà » — a trouvé sa vraie place, l'entrée « taux d'usure », qui
+n'existait pas.
+
+C'est la logique déjà retenue pour les montants (ADR-001, les centimes entiers portés
+par un type nommé) : rendre l'erreur inexprimable plutôt que la détecter.
+
+### Conséquences acceptées
+
+- **Aucune abréviation pointée dans une bulle.** « art. L314-6 » serait lu comme une
+  coupure de phrase et ne compilerait pas. Les références réglementaires restent dans
+  les commentaires du moteur, où elles étaient déjà.
+- **Le texte doit rester littéral.** Une chaîne assemblée à l'exécution s'effondre au
+  type `string` et se fait refuser — c'est précisément ce qui interdit d'y interpoler
+  un seuil au lieu de passer par un jeton.
+- Deux familles à maintenir, `GLOSSAIRE` et `GLOSSAIRE_PARAMETRE`. Le prix de la
+  distinction est un test d'exécution qui vérifie qu'aucune entrée n'est rangée dans
+  la mauvaise.
+- Le glossaire long de `CNT-001` viendra se brancher ici : la bulle donne la
+  définition, la fiche donnera le raisonnement.

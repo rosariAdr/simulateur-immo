@@ -19,6 +19,9 @@ const eslintConfig = defineConfig([
   ...nextTs,
   // Override default ignores of eslint-config-next.
   globalIgnores([
+    // Les copies de travail (`git worktree`) vivent sous .claude/worktrees/ :
+    // leur .next/ et le code d'une autre branche n'ont pas à être lintés ici.
+    ".claude/**",
     // Default ignores of eslint-config-next:
     ".next/**",
     "out/**",

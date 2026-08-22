@@ -6,11 +6,14 @@ import {
   ChampMontant,
   ChampTaux,
   ListeDeroulante,
+  Pastille,
   SelecteurSegmente,
   type Famille,
 } from "@/components/ui";
+import { avec, GLOSSAIRE, GLOSSAIRE_PARAMETRE } from "@/content/glossaire";
+import { PARAMS_2026 } from "@/core/fiscal/params";
 import { euros } from "@/core/money";
-import { formatEuros } from "@/lib/format";
+import { formatDuree, formatEuros, formatPourcentage } from "@/lib/format";
 
 /** Un cas de démonstration : un état nommé, et le composant dans cet état. */
 function Cas({ etat, children }: { etat: string; children: React.ReactNode }) {
@@ -44,6 +47,17 @@ const GARANTIES = [
   { valeur: "hypotheque", libelle: "Hypothèque" },
   { valeur: "nantissement", libelle: "Nantissement" },
 ] as const;
+
+/**
+ * La galerie montre des contenus réels, pas des textes de démonstration : ce
+ * sont les entrées du glossaire, avec leurs valeurs réglementaires prises à la
+ * source. Une bulle qui s'afficherait mal ici s'afficherait mal en production.
+ */
+const TRAVAUX = avec(GLOSSAIRE_PARAMETRE.travaux, {
+  partTravaux: formatPourcentage(PARAMS_2026.hcsf.derogatoryWorksSharePct, 1),
+  plafond: formatDuree(PARAMS_2026.hcsf.maxDurationMonths),
+  derogatoire: formatDuree(PARAMS_2026.hcsf.maxDurationDerogatoryMonths),
+});
 
 export function Galerie() {
   const [prix, setPrix] = useState(euros(205_000));
@@ -109,13 +123,7 @@ export function Galerie() {
               famille="negociable"
               valeur={euros(900)}
               onChange={() => {}}
-              explication={
-                <>
-                  <strong>Ils se négocient, et parfois s&apos;annulent.</strong> Ils entrent dans le
-                  TAEG, donc les réduire rapproche du seuil d&apos;usure — utile quand on en est
-                  proche.
-                </>
-              }
+              explication={GLOSSAIRE.fraisDossier}
             />
           </Cas>
           <Cas etat="erreur">
@@ -215,13 +223,7 @@ export function Galerie() {
               options={BASES}
               valeur={base}
               onChange={setBase}
-              explication={
-                <>
-                  <strong>Elle compte plus que le taux affiché.</strong> Sur le capital initial la
-                  prime ne bouge jamais ; sur le capital restant dû elle décroît. L&apos;écart atteint
-                  30 à 45 % du coût total.
-                </>
-              }
+              explication={GLOSSAIRE.baseAssurance}
             />
           </Cas>
           <Cas etat="erreur">
@@ -319,12 +321,7 @@ export function Galerie() {
               libelle="Travaux inclus"
               coche={false}
               onChange={() => {}}
-              explication={
-                <>
-                  <strong>Des travaux atteignant 10 % du montant emprunté</strong> ouvrent la durée
-                  dérogatoire de 27 ans au lieu de 25.
-                </>
-              }
+              explication={TRAVAUX}
             />
           </Cas>
           <Cas etat="erreur">
@@ -341,6 +338,31 @@ export function Galerie() {
           </Cas>
         </Rangee>
       </div>
+
+      <section data-primitive="Pastille pédagogique" className="mt-7 border-t border-filet pt-5">
+        <div className="mb-4 flex items-baseline gap-3">
+          <h2 className="font-titre text-[15px] font-semibold text-encre">Pastille pédagogique</h2>
+          <p className="text-[11px] text-encre-secondaire">
+            deux phrases, jamais plus — et une bulle qui reste dans la fenêtre
+          </p>
+        </div>
+        <div className="flex items-center justify-between">
+          {/*
+            Les deux extrêmes de la ligne, et c'est tout l'intérêt du cas : la
+            bulle de gauche s'ancre à gauche, celle de droite doit basculer, sans
+            quoi elle sort de l'écran et la page se met à défiler latéralement.
+            Les tests de bout en bout mesurent exactement ces deux positions.
+          */}
+          <span data-cas="bord-gauche" className="inline-flex items-center text-[12px] text-encre">
+            Terme au bord gauche
+            <Pastille entree={GLOSSAIRE.amortissement} />
+          </span>
+          <span data-cas="bord-droit" className="inline-flex items-center text-[12px] text-encre">
+            Terme au bord droit
+            <Pastille entree={GLOSSAIRE.capitalRestantDu} />
+          </span>
+        </div>
+      </section>
 
       <section data-primitive="Sortie vive" className="mt-7 border-t border-filet pt-5">
         <h2 className="mb-3 font-titre text-[15px] font-semibold">Les valeurs circulent vraiment</h2>

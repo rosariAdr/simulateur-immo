@@ -64,7 +64,10 @@ Le découpage en versions, le modèle de branches et les portes sont dans
 - [x] `VIZ-002` Tableau d'amortissement, agrégation annuelle
       → agrégation reprise du moteur, bascule par année / par mois, curseur partagé
       avec le ruban. Le curseur ne part pas dans l'URL, voir ADR-005
-- [ ] `UI-005` Infobulles pédagogiques sur les termes techniques
+- [x] `UI-005` Infobulles pédagogiques sur les termes techniques
+      → `src/content/glossaire.ts` : dix-neuf entrées, la règle des deux phrases portée
+      par le type, les valeurs réglementaires reçues en paramètre. Deux défauts de la
+      pastille corrigés — le toucher et le débordement de la bulle. Voir ADR-007
 - [ ] `UI-006` Adaptation mobile
 
 ## Phase 3 — Acheter ou louer
@@ -496,3 +499,51 @@ anticipation : c'est de la phase 4, elle attend `ENG-017`. Nouveau ticket `VIZ-0
 - `LEG-002` l'avertissement visible. `/credit` affiche désormais des chiffres réels
   sur un déploiement public ; un simulateur utilisable et sans avertissement est plus
   exposé qu'un simulateur incomplet
+
+### 22 août 2026 (suite) — Les termes s'expliquent, la bulle se comporte
+
+**Fait — `UI-005`**
+
+**Un glossaire typé plutôt que des textes semés dans les composants.**
+`src/content/glossaire.ts` rassemble les dix-neuf entrées du module crédit. Une entrée
+est une `accroche` et une `suite`, et le type de chacune n'admet qu'**une seule phrase,
+terminée** : une bulle de trois phrases ne compile pas. La charte le demandait depuis
+le début (§8) ; jusqu'ici seule la relecture le garantissait, et deux contenus sur onze
+étaient déjà passés à trois phrases — le TAEG et la base de calcul de l'assurance. Le
+type a forcé leur resserrement. Voir ADR-007.
+
+**Les valeurs réglementaires sortent du texte.** Trois contenus citaient « vingt-cinq
+ans », « 10 % » ou « 35 % » en toutes lettres. Ils portent maintenant des jetons
+`{plafond}`, `{derogatoire}`, `{partTravaux}`, substitués à l'affichage depuis
+`PARAMS_2026`. `useScenario` expose le millésime pour cela.
+
+**Deux défauts réels de la pastille, mesurés avant d'être corrigés.**
+
+- *Le toucher.* `onFocus` ouvrait la bulle, `onClick` la refermait — deux événements du
+  même appui. Sur Pixel 7, la pédagogie du produit était inaccessible : la bulle
+  clignotait et restait fermée. Le clic ne bascule plus l'état courant mais l'état
+  d'**avant le geste**, mémorisé au `pointerdown`.
+- *Le débordement.* Bulle ancrée à gauche, largeur fixe : sur la pastille « Coût de
+  l'assurance », cinquième colonne, la page mesurait **1 453 px défilables pour 1 280
+  visibles**. Sur Pixel 7, « taux d'usure » donnait 472 pour 412. Le placement se
+  calcule maintenant en pixels à l'ouverture — un simple basculement à droite aurait
+  déplacé le défaut sur l'autre bord des petits écrans.
+
+**Pastilles posées là où elles manquaient** : « Mensualité », le titre du ruban
+(« amortissement »), la colonne « Restant dû » du tableau (« capital restant dû »), et
+le seuil du champ de taux (« taux d'usure »). Quinze pastilles sur `/credit`.
+
+**Décision d'architecture — ADR-007**
+
+Le contenu pédagogique vit dans `src/content/`, séparé des composants, et sa contrainte
+de forme est portée par le type plutôt que par un test.
+
+**Reste**
+
+- `quotite` et `hcsf` ont leur entrée mais aucun emplacement : le module n'expose pas
+  de champ de quotité, et poser une seconde pastille sur la tuile du taux d'effort
+  l'aurait encombrée. Les deux attendent `CNT-001`.
+- La légende de la mensualité annonce « elle monte à … après le différé » sur le
+  scénario par défaut, qui n'a pas de différé : `firstPayment` et `maxPayment` diffèrent
+  de 1,02 € par le seul jeu des arrondis d'assurance. Défaut antérieur à ce ticket,
+  non corrigé ici — il appartient à `UI-004`.
