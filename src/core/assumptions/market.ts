@@ -95,12 +95,43 @@ export interface AcquisitionAssumptions {
   readonly totalFeesNewPct: FourchetteObservee;
 }
 
+/**
+ * COÛTS DE DÉTENTION — `ENG-010`.
+ *
+ * Ces quatre valeurs pilotent la comparaison « acheter ou louer » au niveau
+ * simple. Aucune n'est un montant : la taxe foncière, les charges et l'assurance
+ * habitation sont saisies par l'utilisateur, parce qu'elles dépendent de la
+ * commune, de l'immeuble et du contrat, et qu'aucune moyenne nationale ne dirait
+ * quoi que ce soit d'utile sur un bien précis.
+ *
+ * Ce qui reste ici, ce sont les **ordres de grandeur qu'un utilisateur ne peut
+ * pas connaître** : ce qu'il faut provisionner pour l'entretien, et la vitesse à
+ * laquelle chaque poste dérive d'une année sur l'autre.
+ *
+ * ⚠️ Les trois indexations sont le paramètre le plus sensible du module, et de
+ * loin. L'année de croisement dépend d'un écart entre deux séries qui grandissent
+ * chacune à quelques pour cent par an : un point d'écart d'indexation la déplace
+ * de plusieurs années. C'est pourquoi elles sont ici, déclarées avec leur
+ * intervalle, plutôt qu'écrites en dur dans le calcul.
+ */
+export interface DetentionAssumptions {
+  /** Provision annuelle pour travaux et entretien, en % de la valeur du bien. */
+  readonly provisionTravauxPctAnnuel: HypotheseChiffree;
+  /** Révision annuelle du loyer, en %. */
+  readonly indexationLoyerPctAnnuel: HypotheseChiffree;
+  /** Dérive annuelle de la taxe foncière, en %. */
+  readonly indexationTaxeFoncierePctAnnuel: HypotheseChiffree;
+  /** Dérive annuelle des charges, assurances et provisions, en %. */
+  readonly indexationChargesPctAnnuel: HypotheseChiffree;
+}
+
 export interface MarketAssumptions {
   /** Date du relevé, et non millésime légal : ces valeurs n'ont pas d'exercice. */
   readonly releve: string;
   readonly guarantee: GuaranteeAssumptions;
   readonly insurance: InsuranceAssumptions;
   readonly acquisition: AcquisitionAssumptions;
+  readonly detention: DetentionAssumptions;
 }
 
 /**
@@ -193,6 +224,52 @@ export const MARKET_2026: MarketAssumptions = {
       provenance:
         "Frais d'acquisition dans le neuf, où la taxe de publicité foncière remplace les " +
         "droits de mutation. Même réserve : la part réglementée est connue, le total ne l'est pas.",
+    },
+  },
+
+  detention: {
+    provisionTravauxPctAnnuel: {
+      valeur: 1.0,
+      intervalle: [0.5, 2.0],
+      fiabilite: "estimee",
+      provenance:
+        "Règle de pouce répandue : provisionner environ 1 % de la valeur du bien et par an " +
+        "pour l'entretien, le remplacement des équipements et la quote-part de travaux votés " +
+        "en assemblée. Elle ne repose sur aucun relevé statistique ; un immeuble récent la " +
+        "situe plutôt en bas de l'intervalle, un immeuble ancien à ravaler bien au-dessus.",
+    },
+    indexationLoyerPctAnnuel: {
+      valeur: 2.0,
+      intervalle: [0, 3.5],
+      fiabilite: "estimee",
+      provenance:
+        "Révision annuelle du loyer. Le plafond, lui, est bien de droit — la révision ne peut " +
+        "dépasser la variation de l'indice de référence des loyers publié par l'INSEE, et le " +
+        "bail doit prévoir une clause de révision. Mais la VARIATION de cet indice n'est pas " +
+        "une règle : c'est une donnée qui se constate trimestre après trimestre, et le bailleur " +
+        "peut toujours réviser moins, voire pas du tout. D'où sa place ici et non dans params.ts.",
+    },
+    indexationTaxeFoncierePctAnnuel: {
+      valeur: 3.0,
+      intervalle: [1.0, 5.0],
+      fiabilite: "estimee",
+      provenance:
+        "Dérive annuelle de la taxe foncière. Elle a deux moteurs de nature différente : la " +
+        "revalorisation forfaitaire des valeurs locatives cadastrales, qui suit un indice, et " +
+        "le taux voté chaque année par les collectivités, qui ne suit rien d'autre que leur " +
+        "budget. Le second n'est pas prévisible, et l'intervalle retenu est large pour cette " +
+        "raison. Retenir zéro serait le seul choix franchement faux.",
+    },
+    indexationChargesPctAnnuel: {
+      valeur: 2.0,
+      intervalle: [1.0, 4.0],
+      fiabilite: "estimee",
+      provenance:
+        "Dérive annuelle des charges de copropriété, des charges locatives, des assurances " +
+        "habitation et de la provision pour travaux. Ordre de grandeur d'une inflation générale " +
+        "de long terme, appliqué identiquement aux deux côtés de la comparaison : ces postes " +
+        "existent chez le propriétaire comme chez le locataire et n'ont pas de raison de dériver " +
+        "à des vitesses différentes.",
     },
   },
 };

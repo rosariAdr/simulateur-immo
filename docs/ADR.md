@@ -647,3 +647,103 @@ d'unicité des termes — fait échouer l'unicité des ancres, « expected 47 to
 - Renommer un terme change son ancre, donc casse les liens externes qui pointaient dessus.
   Sans effet tant que le site est en `noindex` ; à reconsidérer le jour où le glossaire
   est indexé, probablement par une table de redirections plutôt que par des ancres figées.
+
+---
+
+## ADR-011 — Le coût de détention se lit deux fois, et les deux côtés s'indexent
+
+**Date** : 22 août 2026 · **Statut** : adoptée · **Tickets** : `ENG-010`
+
+### Contexte
+
+`docs/03-spec-domaine.md` §2 demande, au niveau simple, deux séries annuelles et une
+année de croisement — et il énonce dans la foulée que cette comparaison **est faussée** :
+la part de capital de la mensualité n'est pas une dépense, et la vue « fonds perdus »
+corrige en ne retenant que ce qui est consommé.
+
+La façon la plus économique de tenir cet énoncé aurait été de produire une série et de
+laisser l'interface soustraire le capital quand elle affiche l'autre vue. C'est ce que
+fait à peu près tout comparateur en ligne, et c'est là que le biais s'installe : la vue
+corrective devient une option, un onglet secondaire, quelque chose qu'on affiche
+**après** avoir montré le chiffre qui frappe.
+
+Deuxième question, plus discrète et plus dangereuse. La spécification ne demande
+d'indexer **que le loyer**. Un module qui s'y tient à la lettre révise le loyer de 2 %
+par an et laisse la taxe foncière, les charges et la provision pour travaux figées à
+leur valeur de la première année, pendant vingt ou trente ans.
+
+### Décision
+
+**Deux lectures, produites ensemble, du même détail.**
+
+- `decaissement` : tout ce qui sort du compte, part de capital comprise.
+- `fondsPerdus` : le même total moins la part de capital.
+
+Elles ne sont pas deux calculs mais deux agrégations des mêmes postes mensuels. Leur
+différence est exactement `capital`, et un test de propriété le vérifie sur chaque mois
+de chaque scénario. `ComparaisonDetention.croisement` porte **deux** années, une par
+lecture, et non une seule.
+
+Chez le locataire, `fondsPerdus` est rigoureusement égal à `decaissement`. Le champ est
+redondant et il reste : cette égalité **est** l'enseignement, et la faire disparaître du
+type reviendrait à la faire disparaître de l'interface.
+
+**Les deux côtés sont indexés.** `IndexationsDetention` porte trois vitesses — loyer,
+taxe foncière, charges — dont les valeurs par défaut viennent de
+`src/core/assumptions/market.ts`. Une indexation nulle se demande explicitement ; elle
+ne s'obtient plus par omission.
+
+### Justification
+
+**Sur les deux lectures.** Chacune prise seule ment, et dans un sens différent. Le seul
+décaissement fait de l'achat un gouffre : il compte comme dépensé l'argent qui change
+simplement de poche. Les seuls fonds perdus font paraître l'achat presque gratuit : ils
+oublient que la somme immobilisée n'est plus disponible pour autre chose, et que le
+niveau simple ne mesure aucun coût d'opportunité. Les afficher ensemble est le seul choix
+qui n'oriente pas.
+
+Le cas de référence B du module tient ce propos en deux nombres. Même ménage, même mois :
+il décaisse 240 € de plus que son voisin locataire, et il consomme 360 € de moins. Les
+deux sont vrais. Aucun ne suffit.
+
+**Sur l'indexation symétrique.** N'indexer que le loyer n'est pas une simplification,
+c'est un biais orienté. Il fait grandir une seule des deux courbes, donc avance l'année
+de croisement, donc favorise l'achat — toujours dans le même sens, jamais dans l'autre.
+Sur trente ans, un point d'écart d'indexation déplace le croisement de plusieurs années.
+
+C'est exactement le genre d'erreur que ce produit existe pour dénoncer : un défaut de
+modélisation qui a l'air d'un détail technique et qui produit une conclusion.
+
+### Ce qui la garde
+
+- `src/core/compare/__tests__/detention.test.ts` — sept cas calculés à la main dans leurs
+  commentaires, dont le cas B, qui échoue si les deux lectures se confondent.
+- `src/core/compare/__tests__/detention-invariants.test.ts` — sous `fast-check` : les
+  fonds perdus ne dépassent jamais le décaissement, leur écart vaut exactement la part de
+  capital, le croisement des fonds perdus n'arrive jamais après celui du décaissement.
+- `src/core/compare/__tests__/hypotheses-detention.test.ts` — garde **comportementale** :
+  un relevé de marché substitué aux valeurs improbables doit se retrouver dans le
+  résultat. Une valeur par défaut recopiée en dur dans le calcul y rougit.
+
+Vérifié à l'adoption, gardes cassées puis rétablies : supprimer la soustraction du capital
+fait rougir cinq tests ; supprimer le résidu de la ventilation annuelle, sept ; retirer le
+plancher à zéro de l'indexation, deux.
+
+### Conséquences acceptées
+
+- **Une indexation de plus à saisir, donc à expliquer.** L'interface doit présenter trois
+  vitesses au lieu d'une, et dire d'où viennent leurs valeurs par défaut. C'est le prix
+  d'un défaut qu'on ne peut pas corriger silencieusement.
+- **Quatre hypothèses de marché de plus à recouper.** Elles rejoignent `FIS-006`, toutes
+  en fiabilité `estimee`, et la dérive de la taxe foncière est la moins assurée des
+  quatre : son second moteur est le taux voté par une collectivité, qui n'est pas une
+  grandeur prévisible.
+- **Le croisement des fonds perdus se lira comme un seuil de rentabilité.** Il n'en est
+  pas un : ni appréciation du bien, ni frais de revente, ni coût d'opportunité de l'apport
+  n'entrent au niveau simple. Le commentaire de tête de `detention.ts` le dit ; l'interface
+  devra le dire aussi, faute de quoi ce module produira exactement le raccourci qu'il
+  corrige.
+- **Les frais d'entrée sont un paramètre optionnel, à zéro par défaut.** C'est ce que
+  décrit le niveau simple de la spécification, et c'est optimiste : sur un bien ancien,
+  huit pour cent de frais jamais récupérés reculent le croisement de plusieurs années.
+  L'interface qui les laisse à zéro doit le dire.

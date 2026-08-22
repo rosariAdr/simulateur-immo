@@ -112,7 +112,12 @@ Le découpage en versions, le modèle de branches et les portes sont dans
 
 ## Phase 3 — Acheter ou louer
 
-- [ ] `ENG-010` Coûts de détention et flux mensuels comparés
+- [x] `ENG-010` Coûts de détention et flux mensuels comparés
+      → `src/core/compare/detention.ts` et `types.ts`. **Deux lectures, jamais une** :
+      décaissement et fonds perdus, avec deux années de croisement. Séries mensuelle et
+      annuelle, l'échéance de crédit reprise d'un `CreditPlan` sans jamais être
+      recalculée. Les deux côtés sont indexés, pas seulement le loyer — voir ADR-011.
+      Quatre hypothèses de marché ajoutées à `assumptions/market.ts`.
 - [ ] `ENG-011` Portefeuille du locataire de référence
 - [ ] `ENG-012` Scénario de vente, exonération résidence principale
 - [ ] `ENG-013` Régimes fiscaux locatifs
@@ -1329,3 +1334,53 @@ pastille se cassait avant `UI-005`.
 identité de l'éditeur à communiquer à l'hébergeur, licence du dépôt non choisie,
 déploiement non vérifié. Nouvelles : `FIS-006` le recoupement des neuf hypothèses de
 marché, et la pastille « i » à 15 px, sous le seuil de cible tactile.
+
+### 22 août 2026 — `ENG-010`, coûts de détention et flux mensuels comparés
+
+**Ce qui est livré.** `src/core/compare/detention.ts` et `src/core/compare/types.ts`,
+une fonction publique — `comparerDetention(entree): ComparaisonDetention` — qui rend une
+série mensuelle, une série annuelle cumulée, deux années de croisement et les totaux
+poste par poste. L'échéance de crédit est **lue** dans un `CreditPlan` et jamais
+recalculée : le type d'entrée le dit, il ne demande que `rows`.
+
+**La décision de fond, et c'est tout le ticket.** La spécification énonce que la
+comparaison mensualité contre loyer est faussée. Elle l'est parce que la part de capital
+n'est pas une dépense. Le module produit donc `decaissement` et `fondsPerdus` **ensemble**,
+comme deux agrégations du même détail mensuel, et non une série que l'interface
+corrigerait après coup. Deux années de croisement, une par lecture, parce qu'elles ne
+tombent presque jamais la même année. Détail dans ADR-011.
+
+**Un biais trouvé en chemin.** La spécification ne demande d'indexer que le loyer. S'y
+tenir aurait fait grandir une seule des deux courbes, donc avancé le croisement, donc
+favorisé l'achat — systématiquement, jamais dans l'autre sens. Les deux côtés sont
+indexés. Trois vitesses distinctes : loyer, taxe foncière, charges.
+
+**Quatre hypothèses de marché ajoutées** en fin de `assumptions/market.ts`, sous
+`detention` : provision pour travaux en % de la valeur du bien, et les trois indexations.
+Toutes en fiabilité `estimee`, avec leur intervalle et leur provenance. Elles portent le
+compte de `FIS-006` de neuf à treize. La dérive de la taxe foncière est la plus fragile
+des quatre : l'un de ses deux moteurs est un taux voté par une collectivité, qui ne se
+prévoit pas.
+
+**Ce que les gardes cassées ont appris.** Trois cassées puis rétablies. Supprimer la
+soustraction du capital : cinq tests rouges, dont le cas de référence B. Supprimer le
+résidu de la ventilation annuelle : sept rouges — et le fait qu'un montant annuel de
+quelques centimes disparaissait entièrement suffisait à inventer une année de croisement.
+Retirer le plancher à zéro de l'indexation : **un seul** rouge, un cas écrit à la main,
+parce que le générateur de propriétés était borné à ±10 % et ne descendait jamais sous
+−100 %. Un générateur volontairement hors domaine a été ajouté pour couvrir ça.
+
+**Trouvé sans être corrigé.** Ce générateur élargi a fait apparaître autre chose : à
++300 % d'indexation sur vingt ans, les cumuls dépassent 2⁵³ centimes et `sum` lève une
+`RangeError`. C'est le comportement voulu — `assertSafe` refuse plutôt que d'additionner
+faux — mais il remonte jusqu'à l'appelant. Conservé tel quel, avec un test qui le
+documente : c'est à l'interface de borner la saisie.
+
+**Deux réserves à porter dans l'interface.** Les frais d'acquisition sont un paramètre
+optionnel à zéro par défaut, ce que décrit le niveau simple de la spécification et qui
+rend le croisement optimiste de plusieurs années sur un bien ancien. Et le croisement des
+fonds perdus n'est **pas** un seuil de rentabilité : le niveau simple ne mesure ni
+l'appréciation du bien, ni les frais de revente, ni le coût d'opportunité de l'apport.
+Le dire dans le code ne suffira pas.
+
+**Porte** — `PORT_E2E=3122 npm run porte`, verte.
