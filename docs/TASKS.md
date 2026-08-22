@@ -202,7 +202,13 @@ Transversales aux phases. Voir `docs/RELEASES.md` §3.
 ## Phase 7 — Contenus et mise en ligne
 
 - [ ] `CNT-001` Glossaire relié aux infobulles
-- [ ] `CNT-002` Fiches pédagogiques par module
+- [x] `CNT-002` Fiches pédagogiques par module — `feat/CNT-002-fiches`
+      → première fiche livrée, `/credit/comprendre` : mensualité, TAEG, assurance et
+      ses deux bases, trois garanties, usure et taux d'effort. Chaque notion rattachée
+      à sa famille, libellés lus dans `src/components/ui/taxonomie.ts`. Aucun chiffre
+      écrit dans le texte : les seuils viennent de `src/core/fiscal/params.ts`, les
+      montants d'exemple du moteur. Les cinq autres modules auront la leur quand ils
+      existeront
 - [x] `CNT-003` Page d'accueil énonçant la thèse — `feat/CNT-003-accueil`
 - [x] `LEG-001` Mentions légales, conditions d'utilisation, politique de confidentialité
       → trois pages publiées et atteignables depuis le pied de page. Régime de
@@ -1103,3 +1109,81 @@ se voie au pointeur, où la cible est le curseur :
 
 **Porte** — `PORT_E2E=3111 npm run porte` verte : 217 unitaires sur 7 fichiers,
 194 de bout en bout (97 × 2 profils) sur 10 fichiers, dont 7 ignorés par construction.
+### 22 août 2026 — `CNT-002`, la fiche pédagogique du module crédit
+
+**Livré** — `/credit/comprendre`, une fiche longue, composant serveur prérendu.
+
+**La route.** Sous `/credit`, et non à la racine ni sous un `/fiches` générique. La
+fiche n'existe que par le module : on y arrive en ayant vu des chiffres et en se
+demandant ce qu'ils veulent dire. L'adresse le dit, et la parenté d'URL prépare
+`/comparaison/comprendre` sans avoir à inventer un index de contenus tant qu'il n'y
+a qu'une fiche. Un chemin va du module à la fiche, deux en reviennent.
+
+**Le fil conducteur porte le texte.** Chaque section porte la ou les familles dont
+elle relève — négociable, contraint, réglementaire — en étiquette écrite, avec le
+trait de bordure de la famille. Une notion peut relever de deux familles à la fois,
+et c'est fréquent : la mensualité se forme d'un taux qui se négocie et d'une durée
+qui dépend du projet. Les aplatir sur une seule aurait été plus simple et faux. Les
+libellés viennent de `src/components/ui/taxonomie.ts`, jamais réécrits.
+
+**Aucun chiffre n'est écrit dans le texte, et ce n'est pas une coquetterie.** Un
+paragraphe survit à une loi de finances ; personne ne le relit. Deux provenances
+donc, toutes deux dans `src/content/fiche-credit.ts` :
+
+- les **valeurs réglementaires** — plafond d'endettement, durée maximale et durée
+  dérogatoire, part de travaux, marge de flexibilité, trois tranches d'usure et leur
+  trimestre, seuil et âge de la loi Lemoine — lues dans `src/core/fiscal/params.ts` ;
+- les **montants d'exemple** — mensualité, parts d'intérêts et de capital, écart
+  entre les deux bases d'assurance, prix des trois garanties, TAEG, TAEA, taux
+  d'effort — **calculés par le moteur** sur le scénario que `/credit` ouvre par
+  défaut.
+
+Les seuils d'usure passent par `usuryThreshold()` plutôt que par la table : si le
+découpage des tranches change, la fiche suit sans qu'on la rouvre.
+
+**Un chiffre calculé plutôt qu'affirmé, et il corrige une idée reçue.** Sur ce prêt,
+la part de capital dépasse celle des intérêts **dès la première échéance** — le
+moteur le dit, `crossoverMonth` vaut 1. La fiche l'écrit, tout en maintenant que la
+première année contient 27 fois plus d'intérêts que la dernière, à proportion. Ce
+sont deux affirmations distinctes, et les confondre est l'erreur la plus répandue
+sur le sujet. Aucune des deux n'aurait pu être écrite à la main sans risque.
+
+**Décision — l'exemple est réécrit, pas importé.** `src/lib/scenario.ts` porte les
+défauts du module, mais il importe `nuqs` au premier niveau : l'importer depuis un
+composant serveur fait échouer la collecte des données de page à la compilation
+(`o.parseAsInteger.withDefault is not a function`). L'entrée du moteur est donc
+réécrite dans `src/content/fiche-credit.ts`. La duplication n'est pas laissée à la
+vigilance : un test unitaire compare l'entrée à `versEntreeMoteur(DEFAUTS)`, et un
+test de bout en bout compare la mensualité affichée par la fiche à celle qu'affiche
+`/credit`. Sabotés tous les deux, ils rougissent tous les deux.
+
+**Outillage — `vitest.config.mts` résout désormais `@/`.** Sans cet alias, aucun
+module de `src/lib/` ou `src/content/` qui dépend du moteur n'était chargeable par
+Vitest : `src/lib/scenario.ts` n'avait donc aucun test unitaire possible, et le
+défaut ne se voyait pas puisque aucun test n'essayait. Ce que la compilation résout,
+les tests unitaires doivent le résoudre aussi.
+
+**Une garde éditoriale, automatisée.** « Le produit calcule, l'utilisateur décide »
+est la règle la plus importante du projet, et c'est une règle qui se perd au premier
+paragraphe réécrit de bonne foi. Dix tournures interdites — « vous devriez », « nous
+recommandons », « le meilleur choix », « il faut », « mieux vaut », « préférez »,
+« choisissez », « évitez », « n'hésitez pas », « vous avez intérêt à » — sont
+balayées sur la page **rendue**, document entier, et sur le module de contenu.
+
+**Ce que la fiche dit qu'elle ne dit pas.** Six omissions nommées, dont deux qui
+touchent à l'honnêteté du calcul plutôt qu'à son périmètre : les barèmes de garantie
+sont des ordres de grandeur de marché non encore confrontés à leurs publications
+(`FIS-005`), et le lissage multi-prêts n'est pas modélisé.
+
+**Modifications hors périmètre, minimales et signalées.** Un lien vers la fiche dans
+`src/components/credit/ModuleCredit.tsx`, sous « Ce que ce calcul ne dit pas ». La
+route `/credit/comprendre` ajoutée à la liste `ROUTES` de `avertissement.spec.ts`,
+dont le contrat déclaré est que toute route affichant des chiffres y figure.
+
+**Porte** — verte sur le port 3113 : 238 unitaires, 204 de bout en bout sur deux
+profils, dont 3 ignorés par construction.
+
+**Réserve.** La fiche reste non relue par un professionnel, comme les textes légaux,
+et le site demeure en `noindex`. Elle décrit un état du droit au 22 août 2026 ; les
+valeurs qu'elle cite portent la date et la source de `params.ts`, dont trois entrées
+sont encore marquées `TODO_VERIFY`.
