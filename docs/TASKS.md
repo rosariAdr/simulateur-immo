@@ -865,3 +865,33 @@ postérieure à l'étiquette — elle est désormais écrite comme telle dans la
   sur ce module, qui ne calcule pas les droits de mutation ; bloquant pour v1.0.0.
 - **La licence du dépôt** n'est pas choisie. Les mentions légales le disent : sans
   licence, un dépôt public reste sous droit d'auteur plein.
+
+### 22 août 2026 — Sortie de **v0.1.1**, correctif de lisibilité
+
+**Corrigé — `UI-012`**
+
+`color-scheme` n'était déclaré nulle part. Le navigateur appliquait donc sa valeur
+initiale, `normal`, c'est-à-dire clair, et peignait en blanc le fond des listes
+déroulées — pendant que le texte des options héritait de `--encre`, l'encre du thème
+sombre. **1,21:1**, là où il en faut 4,5.
+
+Deux déclarations, une par thème. La correction ne touche à aucune couleur : elle
+déclare le fond qui n'avait jamais été déclaré. Le même geste corrige la barre de
+défilement du tableau mensuel et le remplissage automatique des champs, qui
+souffraient de la même cause sans que personne l'ait signalé.
+
+**Ce que ce défaut apprend sur la suite de tests**
+
+Aucun test existant ne pouvait l'attraper. La suite de contraste compare des jetons
+entre eux ; ici aucun jeton n'était en cause. Le défaut vivait **entre la page et le
+navigateur**, dans ce que la feuille de style ne dit pas.
+
+D'où deux gardes plutôt qu'une, sur deux modes de défaillance distincts : un test
+unitaire sur ce que la feuille **déclare**, un test de bout en bout sur ce que le
+navigateur **calcule**. Une déclaration peut être écrite et pourtant écrasée.
+
+Et une limite écrite dans le fichier de test plutôt que tue : le fond de la liste
+déroulée n'appartient à aucun élément et reste hors de portée d'une mesure. Ces gardes
+prouvent que la consigne est donnée au navigateur, pas ce qu'il en peint.
+
+**Porte de version** — à froid : 217 unitaires, 172 de bout en bout sur deux profils.
