@@ -10,8 +10,17 @@ import { prepaymentPenalty, isBelowContractualMinimum, checkUsury } from "../con
 describe("annuité constante", () => {
   it("reproduit le cas de référence 150 000 € / 4 % / 20 ans", () => {
     // Cas cité par La finance pour tous dans son exemple de remboursement anticipé.
+    //
+    // `TST-002`. La comparaison était `toBeCloseTo(908.97, 1)`, soit une tolérance
+    // de cinq centimes que rien n'annonçait. Or il n'y a rien à tolérer ici : la
+    // valeur actuarielle est 908,970494 €, notre moteur arrondit au centime, et la
+    // source publie 908,97 €. Les trois coïncident exactement.
+    //
+    // Une tolérance muette plus large que la précision réelle ne protège pas d'un
+    // arrondi, elle cache une dérive : le test serait resté vert si la mensualité
+    // avait glissé de quatre centimes. L'égalité au centime dit ce qu'on sait.
     const m = monthlyPayment(euros(150_000), 4, 240);
-    expect(toEuros(m)).toBeCloseTo(908.97, 1);
+    expect(m).toBe(euros(908.97));
   });
 
   it("dégénère correctement à taux nul", () => {

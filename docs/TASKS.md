@@ -167,10 +167,13 @@ Le découpage en versions, le modèle de branches et les portes sont dans
       d'acquisition sont toutes en fiabilité `estimee`. **Un contre-exemple est déjà
       documenté** : l'exemple représentatif de la Société Générale donne 0,26 % d'assurance
       pour un emprunteur de 35 ans, sous la borne basse de 0,30 % (voir `ENG-008`)
-- [ ] `TST-002` `reference.test.ts` compare la mensualité de référence avec
+- [x] `TST-002` `reference.test.ts` compare la mensualité de référence avec
       `toBeCloseTo(908.97, 1)` — une tolérance muette de 5 centimes, quand la valeur
       exacte est 908,9705 €. Le test passerait encore si le moteur dérivait. Fichier
       gelé : la correction demande une raison écrite, elle en a une
+      → égalité au centime. Il n'y avait rien à tolérer : valeur actuarielle 908,970494 €,
+      arrondi du moteur et chiffre publié coïncident. Vérifié par sonde — une dérive de
+      4 centimes passait sous l'ancienne tolérance, elle échoue désormais
 - [x] `UI-013` Le champ « Garantie » était étiqueté **réglementaire** alors que
       `docs/CONTEXT.md` §2 range le choix de la garantie parmi les **négociables**.
       L'erreur dans le pire sens : elle disait à quelqu'un qu'il n'a pas la main sur ce
