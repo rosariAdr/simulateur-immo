@@ -67,10 +67,38 @@ il apparaît.
 
 ### v0.3.0 — « Acheter ou louer »
 
-`ENG-010`…`ENG-016`, `VIZ-003`, `UI-007`, `TST-030`.
+`FIS-007` valeurs fiscales de la phase 3 · `ENG-010` coûts de détention et flux
+comparés · `ENG-011` portefeuille du locataire de référence · `ENG-012` scénario de
+vente et exonération de la résidence principale · `ENG-014` plus-value hors résidence
+principale · `ENG-016` prélèvements sociaux et résidence fiscale · `VIZ-003` courbes
+et bandeau d'écart · `UI-007` moment de révélation · `TST-030` porte de version.
+
+**Le découpage en deux vagues, et pourquoi.** Quatre des tickets moteur attendent des
+valeurs que `params.ts` ne porte pas : prélèvements sociaux, barèmes d'abattement pour
+durée de détention, seuils des régimes micro. Les lancer en même temps que `FIS-007`
+aurait produit quatre branches écrivant chacune sa version provisoire des mêmes
+chiffres. La première vague est donc `FIS-007`, `ENG-010` et `ENG-011` — les deux
+seuls tickets moteur sans dépendance fiscale ; la seconde suit sur un `main` qui porte
+les valeurs.
 
 **Critère de sortie.** Le site répond à la question qu'il pose, en montrant les
-hypothèses qui portent la réponse et en laissant l'utilisateur les changer.
+hypothèses qui portent la réponse et en laissant l'utilisateur les changer. Et il dit
+en quoi sa réponse est fausse : la comparaison de coût mensuel ignore que la part de
+capital d'une mensualité n'est pas une dépense, et le produit doit l'énoncer avant que
+le lecteur ne s'en aperçoive.
+
+### v0.3.1 — « Louer plutôt que vendre »
+
+`ENG-013` régimes fiscaux locatifs · `ENG-015` scénario de location courte durée ·
+`TST-031`.
+
+**Pourquoi ils sortent de v0.3.0.** Ils décrivent ce qu'on fait *après* avoir acheté,
+et non le choix d'acheter — une autre question, posée par quelqu'un d'autre. Et c'est
+le terrain le plus incertain du module : `docs/03-spec-domaine.md` §2 signale
+lui-même que les abattements et seuils des régimes micro, notamment pour les meublés
+de tourisme, ont changé récemment et doivent être vérifiés. Les charger sur la version
+qui répond à « acheter ou louer » aurait retardé celle-ci au rythme de la plus
+incertaine de ses parties.
 
 ### v0.4.0 — « Rembourser plus tôt »
 
@@ -225,3 +253,27 @@ des tests verts sur un code qui n'est pas le sien.
 Les copies créées par `git worktree` sous `.claude/worktrees/` sont exclues du lint et
 du suivi Git. Sans cette exclusion, `npm run lint` remonte les fichiers d'une autre
 branche — y compris son `.next`.
+
+### Plusieurs agents sur la même version
+
+Éprouvé sur v0.2.0, cinq chantiers menés de front. Ce qui a marché, et ce qui a coûté.
+
+**Un port de test par copie**, `PORT_E2E`, sinon deux portes lisent le même serveur.
+**Une branche par ticket**, et un périmètre de fichiers écrit dans le brief : qui
+possède quel fichier, et à quoi il ne touche pas. Les collisions restantes ont toutes
+été rattrapées par le typage — trois fois en une journée, une hypothèse de marché
+passée là où on attendait une valeur de loi.
+
+**Les agents ne touchent pas à `docs/REGISTRE-TESTS.md`.** Un compteur relevé sur une
+branche est périmé dès la fusion suivante : sur v0.2.0, le registre s'est retrouvé
+avec quatre relevés empilés, tous faux sauf un. Ce n'était pas seulement coûteux en
+conflits, c'était **inexact**. Les compteurs se relèvent une fois, sur `main`, après
+la dernière fusion.
+
+**Les entrées de journal, elles, restent de leur main**, ajoutées en fin de fichier :
+c'est le seul endroit où ce qu'ils ont trouvé se raconte de première main. Le conflit
+en fin de fichier se résout en gardant les deux côtés.
+
+**Numéroter les ADR est un point de contention.** Deux branches ont pris `ADR-008` le
+même jour. Le brief annonce désormais le dernier numéro attribué ; en cas de collision,
+celui qui est déjà fusionné et cité depuis le code garde son numéro.

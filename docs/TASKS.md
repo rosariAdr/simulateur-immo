@@ -112,6 +112,11 @@ Le découpage en versions, le modèle de branches et les portes sont dans
 
 ## Phase 3 — Acheter ou louer
 
+- [ ] `FIS-007` Valeurs fiscales de la phase 3 : prélèvements sociaux et taux réduit
+      EEE/Suisse, les **deux** barèmes d'abattement pour durée de détention — cadences et
+      durées d'exonération différentes —, surtaxe sur plus-values élevées, forfaits de
+      majoration du prix d'acquisition, exonération de la résidence principale. Sourcées,
+      datées. Bloquant pour `ENG-012`, `ENG-014` et `ENG-016`
 - [ ] `ENG-010` Coûts de détention et flux mensuels comparés
 - [ ] `ENG-011` Portefeuille du locataire de référence
 - [ ] `ENG-012` Scénario de vente, exonération résidence principale
@@ -191,6 +196,9 @@ Transversales aux phases. Voir `docs/RELEASES.md` §3.
       aucune infobulle hors écran
 - [ ] `TST-030` Porte de version **v0.3.0**. Les cas de référence d'« acheter ou
       louer » vérifiés contre une source externe, comme ceux du crédit
+- [ ] `TST-031` Porte de version **v0.3.1**. Les régimes micro et leurs abattements,
+      chacun avec sa source — c'est le terrain que la spécification signale comme
+      récemment modifié
 - [ ] `TST-040` Porte de version **v0.4.0**. Le double plafond légal d'indemnité de
       remboursement anticipé, éprouvé sur ses bornes
 - [ ] `TST-050` Porte de version **v0.5.0**. Les trajectoires simulées : reproductibilité
