@@ -27,11 +27,11 @@ ouvertes et remonte un composant en plein test.
 
 ## État courant — non publié
 
-Relevé du 22 août 2026, sur `feat/UI-005-infobulles`.
+Relevé du 22 août 2026, sur `feat/ENG-008-cas-de-reference`.
 
 | Suite | Fichiers | Tests |
 | --- | --- | --- |
-| Unitaires | 7 | 217 |
+| Unitaires | 8 | 235 |
 | Bout en bout | 9 | 172 (86 × 2 profils), dont 3 ignorés par construction |
 
 Les trois ignorés ne sont pas des trous : deux mesures du toucher n'ont de sens que
@@ -44,6 +44,15 @@ que sur un écran large. Chacun porte sa raison dans son `test.skip`.
   TAEG par dichotomie, seuils d'usure et d'endettement. Cas de référence et
   invariants sous fast-check : la dernière échéance solde exactement, la somme des
   parts de capital égale le capital emprunté.
+- `src/core/credit/__tests__/cas-de-reference.test.ts` — 18 tests adossés à **cinq
+  sources extérieures au projet**, chacune nommée, datée et liée dans le fichier :
+  tableau d'amortissement de La finance pour tous reproduit ligne à ligne, exemple
+  représentatif publié par Société Générale reproduit **au centime** sur l'échéancier,
+  l'assurance, le TAEG frais compris et le TAEA, seuils d'usure de l'avis du
+  26 juin 2026 au *Journal officiel*, décision HCSF du 29 septembre 2021. Aucune
+  valeur attendue ne vient de notre moteur, et chaque tolérance est une constante
+  nommée dont l'écart mesuré est écrit à côté — là où l'accord est exact, l'égalité
+  est stricte. C'est `ENG-008`.
 - `src/app/__tests__/design-tokens.test.ts` — 34 vérifications de contraste lues
   directement dans `globals.css`, seule source de vérité des couleurs.
 - `src/content/__tests__/glossaire.test.ts` — 65 vérifications sur les entrées
@@ -98,6 +107,14 @@ gardes-là ont été cassées exprès, puis rétablies :
   échouer la mesure sur les deux profils, avec le chiffre : 1 453 px défilables pour
   1 280 visibles au bureau (« Coût de l'assurance »), 472 pour 412 sur Pixel 7
   (« taux d'usure »).
+- **Convention d'arrondi des cas de référence** — vérifiée par perturbation et non par
+  sabotage, parce que `src/core/credit/**` est gelé (ADR-004) : en passant `rounding:
+  "down"` — un levier que `LoanSpec` expose déjà — l'exemple représentatif de Société
+  Générale n'est plus reproduit, 73 471,32 € d'intérêts au lieu des 73 473,03 €
+  publiés, et la mensualité de La finance pour tous tombe à 1 255,03 € au lieu de
+  1 255,04 €. L'accord au centime identifie donc une convention précise, et non un
+  résultat robuste à n'importe quel arrondi. `half-even`, lui, est indiscernable de
+  `half-up` sur ce prêt : aucune échéance ne tombe sur un demi-centime pile.
 - **Règle des deux phrases** — ramener `UnePhrase<S>` à `S` fait échouer
   `npm run typecheck` sur quatre `@ts-expect-error` devenus inutiles : la troisième
   phrase, la phrase inachevée et le texte assemblé à l'exécution redeviendraient
