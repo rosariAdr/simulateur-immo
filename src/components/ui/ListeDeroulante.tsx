@@ -43,7 +43,12 @@ export function ListeDeroulante<T extends string>({
           aria-invalid={champ.erreur ? true : undefined}
           aria-describedby={champ.erreur ? `${id}-erreur` : undefined}
           onChange={(e) => onChange(e.target.value as T)}
-          className={`w-full appearance-none bg-transparent pr-6 text-[13px] outline-none
+          // `min-h-[26px]` : sans hauteur imposée, le `select` se cale sur son
+          // interligne et mesure 19,5 px — sous les 24 px que le critère WCAG 2.2
+          // § 2.5.8 exige d'une cible tactile, et sans voisin assez proche pour
+          // que l'exception d'espacement le rattrape. Il ne se voit pas au
+          // pointeur, où la cible est le curseur ; il se voit au doigt.
+          className={`min-h-[26px] w-full appearance-none bg-transparent pr-6 text-[13px] outline-none
                       disabled:cursor-not-allowed disabled:text-desactive-encre
                       ${valeur === "" ? "text-interets-texte" : "text-encre"}`}
         >

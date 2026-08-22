@@ -144,3 +144,61 @@ rien de ce que l'hébergeur sert réellement : la vérification du déploiement 
   relisant vite une grille tarifaire, et elle ne se voit pas à l'œil.
 - **Taxonomie de la garantie** — remettre le champ « Garantie » en `réglementaire` fait
   échouer un test de bout en bout sur les deux profils.
+---
+
+## Relevé du 22 août 2026, sur `feat/UI-006-mobile`
+
+| Suite | Fichiers | Tests |
+| --- | --- | --- |
+| Unitaires | 7 | 217 *(inchangé)* |
+| Bout en bout | 10 | 194 (97 × 2 profils), dont 7 ignorés par construction |
+
+Quatre ignorés de plus qu'en v0.1.1, tous dans `mobile.spec.ts` et tous porteurs de
+leur raison : trois mesures n'ont de sens qu'au téléphone — le rognage, le
+débordement latéral, les repères d'année ligne à ligne — et une n'a de sens qu'au
+bureau, celle qui redimensionne la fenêtre à 1 024 px pour vérifier que la bascule
+d'axe suit la largeur du ruban et non celle de l'écran.
+
+### Le fichier ajouté
+
+| Fichier | Tests | Objet |
+| --- | --- | --- |
+| `mobile.spec.ts` | 11 | Les cibles tactiles du ruban tiennent 24 px, **sur les deux profils** — la garde ne se limite pas au téléphone, parce que le défaut existait aussi à 1 024 px de fenêtre. Aucune part n'est relevée pour se rendre visible. Aucun montant n'est rogné à 412 ni à 360 px. La page ne défile jamais latéralement, tableau mensuel déplié compris. Le résumé chiffré précède la saisie sur écran étroit, et reste à sa droite au bureau |
+
+### Une garde existante généralisée, et pourquoi
+
+`amortissement.spec.ts` mesurait la HAUTEUR des trois segments d'une barre. Le ruban
+ayant désormais deux orientations, cette mesure aurait interdit l'orientation au lieu
+de protéger l'invariant : ce que la garde défend est la PROPORTION, pas un axe. Le
+test lit maintenant l'axe dans le style calculé de la piste et mesure la dimension
+qui porte la valeur.
+
+Une généralisation peut devenir vraie pour une mauvaise raison — si les deux
+orientations se réduisaient à une seule, la garde mesurerait toujours le bon axe
+faute d'en avoir un second. `mobile.spec.ts` vérifie donc séparément que les deux
+existent, et à la bonne largeur.
+
+### Une dette nommée dans le fichier de test
+
+La pastille « i » fait 15 × 15 px et manque le critère de cible tactile. Elle est
+exclue de l'énumération de `mobile.spec.ts`, avec la raison écrite à l'endroit de
+l'exclusion : sa géométrie est tenue par une garde d'`UI-005` qui mesure l'alignement
+de la bulle sur son bord gauche au pixel près.
+
+### Gardes vérifiées par sabotage
+
+- **Plancher sur une part du ruban** — remettre `max(var(--part), 6px)` sur la bande
+  étroite fait rougir **deux** tests sur le profil `mobile` et aucun sur `bureau` : la
+  mesure de proportions généralisée et « aucune part n'est relevée ». Le sabotage est
+  localisé, la garde aussi.
+- **Seuil de bascule du ruban** — ramener la requête de conteneur de 700 à 300 px fait
+  rougir **trois** tests, dont un au BUREAU : « année 1 : 10.6 px de large » au
+  téléphone, « 412 px : attendu en lignes », et la bascule à 1 024 px de fenêtre. Ce
+  troisième échec est celui qui prouve que le seuil porte sur le ruban et non sur
+  l'écran.
+- **Colonnes du bandeau d'indicateurs** — rétablir `grid-cols-2 lg:grid-cols-5` fait
+  rougir deux tests, un par profil : les montants redébordent à 1 024 px comme à
+  360 px. Le défaut de bureau et le défaut de téléphone avaient la même cause.
+- **Ordre de lecture** — remettre le panneau de paramètres devant le bandeau fait
+  rougir « le résumé chiffré précède la saisie », sur le profil `mobile` seul : au
+  bureau la grille les replace, et c'est ce que l'autre branche du test vérifie.

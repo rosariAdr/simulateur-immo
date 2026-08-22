@@ -78,7 +78,15 @@ export function ChampTaux({
                    outline-none disabled:cursor-not-allowed disabled:text-desactive-encre"
       />
 
-      <div className="relative mt-2.5">
+      {/*
+        La piste fait trois pixels de haut, et c'était aussi la hauteur de la
+        ZONE SENSIBLE : au doigt, le curseur n'était attrapable que par accident
+        — 342 × 3 px là où le critère WCAG 2.2 § 2.5.8 en demande 24 de haut.
+        `h-6` grandit la boîte du contrôle sans toucher à ce qu'il peint : la
+        piste reste centrée sur trois pixels, le mors garde ses quinze. Seule la
+        marge du dessus est reprise, pour que l'écart visuel ne change pas.
+      */}
+      <div className="relative mt-0 flex items-center">
         <input
           id={idCurseur}
           type="range"
@@ -89,8 +97,8 @@ export function ChampTaux({
           disabled={champ.desactive}
           aria-label={`${champ.libelle}, réglage au curseur`}
           onChange={(e) => onChange(Number(e.target.value))}
-          className="peer w-full cursor-pointer appearance-none bg-transparent
-                     focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4
+          className="peer h-6 w-full cursor-pointer appearance-none bg-transparent
+                     focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-0
                      focus-visible:outline-accent disabled:cursor-not-allowed
                      [&::-webkit-slider-runnable-track]:h-[3px]
                      [&::-webkit-slider-runnable-track]:bg-filet
@@ -106,7 +114,7 @@ export function ChampTaux({
           <span
             aria-hidden="true"
             style={{ left: position(seuil.valeur) }}
-            className="pointer-events-none absolute top-[-3px] h-[13px] w-px bg-encre-secondaire"
+            className="pointer-events-none absolute top-[6px] h-[12px] w-px bg-encre-secondaire"
           />
         )}
       </div>

@@ -168,3 +168,118 @@ body {
 .tabulaire {
   font-variant-numeric: tabular-nums;
 }
+
+/**
+ * RUBAN D'AMORTISSEMENT — DEUX ORIENTATIONS, UN SEUL DOM — `UI-006`
+ *
+ * POURQUOI CE N'EST PAS UN POINT DE RUPTURE DE FENÊTRE. La contrainte n'est pas
+ * « on est sur un téléphone », elle est arithmétique : vingt-cinq années plus
+ * leurs interstices doivent tenir dans la largeur du ruban en laissant 24 px à
+ * chacune — le minimum d'une cible tactile, WCAG 2.2 § 2.5.8. Il faut donc
+ * 25 × 24 + 24 × 3 + 26 de cadre = 698 px, et c'est la largeur du RUBAN qui
+ * décide, pas celle de la fenêtre. Un point de rupture de fenêtre se serait
+ * trompé sur le bureau : à 1024 px la colonne de résultats n'en fait que 640,
+ * et les barres y tombaient à 21,7 px sans que personne l'ait vu.
+ *
+ * POURQUOI DES LIGNES ET NON UN DÉFILEMENT. Le ruban existe pour montrer d'un
+ * seul regard le reflux des intérêts sur toute la durée du prêt. Un ruban qu'il
+ * faut faire défiler pour en voir la fin ne montre plus cela : il faudrait
+ * mémoriser la première année pour la comparer à la dernière. La lecture change
+ * d'axe, elle ne se tronçonne pas.
+ *
+ * LES PROPORTIONS NE CHANGENT PAS. Les segments portent la même fraction
+ * `--part` dans les deux orientations ; seule la dimension qui la reçoit change
+ * — hauteur en colonnes, largeur en lignes. Aucun plancher, ici non plus : une
+ * bande d'assurance de deux pixels reste une bande de deux pixels.
+ */
+.ruban {
+  container: ruban / inline-size;
+}
+
+.ruban-cadre {
+  padding: 8px;
+}
+
+/* ── Étroit : une ligne par année, empilées vers le bas ─────────────────── */
+
+.ruban-piste {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ruban-barre {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 6px;
+  /* 26 px et non 24 : le seuil est un plancher, pas une cible. */
+  flex: 0 0 26px;
+  min-width: 0;
+}
+
+.ruban-repere {
+  display: block;
+  flex: 0 0 24px;
+  align-self: center;
+  text-align: right;
+}
+
+.ruban-bandes {
+  display: flex;
+  flex: 1 1 0%;
+  flex-direction: row;
+  justify-content: flex-start;
+  min-width: 0;
+  min-height: 0;
+}
+
+.ruban-part {
+  width: var(--part);
+  height: 100%;
+}
+
+.ruban-reglette {
+  display: none;
+}
+
+/* ── Large : une colonne par année, le capital pousse par le bas ────────── */
+
+@container ruban (min-width: 700px) {
+  .ruban-cadre {
+    padding: 14px 12px 8px;
+  }
+
+  .ruban-piste {
+    flex-direction: row;
+    gap: 3px;
+    height: 154px;
+  }
+
+  .ruban-barre {
+    flex-direction: column;
+    gap: 0;
+    flex: 1 1 0%;
+  }
+
+  .ruban-repere {
+    display: none;
+  }
+
+  .ruban-bandes {
+    flex-direction: column;
+    /* C'est ce `flex-end` qui pose les segments au sol. Sans lui les barres
+       s'ajustent à leur contenu, le contenu s'ajuste à elles, et les
+       pourcentages retombent à zéro. */
+    justify-content: flex-end;
+  }
+
+  .ruban-part {
+    width: auto;
+    height: var(--part);
+  }
+
+  .ruban-reglette {
+    display: flex;
+  }
+}

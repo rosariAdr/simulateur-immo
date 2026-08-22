@@ -16,6 +16,19 @@ import { GLOSSAIRE, type Entree } from "@/content/glossaire";
  * Aucun indicateur n'est peint en couleur pour dire « bien » ou « mal ». Seuls
  * ceux qui franchissent un seuil réglementaire passent en brique — et ils portent
  * alors le seuil en toutes lettres juste dessous.
+ *
+ * LE NOMBRE DE COLONNES SE DÉDUIT, IL NE SE DÉCRÈTE PAS — `UI-006`. Le bandeau
+ * passait de cinq colonnes à deux sur un point de rupture de fenêtre, et le
+ * point de rupture ne savait rien de la largeur réellement disponible : dans la
+ * colonne de résultats d'un écran de 1 024 px, les cinq cartes tombaient à
+ * 120 px et trois montants sur cinq débordaient de leur carte — « 281 636,97 € »
+ * de 34 px. Le défaut ne se voyait ni à 1 280 px ni à 412 px, les deux seules
+ * largeurs mesurées. `auto-fit` sur un minimum de 165 px règle la question par
+ * construction : la carte ne descend jamais sous la largeur du plus large
+ * montant du jeu de référence, quelle que soit la fenêtre.
+ *
+ * Le compte de colonnes des deux profils de test est inchangé — cinq à 1 280 px,
+ * deux sur Pixel 7 —, mais il est maintenant conclu et non supposé.
  */
 
 function Indicateur({
@@ -39,7 +52,14 @@ function Indicateur({
       data-alerte={alerte ? "oui" : "non"}
       className={`bg-panneau px-3 py-2.5 ${alerte ? "border border-interets" : "border border-filet"}`}
     >
-      <p className="mb-1 flex items-center text-[11px] text-encre-secondaire">
+      {/*
+        Le libellé et la légende montent d'un point sous 1 024 px. Ce n'est pas
+        la largeur de la carte qui le commande — elle est la même qu'au bureau —
+        mais la distance de lecture : le même dessin tenu à bout de bras sur un
+        écran de six pouces. Le chiffre, lui, ne bouge pas : il est déjà le plus
+        gros élément de la carte, et le grossir le ferait déborder.
+      */}
+      <p className="mb-1 flex items-center text-[12px] text-encre-secondaire lg:text-[11px]">
         {libelle}
         {explication && <Pastille entree={explication} terme={libelle} />}
       </p>
@@ -51,7 +71,9 @@ function Indicateur({
       >
         {valeur}
       </p>
-      <p className="mt-1 text-[10px] leading-[1.4] text-encre-secondaire">{legende}</p>
+      <p className="mt-1 text-[11px] leading-[1.45] text-encre-secondaire lg:text-[10px] lg:leading-[1.4]">
+        {legende}
+      </p>
     </div>
   );
 }
@@ -62,7 +84,7 @@ export function BandeauIndicateurs({ plan }: { plan: CreditPlan }) {
   const marche = premiereMarche(plan.rows);
 
   return (
-    <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-5">
+    <div className="grid gap-2.5 [grid-template-columns:repeat(auto-fit,minmax(165px,1fr))]">
       <Indicateur
         cle="mensualite"
         libelle="Mensualité"

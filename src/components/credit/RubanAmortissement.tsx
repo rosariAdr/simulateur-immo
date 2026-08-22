@@ -28,6 +28,15 @@ import { GLOSSAIRE } from "@/content/glossaire";
  * `Origine` et `Fin` sautent aux extrémités, et un lecteur d'écran annonce la
  * position. La ligne de lecture sous le ruban porte `role="status"` — elle est
  * relue à chaque déplacement, ce qui rend le graphique utilisable sans le voir.
+ *
+ * DEUX ORIENTATIONS — `UI-006`. Sous 700 px de large, le ruban n'a pas de quoi
+ * donner 24 px à chaque année et bascule en lignes : une par année, empilées
+ * vers le bas, les bandes courant vers la droite. Le basculement est décidé par
+ * une requête de conteneur et non par un point de rupture de fenêtre — la
+ * contrainte porte sur la largeur du ruban, pas sur celle de l'écran. Le DOM est
+ * le même dans les deux cas : une seule liste de barres, une seule sélection, un
+ * seul jeu de libellés accessibles. Les règles de mise en page vivent dans
+ * `globals.css`, sous `.ruban`, avec le calcul qui fixe le seuil.
  */
 
 interface Props {
@@ -53,11 +62,15 @@ export function RubanAmortissement({ plan, annee, onAnnee }: Props) {
   };
 
   const auClavier = (e: React.KeyboardEvent) => {
+    // Bas et droite avancent, haut et gauche reculent. Les deux couples suivent
+    // chacun une des deux orientations : la droite quand les années courent en
+    // colonnes, le bas quand elles s'empilent en lignes. `ArrowUp` avançait
+    // avant `UI-006`, ce qui ne correspondait à aucune des deux.
     const pas: Record<string, number> = {
       ArrowRight: annee + 1,
       ArrowLeft: annee - 1,
-      ArrowUp: annee + 1,
-      ArrowDown: annee - 1,
+      ArrowDown: annee + 1,
+      ArrowUp: annee - 1,
       Home: 1,
       End: annees.length,
     };
@@ -80,77 +93,96 @@ export function RubanAmortissement({ plan, annee, onAnnee }: Props) {
         <Legende />
       </div>
 
-      <div className="border border-filet bg-panneau px-3 pb-2 pt-3.5">
-        <div
-          ref={conteneur}
-          role="radiogroup"
-          aria-label="Année lue sur le ruban d'amortissement"
-          onKeyDown={auClavier}
-          // Les barres s'étirent sur toute la hauteur — surtout pas `items-end`.
-          // Les segments sont dimensionnés en pourcentage, et un pourcentage de
-          // hauteur ne se résout que contre un parent de hauteur définie : avec
-          // des barres calées en bas, elles s'ajustent à leur contenu, le contenu
-          // s'ajuste à elles, et tout retombe à zéro. C'est `justify-end` sur
-          // chaque barre qui pose les segments au sol.
-          className="flex h-[154px] gap-[3px]"
-        >
-          {annees.map((a) => {
-            const actif = a.year === lue.year;
-            return (
-              <button
-                key={a.year}
-                type="button"
-                role="radio"
-                aria-checked={actif}
-                tabIndex={actif ? 0 : -1}
-                data-annee={a.year}
-                data-selection={actif ? "oui" : "non"}
-                onClick={() => onAnnee(a.year)}
-                // Le résumé porte les quatre chiffres : un lecteur d'écran n'a
-                // aucun accès aux hauteurs, il lui faut la valeur elle-même.
-                aria-label={
-                  `Année ${a.year} : ${formatEuros(a.interest)} d'intérêts, ` +
-                  `${formatEuros(a.insurance)} d'assurance, ${formatEuros(a.principal)} de capital. ` +
-                  `Il reste ${formatEuros(a.closingBalance)} à rembourser.`
-                }
-                className={`flex min-w-0 flex-1 cursor-pointer flex-col justify-end
-                            outline-offset-2 focus-visible:outline focus-visible:outline-2
-                            focus-visible:outline-accent
-                            ${actif ? "outline outline-2 outline-accent" : "hover:opacity-80"}`}
-              >
-                <span
-                  data-part="interets"
-                  style={{ height: `${part(a.interest)}%` }}
-                  className="block shrink-0 bg-interets"
-                />
-                <span
-                  data-part="assurance"
-                  style={{ height: `${part(a.insurance)}%` }}
-                  className="block shrink-0 bg-assurance"
-                />
-                <span
-                  data-part="capital"
-                  style={{ height: `${part(a.principal)}%` }}
-                  className="block shrink-0 bg-capital"
-                />
-              </button>
-            );
-          })}
-        </div>
+      {/*
+        La requête de conteneur se pose ici, sur un enveloppant qui n'entoure que
+        le graphique. Elle n'englobe pas l'en-tête : `container-type` crée un
+        contexte d'empilement, et la bulle de la pastille du titre s'y trouverait
+        enfermée.
+      */}
+      <div className="ruban">
+        <div className="ruban-cadre border border-filet bg-panneau">
+          <div
+            ref={conteneur}
+            role="radiogroup"
+            aria-label="Année lue sur le ruban d'amortissement"
+            onKeyDown={auClavier}
+            className="ruban-piste"
+          >
+            {annees.map((a) => {
+              const actif = a.year === lue.year;
+              return (
+                <button
+                  key={a.year}
+                  type="button"
+                  role="radio"
+                  aria-checked={actif}
+                  tabIndex={actif ? 0 : -1}
+                  data-annee={a.year}
+                  data-selection={actif ? "oui" : "non"}
+                  onClick={() => onAnnee(a.year)}
+                  // Le résumé porte les quatre chiffres : un lecteur d'écran n'a
+                  // aucun accès aux hauteurs, il lui faut la valeur elle-même.
+                  aria-label={
+                    `Année ${a.year} : ${formatEuros(a.interest)} d'intérêts, ` +
+                    `${formatEuros(a.insurance)} d'assurance, ${formatEuros(a.principal)} de capital. ` +
+                    `Il reste ${formatEuros(a.closingBalance)} à rembourser.`
+                  }
+                  className={`ruban-barre cursor-pointer outline-offset-2 focus-visible:outline
+                              focus-visible:outline-2 focus-visible:outline-accent
+                              ${actif ? "outline outline-2 outline-accent" : "hover:opacity-80"}`}
+                >
+                  {/*
+                    Le repère d'année en tête de ligne. En colonnes il disparaît
+                    au profit de la réglette du bas ; en lignes c'est l'inverse,
+                    et chaque année porte alors le sien — il n'y a plus de
+                    chevauchement à éviter, donc plus d'année sautée.
+                  */}
+                  <span
+                    aria-hidden="true"
+                    data-repere={a.year}
+                    className={`ruban-repere font-mono text-[10px] leading-none tabular-nums ${
+                      actif ? "text-encre" : "text-encre-secondaire"
+                    }`}
+                  >
+                    {a.year}
+                  </span>
 
-        <div className="mt-1.5 flex gap-[3px] border-t border-filet pt-1.5">
-          {annees.map((a) => (
-            <span
-              key={a.year}
-              aria-hidden="true"
-              className={`min-w-0 flex-1 text-center font-mono text-[9px] tabular-nums ${
-                a.year === lue.year ? "text-encre" : "text-encre-secondaire"
-              }`}
-            >
-              {/* Au-delà de vingt ans les repères se chevauchent : une année sur deux. */}
-              {annees.length > 20 && a.year % 2 === 0 ? "" : a.year}
-            </span>
-          ))}
+                  <span className="ruban-bandes">
+                    <span
+                      data-part="interets"
+                      style={{ "--part": `${part(a.interest)}%` } as React.CSSProperties}
+                      className="ruban-part block shrink-0 bg-interets"
+                    />
+                    <span
+                      data-part="assurance"
+                      style={{ "--part": `${part(a.insurance)}%` } as React.CSSProperties}
+                      className="ruban-part block shrink-0 bg-assurance"
+                    />
+                    <span
+                      data-part="capital"
+                      style={{ "--part": `${part(a.principal)}%` } as React.CSSProperties}
+                      className="ruban-part block shrink-0 bg-capital"
+                    />
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="ruban-reglette mt-1.5 gap-[3px] border-t border-filet pt-1.5">
+            {annees.map((a) => (
+              <span
+                key={a.year}
+                aria-hidden="true"
+                className={`min-w-0 flex-1 text-center font-mono text-[9px] tabular-nums ${
+                  a.year === lue.year ? "text-encre" : "text-encre-secondaire"
+                }`}
+              >
+                {/* Au-delà de vingt ans les repères se chevauchent : une année sur deux. */}
+                {annees.length > 20 && a.year % 2 === 0 ? "" : a.year}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
 
