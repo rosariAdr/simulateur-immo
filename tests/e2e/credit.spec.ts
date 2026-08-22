@@ -31,6 +31,19 @@ test("le scénario par défaut affiche les chiffres du moteur", async ({ page })
   await expect(indicateur(page, "assurance")).toHaveText(eur("10 800"));
 });
 
+test("la mensualité n'annonce pas un différé qui n'existe pas", async ({ page }) => {
+  await page.goto("/credit");
+
+  // `UI-011`. La légende se déclenchait sur `firstPayment !== maxPayment`, et
+  // `maxPayment` inclut la dernière échéance — celle qui solde le capital et
+  // diffère donc des autres d'un ou deux euros. Le scénario par défaut affichait
+  // « elle monte à 1 062,41 € après le différé » sans qu'aucun différé existe.
+  const legende = page.locator('[data-indicateur="mensualite"]');
+  await expect(legende).toContainText("assurance comprise");
+  await expect(legende).not.toContainText("différé");
+  await expect(legende).not.toContainText("elle monte");
+});
+
 test("une URL nue ne porte aucun paramètre", async ({ page }) => {
   await page.goto("/credit");
   expect(new URL(page.url()).search).toBe("");

@@ -31,8 +31,8 @@ Relevé du 22 août 2026, sur `feat/UI-005-infobulles`.
 
 | Suite | Fichiers | Tests |
 | --- | --- | --- |
-| Unitaires | 6 | 207 |
-| Bout en bout | 7 | 158 (79 × 2 profils), dont 3 ignorés par construction |
+| Unitaires | 7 | 214 |
+| Bout en bout | 7 | 160 (80 × 2 profils), dont 3 ignorés par construction |
 
 Les trois ignorés ne sont pas des trous : deux mesures du toucher n'ont de sens que
 sur le profil `mobile`, et l'alignement d'une bulle de 264 px sur sa pastille n'en a
@@ -81,6 +81,7 @@ gardes-là ont été cassées exprès, puis rétablies :
   « 409 874,79 € » dans la liste des cellules tronquées.
 - **Avertissement permanent** — retirer `<Avertissement />` de la mise en page fait
   échouer six tests, un par route et un par propriété.
+- **Marche de l'échéance** — rétablir la comparaison d'origine (toute différence, dernière échéance comprise) fait échouer quatre tests sur sept : la légende annoncerait de nouveau un différé qui n'existe pas.
 - **Identité de l'hébergeur** — retirer l'adresse de Vercel des mentions légales fait échouer la garde qui la cherche : sans elle, l'anonymat de l'éditeur n'a plus de fondement.
 - **Assiette de la mainlevée** — asseoir le coût de mainlevée sur le capital emprunté
   au lieu du prix du bien fait échouer le test de garantie correspondant.

@@ -3,6 +3,7 @@
 import type { CreditPlan } from "@/core/credit/plan";
 import { toEuros } from "@/core/money";
 import { formatEuros, formatPourcentage } from "@/lib/format";
+import { premiereMarche } from "@/lib/marche";
 import { Pastille } from "@/components/ui";
 import { GLOSSAIRE, type Entree } from "@/content/glossaire";
 
@@ -58,7 +59,7 @@ function Indicateur({
 export function BandeauIndicateurs({ plan }: { plan: CreditPlan }) {
   const capital = toEuros(plan.totalPrincipal);
   const partCout = capital > 0 ? (toEuros(plan.totalCreditCost) / capital) * 100 : 0;
-  const echelonne = plan.firstPayment !== plan.maxPayment;
+  const marche = premiereMarche(plan.rows);
 
   return (
     <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-5">
@@ -67,8 +68,8 @@ export function BandeauIndicateurs({ plan }: { plan: CreditPlan }) {
         libelle="Mensualité"
         valeur={formatEuros(plan.firstPayment)}
         legende={
-          echelonne
-            ? `elle monte à ${formatEuros(plan.maxPayment)} après le différé`
+          marche
+            ? `elle monte à ${formatEuros(marche.payment)} au mois ${marche.month}`
             : "assurance comprise"
         }
         explication={GLOSSAIRE.mensualite}
