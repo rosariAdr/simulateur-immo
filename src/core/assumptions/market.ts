@@ -68,10 +68,39 @@ export interface GuaranteeAssumptions {
   readonly pledgeCostPct: HypotheseChiffree;
 }
 
+/**
+ * Une fourchette observée, sans valeur centrale.
+ *
+ * Certaines hypothèses n'ont pas de « bonne » valeur, seulement un intervalle où
+ * l'on trouve les offres. Leur donner une valeur unique reviendrait à inventer
+ * une moyenne que personne n'a mesurée.
+ */
+export interface FourchetteObservee {
+  readonly intervalle: readonly [number, number];
+  readonly fiabilite: Fiabilite;
+  readonly provenance: string;
+}
+
+export interface InsuranceAssumptions {
+  /** Contrat de groupe de la banque, en % du capital initial et par an. */
+  readonly groupRatePct: FourchetteObservee;
+  /** Délégation d'assurance, même assiette. */
+  readonly delegationRatePct: FourchetteObservee;
+}
+
+export interface AcquisitionAssumptions {
+  /** Frais d'acquisition totaux dans l'ancien, en % du prix. */
+  readonly totalFeesOldPct: FourchetteObservee;
+  /** Idem dans le neuf, où il n'y a pas de droits de mutation. */
+  readonly totalFeesNewPct: FourchetteObservee;
+}
+
 export interface MarketAssumptions {
   /** Date du relevé, et non millésime légal : ces valeurs n'ont pas d'exercice. */
   readonly releve: string;
   readonly guarantee: GuaranteeAssumptions;
+  readonly insurance: InsuranceAssumptions;
+  readonly acquisition: AcquisitionAssumptions;
 }
 
 /**
@@ -126,6 +155,44 @@ export const MARKET_2026: MarketAssumptions = {
       provenance:
         "Nantissement d'un contrat d'épargne. Ni acte notarié ni fonds mutuel à alimenter, " +
         "d'où un coût d'entrée nettement inférieur aux deux autres garanties.",
+    },
+  },
+
+  insurance: {
+    groupRatePct: {
+      intervalle: [0.3, 0.42],
+      fiabilite: "estimee",
+      provenance:
+        "Contrat de groupe d'une banque, taux annuel sur capital initial. ⚠️ La borne " +
+        "basse est contredite par un cas réel : l'exemple représentatif publié par la " +
+        "Société Générale donne 0,26 % pour un emprunteur de 35 ans. Voir ENG-008, et le " +
+        "ticket FIS-006 qui porte le recoupement.",
+    },
+    delegationRatePct: {
+      intervalle: [0.1, 0.2],
+      fiabilite: "estimee",
+      provenance:
+        "Délégation d'assurance, même assiette. L'écart avec le contrat de groupe est ce " +
+        "que la loi Lemoine permet d'aller chercher ; il varie fortement avec l'âge et " +
+        "l'état de santé, que ces bornes n'expriment pas.",
+    },
+  },
+
+  acquisition: {
+    totalFeesOldPct: {
+      intervalle: [7, 8.5],
+      fiabilite: "estimee",
+      provenance:
+        "Frais d'acquisition dans l'ancien, tous postes réunis. Leur plus grosse part — les " +
+        "droits de mutation — est réglementée et vit dans `fiscal/params.ts` ; le total, lui, " +
+        "dépend aussi des émoluments négociés et des débours, et reste une estimation.",
+    },
+    totalFeesNewPct: {
+      intervalle: [2, 3],
+      fiabilite: "estimee",
+      provenance:
+        "Frais d'acquisition dans le neuf, où la taxe de publicité foncière remplace les " +
+        "droits de mutation. Même réserve : la part réglementée est connue, le total ne l'est pas.",
     },
   },
 };

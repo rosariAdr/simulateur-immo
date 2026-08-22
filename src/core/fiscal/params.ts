@@ -84,9 +84,12 @@ export interface FiscalParams {
     readonly lemoineNoHealthFormThreshold: Cents;
     /** …et à condition que le terme du prêt survienne avant cet âge. */
     readonly lemoineMaxAgeAtTerm: number;
-    /** Fourchettes de marché, indicatives — pas des valeurs réglementaires. */
-    readonly marketGroupRatePct: readonly [number, number];
-    readonly marketDelegationRatePct: readonly [number, number];
+    /*
+     * Les fourchettes de taux d'assurance ont quitté ce fichier avec les coûts de
+     * garantie — `FIS-005`. Elles étaient annotées « indicatives, pas des valeurs
+     * réglementaires », ce qui suffisait à dire qu'elles n'étaient pas à leur
+     * place. Voir `src/core/assumptions/market.ts`.
+     */
   };
 
   /**
@@ -108,9 +111,7 @@ export interface FiscalParams {
     readonly firstTimeBuyerPct: number;
     /** Neuf : taxe de publicité foncière, pas de DMTO. */
     readonly newBuildLandRegistryPct: number;
-    /** Frais d'acquisition totaux, fourchettes indicatives. */
-    readonly totalFeesOldPct: readonly [number, number];
-    readonly totalFeesNewPct: readonly [number, number];
+    /* Les frais d'acquisition totaux sont partis avec les autres fourchettes — FIS-005. */
     /** Part du prix pouvant être retirée de l'assiette au titre du mobilier, sur inventaire. */
     readonly furnitureDeductionMaxPct: number;
     /**
@@ -181,8 +182,6 @@ export const PARAMS_2026: FiscalParams = {
   borrowerInsurance: {
     lemoineNoHealthFormThreshold: euros(200_000),
     lemoineMaxAgeAtTerm: 60,
-    marketGroupRatePct: [0.3, 0.42],
-    marketDelegationRatePct: [0.1, 0.2],
   },
 
   transferTax: {
@@ -191,8 +190,6 @@ export const PARAMS_2026: FiscalParams = {
     oldReducedPct: 5.09,
     firstTimeBuyerPct: 5.81,
     newBuildLandRegistryPct: 0.715,
-    totalFeesOldPct: [7, 8.5],
-    totalFeesNewPct: [2, 3],
     furnitureDeductionMaxPct: 5,
     notaryDiscountMaxPct: 20,
     notaryDiscountThreshold: euros(100_000),

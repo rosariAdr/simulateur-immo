@@ -40,6 +40,15 @@ describe("le millésime fiscal ne contient que des valeurs de loi", () => {
     ).toBe(2);
   });
 
+  it("ne contient plus aucune fourchette indicative", () => {
+    // La phrase inscrite dans params.ts — « ce fichier ne contient plus que des
+    // valeurs dont un article peut être cité » — doit rester vraie. Trois séries
+    // l'ont quitté : garanties, taux d'assurance, frais d'acquisition. Une
+    // quatrième glisserait sans bruit.
+    expect(PARAMS_SRC).not.toMatch(/fourchettes? indicatives?/i);
+    expect(PARAMS_SRC).not.toMatch(/pas des valeurs réglementaires/i);
+  });
+
   it("garde une trace écrite du déplacement", () => {
     // Un champ qui disparaît sans explication ressemble à un oubli. Celui-ci
     // doit rester lisible dans le fichier qui l'a perdu.
