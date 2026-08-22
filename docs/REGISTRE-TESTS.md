@@ -31,8 +31,8 @@ Relevé du 22 août 2026, sur `feat/UI-005-infobulles`.
 
 | Suite | Fichiers | Tests |
 | --- | --- | --- |
-| Unitaires | 7 | 214 |
-| Bout en bout | 8 | 164 (82 × 2 profils), dont 3 ignorés par construction |
+| Unitaires | 7 | 217 |
+| Bout en bout | 9 | 172 (86 × 2 profils), dont 3 ignorés par construction |
 
 Les trois ignorés ne sont pas des trous : deux mesures du toucher n'ont de sens que
 sur le profil `mobile`, et l'alignement d'une bulle de 264 px sur sa pastille n'en a
@@ -81,6 +81,7 @@ gardes-là ont été cassées exprès, puis rétablies :
   « 409 874,79 € » dans la liste des cellules tronquées.
 - **Avertissement permanent** — retirer `<Avertissement />` de la mise en page fait
   échouer six tests, un par route et un par propriété.
+- **Contrôles natifs** — retirer `color-scheme: dark` de `:root` fait rougir le test unitaire qui lit la feuille ET les deux tests de bout en bout qui lisent le calcul du navigateur. Le défaut vivait hors du DOM : aucun test de contraste ne pouvait l'attraper.
 - **Marche de l'échéance** — rétablir la comparaison d'origine (toute différence, dernière échéance comprise) fait échouer quatre tests sur sept : la légende annoncerait de nouveau un différé qui n'existe pas.
 - **Identité de l'hébergeur** — retirer l'adresse de Vercel des mentions légales fait échouer la garde qui la cherche : sans elle, l'anonymat de l'éditeur n'a plus de fondement.
 - **Assiette de la mainlevée** — asseoir le coût de mainlevée sur le capital emprunté
@@ -108,6 +109,7 @@ gardes-là ont été cassées exprès, puis rétablies :
 
 | Version | Date | Unitaires | Bout en bout | Notes |
 | --- | --- | --- | --- | --- |
+| v0.1.1 | 22 août 2026 | 217 | 172 (86 × 2 profils) | Correctif UI-012. Deux gardes pour un seul défaut : ce que la feuille déclare, et ce que le navigateur calcule |
 | v0.1.0 | 22 août 2026 | 214 | 164 (82 × 2 profils) | Porte passée à froid, `.next` supprimé. Critère de sortie **exécuté** et non coché : `parcours-v0-1.spec.ts` va de l'accueil au lien partagé, sur les deux profils |
 
 **Ce que ce relevé ne couvre pas.** La porte s'exécute sur un build local. Elle ne dit
