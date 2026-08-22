@@ -27,12 +27,16 @@ ouvertes et remonte un composant en plein test.
 
 ## État courant — non publié
 
-Relevé du 22 août 2026, sur `main`.
+Relevé du 22 août 2026, sur `feat/UI-005-infobulles`.
 
 | Suite | Fichiers | Tests |
 | --- | --- | --- |
-| Unitaires | 5 | 142 |
-| Bout en bout | 5 | 112 (56 × 2 profils) |
+| Unitaires | 6 | 207 |
+| Bout en bout | 6 | 130 (65 × 2 profils), dont 3 ignorés par construction |
+
+Les trois ignorés ne sont pas des trous : deux mesures du toucher n'ont de sens que
+sur le profil `mobile`, et l'alignement d'une bulle de 264 px sur sa pastille n'en a
+que sur un écran large. Chacun porte sa raison dans son `test.skip`.
 
 ### Ce que couvrent les unitaires
 
@@ -42,6 +46,11 @@ Relevé du 22 août 2026, sur `main`.
   parts de capital égale le capital emprunté.
 - `src/app/__tests__/design-tokens.test.ts` — 34 vérifications de contraste lues
   directement dans `globals.css`, seule source de vérité des couleurs.
+- `src/content/__tests__/glossaire.test.ts` — 65 vérifications sur les entrées
+  d'infobulle : une phrase terminée par champ, longueur plafonnée, aucun terme défini
+  deux fois, aucun jeton laissé sans valeur, aucune formule de recommandation. Cinq
+  assertions y sont des `@ts-expect-error`, vérifiées par `npm run typecheck` et non
+  par Vitest — elles échouent si la contrainte de type s'affaiblit.
 
 ### Ce que couvrent les tests de bout en bout
 
@@ -52,6 +61,7 @@ Relevé du 22 août 2026, sur `main`.
 | `avertissement.spec.ts` | 13 | L'avertissement est présent et visible sur toute route qui affiche un chiffre, il ne peut pas être fermé, et aucune page n'est indexable tant que les textes n'ont pas été relus |
 | `amortissement.spec.ts` | 12 | Le ruban ne ment pas sur les proportions, mesuré au pixel. Le curseur se déplace au clavier. Aucun montant n'est rogné dans sa cellule |
 | `accueil.spec.ts` | 9 | L'accueil énonce les trois familles en toutes lettres, mène réellement à `/credit` — cliqué et suivi — et **ne présente pas comme disponibles les quatre modules qui n'existent pas** |
+| `infobulles.spec.ts` | 9 | Un appui du doigt ouvre la bulle **et l'y laisse**. Aucune bulle ne fait défiler la page, sur les deux profils. Aucune n'affiche un jeton resté sans valeur, et celle de la durée cite les plafonds du millésime |
 
 ### Gardes vérifiées par sabotage
 
@@ -77,6 +87,17 @@ gardes-là ont été cassées exprès, puis rétablies :
 - **Familles nommées en toutes lettres sur l'accueil** — vider le titre d'une carte
   de famille la laisse avec son message et ses exemples, mais plus le mot
   « négociable » : le test le voit.
+- **Ouverture au toucher** — rétablir le clic qui bascule l'état courant fait échouer
+  les deux mesures tactiles du profil `mobile` : la bulle n'est plus visible après
+  l'appui, et le second appui ne trouve rien à refermer.
+- **Débordement de la bulle** — rétablir l'ancrage `left-0` à largeur fixe fait
+  échouer la mesure sur les deux profils, avec le chiffre : 1 453 px défilables pour
+  1 280 visibles au bureau (« Coût de l'assurance »), 472 pour 412 sur Pixel 7
+  (« taux d'usure »).
+- **Règle des deux phrases** — ramener `UnePhrase<S>` à `S` fait échouer
+  `npm run typecheck` sur quatre `@ts-expect-error` devenus inutiles : la troisième
+  phrase, la phrase inachevée et le texte assemblé à l'exécution redeviendraient
+  écrivables.
 
 ---
 

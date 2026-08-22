@@ -15,7 +15,7 @@ import { useScenario } from "./useScenario";
  * réagit immédiatement : aucun bouton « calculer », aucune animation d'attente.
  */
 export function ModuleCredit() {
-  const { scenario, definir, plan } = useScenario();
+  const { scenario, definir, plan, params } = useScenario();
   const [copie, setCopie] = useState(false);
   const [anneeChoisie, setAnneeChoisie] = useState<number | null>(null);
 
@@ -63,7 +63,12 @@ export function ModuleCredit() {
       </header>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[296px_minmax(0,1fr)]">
-        <PanneauParametres scenario={scenario} definir={definir} seuilUsure={plan.usury.threshold} />
+        <PanneauParametres
+          scenario={scenario}
+          definir={definir}
+          seuilUsure={plan.usury.threshold}
+          params={params}
+        />
 
         <div className="flex min-w-0 flex-col gap-5">
           <BandeauIndicateurs plan={plan} />

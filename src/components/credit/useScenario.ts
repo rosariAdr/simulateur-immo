@@ -3,7 +3,7 @@
 import { useQueryStates } from "nuqs";
 import { useMemo } from "react";
 import { buildCreditPlan, type CreditPlan } from "@/core/credit/plan";
-import { PARAMS_2026 } from "@/core/fiscal/params";
+import { PARAMS_2026, type FiscalParams } from "@/core/fiscal/params";
 import { CLES_URL, PARSEURS, versEntreeMoteur, type Scenario } from "@/lib/scenario";
 
 /**
@@ -21,10 +21,16 @@ export function useScenario(): {
   scenario: Scenario;
   definir: ReturnType<typeof useQueryStates<typeof PARSEURS>>[1];
   plan: CreditPlan;
+  /**
+   * Le millésime sur lequel le plan est calculé. Exposé parce que l'interface
+   * en a besoin ailleurs que dans les chiffres : une infobulle qui cite un
+   * plafond doit le lire ici, jamais l'écrire dans son texte.
+   */
+  params: FiscalParams;
 } {
   const [scenario, definir] = useQueryStates(PARSEURS, { urlKeys: CLES_URL });
 
   const plan = useMemo(() => buildCreditPlan(versEntreeMoteur(scenario), PARAMS_2026), [scenario]);
 
-  return { scenario, definir, plan };
+  return { scenario, definir, plan, params: PARAMS_2026 };
 }

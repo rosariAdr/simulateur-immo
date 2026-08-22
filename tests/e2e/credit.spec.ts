@@ -113,6 +113,12 @@ test("un scénario conforme n'affiche aucune alerte", async ({ page }) => {
 
 test("la répartition couvre toute la barre", async ({ page }) => {
   await page.goto("/credit");
+  // `evaluateAll` n'attend rien : il rend la liste telle qu'elle est à l'instant
+  // où il s'exécute. Le module vit sous `Suspense` et n'apparaît qu'une fois
+  // hydraté — sans cette attente, le test lit une page encore vide et échoue
+  // d'autant plus souvent que le paquet client grossit.
+  await page.locator("[data-poste]").first().waitFor();
+
   const largeurs = await page.locator("[data-poste]").evaluateAll((noeuds) =>
     noeuds.map((n) => parseFloat((n as HTMLElement).style.width)),
   );

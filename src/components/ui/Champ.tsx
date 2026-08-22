@@ -1,5 +1,6 @@
 "use client";
 
+import type { Entree } from "@/content/glossaire";
 import { FAMILLES, type Famille } from "./taxonomie";
 import { Pastille } from "./Pastille";
 
@@ -25,8 +26,12 @@ export interface ChampProps {
   readonly aide?: string;
   readonly erreur?: string;
   readonly desactive?: boolean;
-  /** Explication pédagogique. Sa présence pose la pastille. */
-  readonly explication?: React.ReactNode;
+  /**
+   * Entrée de glossaire expliquant le champ. Sa présence pose la pastille.
+   * Le texte n'est pas écrit ici : il vient de `src/content/glossaire.ts`, où
+   * la règle des deux phrases est portée par le type.
+   */
+  readonly explication?: Entree;
   readonly children: React.ReactNode;
 }
 
@@ -67,7 +72,9 @@ export function Champ({
           }`}
         >
           {libelle}
-          {explication && !desactive && <Pastille terme={libelle}>{explication}</Pastille>}
+          {/* L'intitulé du bouton reprend le libellé du champ, pas le terme du
+              glossaire : c'est ce mot-là que l'utilisateur a sous les yeux. */}
+          {explication && !desactive && <Pastille entree={explication} terme={libelle} />}
         </label>
         <span
           className={`shrink-0 border px-1.5 py-px text-[9px] uppercase tracking-[0.05em] ${

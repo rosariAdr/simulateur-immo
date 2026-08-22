@@ -4,6 +4,7 @@ import type { CreditPlan } from "@/core/credit/plan";
 import { toEuros } from "@/core/money";
 import { formatEuros, formatPourcentage } from "@/lib/format";
 import { Pastille } from "@/components/ui";
+import { GLOSSAIRE, type Entree } from "@/content/glossaire";
 
 /**
  * BANDEAU D'INDICATEURS
@@ -28,7 +29,7 @@ function Indicateur({
   valeur: string;
   legende: string;
   alerte?: boolean;
-  explication?: React.ReactNode;
+  explication?: Entree;
   cle: string;
 }) {
   return (
@@ -39,7 +40,7 @@ function Indicateur({
     >
       <p className="mb-1 flex items-center text-[11px] text-encre-secondaire">
         {libelle}
-        {explication && <Pastille terme={libelle}>{explication}</Pastille>}
+        {explication && <Pastille entree={explication} terme={libelle} />}
       </p>
       <p
         data-valeur
@@ -70,6 +71,7 @@ export function BandeauIndicateurs({ plan }: { plan: CreditPlan }) {
             ? `elle monte à ${formatEuros(plan.maxPayment)} après le différé`
             : "assurance comprise"
         }
+        explication={GLOSSAIRE.mensualite}
       />
 
       <Indicateur
@@ -77,12 +79,7 @@ export function BandeauIndicateurs({ plan }: { plan: CreditPlan }) {
         libelle="Coût du crédit"
         valeur={formatEuros(plan.totalCreditCost)}
         legende={`${Math.round(partCout)} % du capital emprunté`}
-        explication={
-          <>
-            <strong>Intérêts, assurance, frais et garantie réunis.</strong> Il n&apos;inclut pas les
-            frais d&apos;acquisition, qui se paient au notaire et non à la banque.
-          </>
-        }
+        explication={GLOSSAIRE.coutDuCredit}
       />
 
       <Indicateur
@@ -95,13 +92,7 @@ export function BandeauIndicateurs({ plan }: { plan: CreditPlan }) {
             ? `${plan.usury.headroomPoints.toFixed(2).replace(".", ",")} point sous le plafond d'usure`
             : `au-delà du plafond légal de ${formatPourcentage(plan.usury.threshold)}`
         }
-        explication={
-          <>
-            <strong>Le seul taux qui permette de comparer deux offres.</strong> Il réunit le taux
-            nominal, l&apos;assurance, les frais et la garantie. Au-delà du plafond d&apos;usure,
-            aucune banque n&apos;a le droit de prêter.
-          </>
-        }
+        explication={GLOSSAIRE.taeg}
       />
 
       <Indicateur
@@ -114,13 +105,7 @@ export function BandeauIndicateurs({ plan }: { plan: CreditPlan }) {
             ? `plafond HCSF ${formatPourcentage(plan.hcsf.maxDebtRatioPct)}`
             : `au-delà du plafond HCSF de ${formatPourcentage(plan.hcsf.maxDebtRatioPct)}`
         }
-        explication={
-          <>
-            <strong>La part de vos revenus qui part dans le crédit</strong>, assurance comprise. Le
-            plafond s&apos;impose aux banques, pas à vous : elles disposent d&apos;une marge de
-            dérogation, prioritairement réservée aux primo-accédants.
-          </>
-        }
+        explication={GLOSSAIRE.tauxEffort}
       />
 
       <Indicateur
@@ -128,12 +113,7 @@ export function BandeauIndicateurs({ plan }: { plan: CreditPlan }) {
         libelle="Coût de l'assurance"
         valeur={formatEuros(plan.totalInsurance)}
         legende={`TAEA ${formatPourcentage(plan.taeaPct)}`}
-        explication={
-          <>
-            <strong>Le TAEA isole ce que coûte l&apos;assurance seule</strong> dans le TAEG. C&apos;est
-            lui qu&apos;il faut comparer quand on fait jouer la loi Lemoine.
-          </>
-        }
+        explication={GLOSSAIRE.taea}
       />
     </div>
   );

@@ -1,5 +1,6 @@
 "use client";
 
+import type { Entree } from "@/content/glossaire";
 import { Pastille } from "./Pastille";
 
 export interface CaseACocherProps {
@@ -10,7 +11,8 @@ export interface CaseACocherProps {
   readonly aide?: string;
   readonly erreur?: string;
   readonly desactive?: boolean;
-  readonly explication?: React.ReactNode;
+  /** Entrée de glossaire expliquant l'option. Sa présence pose la pastille. */
+  readonly explication?: Entree;
 }
 
 /**
@@ -76,7 +78,7 @@ export function CaseACocher({
         >
           <span className="inline-flex items-center">
             {libelle}
-            {explication && !desactive && <Pastille terme={libelle}>{explication}</Pastille>}
+            {explication && !desactive && <Pastille entree={explication} terme={libelle} />}
           </span>
         </label>
       </div>
