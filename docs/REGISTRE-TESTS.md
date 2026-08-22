@@ -27,12 +27,17 @@ ouvertes et remonte un composant en plein test.
 
 ## État courant — non publié
 
-Relevé du 22 août 2026, sur `feat/UI-005-infobulles`.
+Relevé du 22 août 2026, sur `feat/CNT-002-fiches`.
 
 | Suite | Fichiers | Tests |
 | --- | --- | --- |
-| Unitaires | 7 | 217 |
-| Bout en bout | 9 | 172 (86 × 2 profils), dont 3 ignorés par construction |
+| Unitaires | 8 | 238 |
+| Bout en bout | 10 | 204 (102 × 2 profils), dont 3 ignorés par construction |
+
+Relevé précédent, sur `feat/UI-005-infobulles` : 7 fichiers et 217 unitaires,
+9 fichiers et 172 tests de bout en bout. `CNT-002` apporte 21 unitaires et
+14 tests de bout en bout ; les deux qui restent viennent de `avertissement.spec.ts`,
+dont la liste `ROUTES` accueille la nouvelle route.
 
 Les trois ignorés ne sont pas des trous : deux mesures du toucher n'ont de sens que
 sur le profil `mobile`, et l'alignement d'une bulle de 264 px sur sa pastille n'en a
@@ -46,6 +51,14 @@ que sur un écran large. Chacun porte sa raison dans son `test.skip`.
   parts de capital égale le capital emprunté.
 - `src/app/__tests__/design-tokens.test.ts` — 34 vérifications de contraste lues
   directement dans `globals.css`, seule source de vérité des couleurs.
+- `src/content/__tests__/fiche-credit.test.ts` — 21 vérifications sur les chiffres de
+  la fiche `CNT-002`. La première est la plus importante : l'exemple de la fiche est
+  comparé à `versEntreeMoteur(DEFAUTS)`, c'est-à-dire au scénario que `/credit` ouvre
+  par défaut. La fiche promet « ouvrez le simulateur, vous retrouverez ces chiffres » ;
+  cette égalité est tout ce qui l'empêche de mentir. Le reste vérifie qu'aucune valeur
+  réglementaire n'est recopiée — seuils d'usure, normes du HCSF, seuils de la loi
+  Lemoine sont confrontés un à un à `params.ts` — et qu'aucune tournure prescriptive
+  n'entre dans le module de contenu.
 - `src/content/__tests__/glossaire.test.ts` — 65 vérifications sur les entrées
   d'infobulle : une phrase terminée par champ, longueur plafonnée, aucun terme défini
   deux fois, aucun jeton laissé sans valeur, aucune formule de recommandation. Cinq
@@ -63,6 +76,7 @@ que sur un écran large. Chacun porte sa raison dans son `test.skip`.
 | `accueil.spec.ts` | 9 | L'accueil énonce les trois familles en toutes lettres, mène réellement à `/credit` — cliqué et suivi — et **ne présente pas comme disponibles les quatre modules qui n'existent pas** |
 | `legal.spec.ts` | 14 | Les trois textes s'affichent datés, sont atteignables depuis le simulateur, et **l'identité de l'hébergeur figure sur le site** — c'est la contrepartie de l'anonymat de l'éditeur, pas une politesse |
 | `infobulles.spec.ts` | 9 | Un appui du doigt ouvre la bulle **et l'y laisse**. Aucune bulle ne fait défiler la page, sur les deux profils. Aucune n'affiche un jeton resté sans valeur, et celle de la durée cite les plafonds du millésime |
+| `fiche-credit.spec.ts` | 14 | La fiche `/credit/comprendre` nomme les trois familles en toutes lettres et chaque section porte son étiquette **écrite**, jamais un simple trait coloré. Le chemin avec `/credit` est parcouru dans les deux sens, cliqué et suivi. **La mensualité annoncée par la fiche est celle que le module affiche** — la promesse « reproduisez-le » est exécutée, pas cochée. Et **aucune tournure prescriptive n'atteint le lecteur**, sur le document entier |
 
 ### Gardes vérifiées par sabotage
 
@@ -98,6 +112,18 @@ gardes-là ont été cassées exprès, puis rétablies :
   échouer la mesure sur les deux profils, avec le chiffre : 1 453 px défilables pour
   1 280 visibles au bureau (« Coût de l'assurance »), 472 pour 412 sur Pixel 7
   (« taux d'usure »).
+- **Aucune recommandation, sur la page rendue** — glisser « Vous devriez le savoir »
+  dans la section des garanties fait rougir les deux profils, avec la tournure en
+  clair dans le message : « la fiche emploie \bvous devriez\b ». C'est la garde de la
+  règle la plus importante du projet, et elle lit le document entier.
+- **Étiquette de famille écrite, pas seulement tracée** — vider le libellé de
+  l'étiquette de section laisse la bordure et sa couleur en place ; le test le voit
+  quand même, sur les deux profils : « l'étiquette negociable est muette ».
+- **Dérive de l'exemple de la fiche** — passer le taux de l'exemple de 3,2 à 3,5 %
+  fait rougir les deux gardes jumelles : l'unitaire sur la différence avec
+  `versEntreeMoteur(DEFAUTS)`, et le bout en bout sur la mensualité — « 1 088,93 € »
+  attendu contre « 1 061,39 € » affiché par le module. Une fiche qui dérive du
+  simulateur ment au lecteur sans qu'aucune page cesse de s'afficher.
 - **Règle des deux phrases** — ramener `UnePhrase<S>` à `S` fait échouer
   `npm run typecheck` sur quatre `@ts-expect-error` devenus inutiles : la troisième
   phrase, la phrase inachevée et le texte assemblé à l'exécution redeviendraient

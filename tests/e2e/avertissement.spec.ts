@@ -11,7 +11,7 @@ import { expect, test, type Page } from "@playwright/test";
  * Toute route qui affiche des chiffres doit donc figurer dans `ROUTES`.
  */
 
-const ROUTES = ["/", "/credit", "/composants", "/avertissement"];
+const ROUTES = ["/", "/credit", "/credit/comprendre", "/composants", "/avertissement"];
 
 const bandeau = (page: Page) => page.locator("[data-avertissement]");
 

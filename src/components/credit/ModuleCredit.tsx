@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { formatEuros, formatPourcentage } from "@/lib/format";
 import { BandeauIndicateurs } from "./BandeauIndicateurs";
@@ -126,6 +127,23 @@ export function ModuleCredit() {
               vos revenus stables, ce qu&apos;ils ne sont pas. Il ne dit pas si acheter vaut mieux
               que louer : c&apos;est un autre module, et sa réponse dépend d&apos;hypothèses que vous
               poserez vous-même.
+            </p>
+            {/*
+              Le chemin vers la fiche longue — `CNT-002`. La bulle « i » donne la
+              définition, la fiche donne le raisonnement : voir docs/06-design-system.md §8.
+            */}
+            <p className="mt-2.5 text-[12px] leading-[1.6]">
+              <Link
+                href="/credit/comprendre"
+                data-vers-fiche
+                className="text-accent underline underline-offset-2 hover:text-accent-survol
+                           focus-visible:outline focus-visible:outline-2
+                           focus-visible:outline-offset-2 focus-visible:outline-accent"
+              >
+                Comprendre un crédit immobilier
+              </Link>{" "}
+              — la fiche qui explique la mensualité, le TAEG, l&apos;assurance, les garanties et les
+              deux plafonds.
             </p>
           </section>
         </div>
