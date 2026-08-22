@@ -119,6 +119,12 @@ Le découpage en versions, le modèle de branches et les portes sont dans
 - [ ] `ENG-014` Plus-value hors résidence principale, abattements par durée
 - [ ] `ENG-015` Scénario location courte durée
 - [ ] `ENG-016` Statut de résidence fiscale et prélèvements sociaux applicables
+- [x] `FIS-007` Valeurs réglementaires de la phase 3 dans `params.ts`, sourcées et datées :
+      prélèvements sociaux et leur taux réduit EEE/Suisse, les **deux** barèmes d'abattement
+      pour durée de détention, taux forfaitaire de 19 %, surtaxe et son barème à dix tranches,
+      exonération de la résidence principale, forfaits de majoration, abattement exceptionnel
+      de l'art. 150 VE. Aucun calcul écrit — `ENG-012`, `ENG-014` et `ENG-016` les consomment.
+      **Le taux de CSG a changé** : voir l'entrée de journal
 - [ ] `VIZ-003` Courbes de coût mensuel et bandeau d'écart
 - [ ] `UI-007` Moment de révélation de l'analyse patrimoniale
 
@@ -1329,3 +1335,91 @@ pastille se cassait avant `UI-005`.
 identité de l'éditeur à communiquer à l'hébergeur, licence du dépôt non choisie,
 déploiement non vérifié. Nouvelles : `FIS-006` le recoupement des neuf hypothèses de
 marché, et la pastille « i » à 15 px, sous le seuil de cible tactile.
+
+---
+
+## Session `FIS-007` — la fiscalité de la phase 3, sourcée et datée
+
+*22 août 2026. Branche `feat/FIS-007-fiscalite-phase-3`.*
+
+Ticket de valeurs, pas de calcul : `params.ts` gagne 342 lignes et n'en perd aucune. Le
+diff est purement additif, vérifié comme tel avant commit. Huit règles couvertes, chacune
+confrontée à son texte — article de code, texte au Journal officiel ou doctrine BOFiP.
+
+**Le taux de CSG sur le patrimoine n'est plus 9,2 % partout, et c'est le résultat le plus
+important de la session.** Depuis les revenus 2025, le 2° du I de l'article L136-8 du code
+de la sécurité sociale porte la CSG à **10,6 %**, ce qui fait un prélèvement global de
+**18,6 %**. Mais le IV du même article y **déroge** et la maintient à 9,2 % pour, entre
+autres, les revenus fonciers et les plus-values immobilières : **17,2 %**. Deux taux
+coexistent donc, et c'est le second qui gouverne ce produit. Trois sources concordantes :
+le texte de l'article, la fiche `F2329` de service-public.gouv.fr mise à jour le 30 juin
+2026, et la page d'impots.gouv.fr sur les revenus locatifs, qui oppose explicitement la
+location nue — « 17,2 % (CSG 9,2 %, CRDS 0,5 % et prélèvement de solidarité 7,5 %) » — à
+la location meublée, à 18,6 %.
+
+Les deux taux sont écrits, avec leur décomposition, et un test vérifie que la dérogation
+ne porte **que** sur la CSG. Écrire un seul taux « parce que c'est celui de l'immobilier »
+aurait rendu invisible la distinction le jour où `ENG-013` traitera les régimes locatifs.
+
+**Deux résumés de recherche ont été démentis par les textes.** Le premier donnait
+l'abattement des plus-values immobilières à « 5 % par année au-delà de la deuxième » — le
+régime des biens meubles de l'article 150 UA, pas celui de l'immobilier. Le second
+reproduisait la décomposition des prélèvements sociaux d'avant 2018 (CSG 9,9 %,
+prélèvement social 4,5 %, contribution additionnelle 0,3 %, solidarité 2 %), abrogée
+depuis huit ans. Aucun des deux n'annonçait la moindre incertitude. Toutes les valeurs
+retenues viennent d'une lecture d'article ou d'une page officielle, jamais d'un résumé.
+
+**Les deux barèmes d'abattement ne se factorisent pas.** L'impôt sur le revenu court à
+6 % par an de la 6e à la 21e année puis 4 % la 22e — exonération à 22 ans (art. 150 VC, I).
+Les prélèvements sociaux courent à 1,65 %, puis 1,60 % la 22e année, puis **9 % par an
+jusqu'à la 30e** (art. L136-7, VI, 2°). À 22 ans de détention, un vendeur ne doit plus
+d'impôt sur le revenu et doit encore **72 % de prélèvements sociaux**. C'est le fait le
+plus contre-intuitif du dispositif ; un test l'énonce comme tel et rougirait si les deux
+barèmes convergeaient.
+
+**Le barème de la surtaxe se garde par sa continuité, pas par sa recopie.** Le taux de
+l'article 1609 nonies G s'applique à la **totalité** de la plus-value : sans décote, passer
+de 2 % à 3 % à 100 000 € coûterait 1 000 € pour un euro de plus-value supplémentaire. Les
+cinq décotes de lissage existent pour effacer ces sauts. Le test évalue donc le barème de
+part et d'autre des neuf frontières et exige que l'écart reste sous un euro. Un
+coefficient mal recopié rouvre le saut, et rien d'autre ne le verrait — un `toBe` sur
+chaque tranche aurait recopié l'erreur avec la valeur. La seule discontinuité conservée
+est celle du seuil d'entrée à 50 000 €, qui est dans le texte : la première décote est de
+1/20 là où la continuité aurait demandé 1/10. Constatée, pas corrigée.
+
+**Un piège de lecture consigné dans le fichier.** Le rescrit `BOI-RES-RFPI-000242` borne
+la promesse de vente de l'abattement exceptionnel au 31 décembre 2025 ; l'article 150 VE
+dit 31 décembre 2027. La divergence est **chronologique, pas réelle** : le rescrit est
+publié le 31 décembre 2025, la loi de finances pour 2026 du 19 février 2026 a prorogé
+ensuite. C'est écrit en clair dans le commentaire pour que personne ne refasse
+l'arbitrage, avec les deux liens.
+
+**Aucun `TODO_VERIFY` ajouté** — le compte reste à 2, tous deux sur les droits de mutation,
+et `market.test.ts` n'a pas eu à être touché. C'était l'issue à viser : le marqueur est là
+pour ce qu'on n'a pas pu vérifier, pas pour ce qu'on n'a pas pris le temps de vérifier.
+Un test du ticket répète le compte, pour qu'un ajout non vérifié rougisse dans le fichier
+qui l'a introduit et pas seulement à côté.
+
+**Trois gardes cassées, trois rouges obtenus.** Ramener la dernière cadence sociale de 9 à
+8 % : « le barème ne solde pas à 100 % au terme de la 30e année : expected 92 to be 100 ».
+Ramener la décote de la tranche 100 001–110 000 de 1/10 à 1/20 : « saut de taxe à
+100000 € : 2000.00 € puis 2500.08 € ». Porter le taux réduit EEE/Suisse de 7,5 à 8 % :
+« le taux réduit EEE/Suisse est exactement le prélèvement de solidarité ». Rétabli après
+chaque essai, diff vérifié vide.
+
+**Ce qui relève du marché et n'est pas entré ici.** La recherche a croisé des ordres de
+grandeur — rendement locatif brut, taux de vacance, commission d'agence à la revente,
+frais de gestion locative. Aucun texte ne les fixe : ils relèvent d'`assumptions/market.ts`
+(ADR-008), où un autre agent travaillait pendant cette session. **Ils n'ont pas été
+écrits**, seulement signalés. Un test du ticket vérifie qu'aucun de ces mots n'apparaît
+dans `params.ts` : la frontière se refranchit sans y penser, et c'est le premier endroit
+où l'on serait tenté de la refranchir.
+
+**Réserve.** Le forfait travaux de 15 % est réservé aux immeubles **bâtis** détenus depuis
+plus de cinq ans, et le forfait de 7,5 % exclut les immeubles détenus par un fonds de
+placement immobilier. Ces deux restrictions sont dans les commentaires, pas dans la
+structure de données — un consommateur distrait peut donc appliquer un forfait hors de son
+champ. À traiter dans `ENG-014`, qui écrira le calcul.
+
+**Porte verte** : `PORT_E2E=3121 npm run porte` — typecheck, lint, **671 tests Vitest sur
+12 fichiers**, build, **242 tests Playwright passés et 10 ignorés**.
