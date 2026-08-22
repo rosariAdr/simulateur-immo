@@ -55,3 +55,6 @@ next-env.d.ts
 /playwright-report/
 /blob-report/
 /.playwright/
+
+# Copies de travail des agents (git worktree)
+.claude/worktrees/
