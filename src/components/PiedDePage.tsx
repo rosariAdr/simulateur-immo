@@ -14,6 +14,10 @@ import { CONTACT } from "@/content/legal";
  */
 const LIENS = [
   { href: "/", libelle: "Accueil" },
+  // Le glossaire n'est pas un texte légal, mais il relève de la même logique :
+  // c'est une page qu'on va chercher, quand une infobulle n'a pas suffi ou
+  // qu'on ne sait plus où le terme était posé. Voir `CNT-001`.
+  { href: "/glossaire", libelle: "Glossaire" },
   { href: "/avertissement", libelle: "Portée de l'outil" },
   { href: "/mentions-legales", libelle: "Mentions légales" },
   { href: "/confidentialite", libelle: "Confidentialité" },
