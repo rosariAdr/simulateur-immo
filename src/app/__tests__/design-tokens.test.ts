@@ -145,3 +145,39 @@ it("le texte et le remplissage divergent là où ils le doivent", () => {
   expect(contrast(serie, sombre["papier"] as string)).toBeLessThan(4.5);
   expect(contrast(texte, sombre["papier"] as string)).toBeGreaterThanOrEqual(4.5);
 });
+
+/**
+ * `UI-012` — CE QUE LE NAVIGATEUR PEINT LUI-MÊME
+ *
+ * La liste déroulée d'un `select`, la barre de défilement, le remplissage
+ * automatique d'un champ : leur fond n'appartient pas à cette feuille de style.
+ * Le navigateur le choisit d'après `color-scheme`, et applique le clair par
+ * défaut. L'encre d'un thème sombre s'est ainsi retrouvée sur un fond blanc —
+ * 1,21:1 sur les options de la liste « Durée ».
+ *
+ * Aucun jeton n'était en cause, et c'est pourquoi aucun des tests ci-dessus ne
+ * pouvait l'attraper : ils comparent des couleurs entre elles, le défaut vivait
+ * entre la page et le navigateur.
+ */
+describe("les contrôles natifs suivent le thème", () => {
+  it("le thème sombre déclare color-scheme: dark", () => {
+    const at = CSS.indexOf(BASCULE);
+    const avantLaBascule = CSS.slice(0, at);
+    expect(avantLaBascule, "color-scheme absent du thème par défaut").toMatch(
+      /color-scheme:\s*dark/,
+    );
+  });
+
+  it("le thème clair déclare color-scheme: light", () => {
+    const at = CSS.indexOf(BASCULE);
+    expect(CSS.slice(at), "color-scheme absent de la variante claire").toMatch(
+      /color-scheme:\s*light/,
+    );
+  });
+
+  it("ne laisse jamais color-scheme à normal", () => {
+    // `normal` est la valeur initiale, celle qui a produit le défaut. L'écrire
+    // explicitement serait le rétablir en croyant le déclarer.
+    expect(CSS).not.toMatch(/color-scheme:\s*normal/);
+  });
+});

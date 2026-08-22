@@ -90,9 +90,12 @@ Le découpage en versions, le modèle de branches et les portes sont dans
       par le type, les valeurs réglementaires reçues en paramètre. Deux défauts de la
       pastille corrigés — le toucher et le débordement de la bulle. Voir ADR-007
 - [ ] `UI-006` Adaptation mobile
-- [ ] `UI-012` **Les options des listes déroulantes sont illisibles** — voir la fiche
+- [x] `UI-012` **Les options des listes déroulantes sont illisibles** — voir la fiche
       détaillée plus bas. Contraste mesuré **1,21:1**, contre 4,5:1 exigés. Défaut
       présent dans `v0.1.0`, sur toutes les listes du site
+      → `color-scheme` déclaré et suivant les deux thèmes. Gardé deux fois : ce que la
+      feuille déclare (unitaire) et ce que le navigateur calcule (bout en bout).
+      Corrigé en `v0.1.1`
 - [x] `UI-011` La légende de la mensualité annonce un différé qui n'existe pas :
       `firstPayment !== maxPayment` se déclenche sur un écart d'arrondi de 1,02 €.
       Une phrase fausse sous un chiffre juste

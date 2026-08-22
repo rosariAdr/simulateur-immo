@@ -20,6 +20,23 @@
  */
 
 :root {
+  /*
+   * CE QUE LE NAVIGATEUR PEINT LUI-MÊME — UI-012
+   *
+   * Tout n'appartient pas à la feuille de style. La liste déroulée d'un `select`,
+   * la barre de défilement, le remplissage automatique d'un champ : c'est le
+   * navigateur qui les peint, et il choisit sa teinte d'après cette déclaration.
+   *
+   * Sans elle il applique `normal`, c'est-à-dire clair — et l'encre d'un thème
+   * sombre se retrouvait posée sur un fond blanc. Contraste mesuré 1,21:1 sur les
+   * options de la liste « Durée », contre 14,18:1 sur le fond prévu. La couleur
+   * était juste ; c'est le fond qui n'avait jamais été déclaré.
+   *
+   * Elle suit les deux thèmes et n'a pas d'autre réglage : la valeur qui vaut
+   * pour les surfaces vaut pour les contrôles natifs, sinon ils divergent.
+   */
+  color-scheme: dark;
+
   /* Surfaces et encre — ardoise nocturne */
   --papier: #161c24;
   --panneau: #1e2632;
@@ -69,6 +86,9 @@
  */
 @media (prefers-color-scheme: light) {
   :root {
+    /* Les contrôles natifs suivent le thème. Voir UI-012, plus haut. */
+    color-scheme: light;
+
     --papier: #dfe5ed;
     --panneau: #eef2f7;
     --encre: #14181c;
