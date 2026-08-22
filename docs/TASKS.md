@@ -90,6 +90,9 @@ Le découpage en versions, le modèle de branches et les portes sont dans
       par le type, les valeurs réglementaires reçues en paramètre. Deux défauts de la
       pastille corrigés — le toucher et le débordement de la bulle. Voir ADR-007
 - [ ] `UI-006` Adaptation mobile
+- [ ] `UI-012` **Les options des listes déroulantes sont illisibles** — voir la fiche
+      détaillée plus bas. Contraste mesuré **1,21:1**, contre 4,5:1 exigés. Défaut
+      présent dans `v0.1.0`, sur toutes les listes du site
 - [x] `UI-011` La légende de la mensualité annonce un différé qui n'existe pas :
       `firstPayment !== maxPayment` se déclenche sur un écart d'arrondi de 1,02 €.
       Une phrase fausse sous un chiffre juste
@@ -187,6 +190,85 @@ Transversales aux phases. Voir `docs/RELEASES.md` §3.
 - [ ] `INF-006` Métadonnées de partage reflétant le scénario
 
 ---
+
+---
+
+## Fiche `UI-012` — Les options des listes déroulantes sont illisibles
+
+**Signalé le** 22 août 2026, capture à l'appui, sur la liste « Durée » de `/credit`.
+**Présent dans** `v0.1.0`. **Gravité** : bloquant pour l'accessibilité, et pour
+l'usage tout court — on ne peut pas choisir ce qu'on ne peut pas lire.
+
+### Ce qu'on voit
+
+Le menu déroulé affiche ses options en texte presque blanc sur fond blanc. Seule
+l'option survolée est lisible, parce que le système la peint en bleu avec du texte
+blanc. Les quatre autres durées sont là, mais on ne les lit pas.
+
+### Cause, mesurée et non supposée
+
+Relevé dans la page, sur un build de production :
+
+| Ce qui a été mesuré | Valeur |
+| --- | --- |
+| `color-scheme` sur `<html>`, `<body>`, `<select>`, `<option>` | `normal` |
+| `<meta name="color-scheme">` | absent |
+| Couleur calculée d'une `<option>` | `rgb(230, 234, 239)`, soit `--encre` |
+| Fond calculé d'une `<option>` | `rgba(0, 0, 0, 0)` — transparent |
+
+**Le fond de la liste déroulée n'appartient pas à la page.** Il est peint par le
+navigateur, et le navigateur choisit sa teinte d'après `color-scheme`. Comme aucune
+valeur n'est déclarée, il applique `normal`, c'est-à-dire clair : fond blanc. Le
+texte, lui, hérite bien de `--encre` — la couleur d'encre d'un thème sombre.
+
+Le résultat est un contraste de **1,21:1** là où le RGAA et les WCAG en exigent 4,5.
+Sur le fond prévu, `--papier`, le même texte donne 14,18:1. Ce n'est donc pas un
+mauvais choix de couleur : c'est une couleur juste posée sur un fond qu'on n'a jamais
+déclaré.
+
+### Le défaut ne se limite pas aux listes
+
+`color-scheme` gouverne tout ce que le navigateur peint lui-même. Sont concernés, sur
+le même fondement :
+
+- les deux listes de `/credit` — « Durée » et « Garantie » — et celles de `/composants` ;
+- **la barre de défilement du tableau d'amortissement mensuel**, claire sur un panneau
+  sombre ;
+- les repères de focus par défaut, et le remplissage automatique des champs.
+
+### Correction attendue
+
+Déclarer `color-scheme` dans `src/app/globals.css`, en le faisant suivre les deux
+thèmes déjà définis :
+
+- `:root` — thème ardoise nocturne → `color-scheme: dark`
+- `@media (prefers-color-scheme: light)` → `color-scheme: light`
+
+C'est la voie que demande le signalement — *caler le fond des options sur celui du
+site* — et c'est la seule qui traite la cause : le navigateur peint alors sa liste
+déroulée en sombre, et l'encre claire redevient lisible sans qu'on y touche.
+
+**La solution de repli — repeindre `option { background }` — est moins bonne**, et il
+faut savoir pourquoi avant de s'y rabattre : elle est ignorée par Safari sur macOS et
+par les navigateurs mobiles, qui rendent la liste avec un composant natif du système ;
+elle ne corrigerait ni la barre de défilement ni le remplissage automatique ; et elle
+laisserait deux sources de vérité pour une même couleur.
+
+### Garde à écrire avec le correctif
+
+Un test de bout en bout qui lit `getComputedStyle(document.documentElement).colorScheme`
+et échoue s'il vaut `normal`. Le défaut est invisible aux tests actuels précisément
+parce qu'il vit hors du DOM : la suite de contraste vérifie des jetons entre eux, et
+aucun jeton n'est en cause ici.
+
+Vérifier la garde en la cassant : retirer la déclaration doit la faire rougir.
+
+### Version
+
+À traiter en **`v0.1.1`**, correctif, plutôt qu'en attendant `v0.2.0`. Un défaut de
+lisibilité sur un champ de saisie n'attend pas la prochaine version de contenu —
+d'autant que la correction tient en deux déclarations et qu'elle est sans risque pour
+le reste.
 
 ## Journal de session
 
