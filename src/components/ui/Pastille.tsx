@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useId, useRef, useState } from "react";
-import type { Entree } from "@/content/glossaire";
+import { lienGlossaire, type Entree } from "@/content/glossaire";
 
 /**
  * PASTILLE PÉDAGOGIQUE
@@ -22,6 +23,28 @@ import type { Entree } from "@/content/glossaire";
  * état par `aria-expanded` et relie la bulle par `aria-describedby`. Échap la
  * ferme. La bulle n'est pas un `title` natif : celui-ci n'est ni stylable, ni
  * atteignable au clavier, ni lisible sur mobile.
+ *
+ * ── LE CHEMIN VERS LE GLOSSAIRE — `CNT-001` ──────────────────────────────
+ *
+ * La bulle porte un lien vers l'entrée correspondante de `/glossaire`. Deux
+ * choses le rendaient inutilisable, et il a fallu corriger les deux.
+ *
+ * 1. LA FERMETURE AU `blur`. Le bouton se refermait à la perte de focus, donc
+ *    tabuler vers le lien détruisait le lien avant qu'il ne le reçoive. La
+ *    fermeture est remontée sur la zone entière et regarde `relatedTarget` :
+ *    un focus qui reste à l'intérieur ne ferme rien.
+ *
+ * 2. LES SEPT PIXELS DE VIDE. La bulle est posée à 22 px du haut d'une pastille
+ *    qui en fait 15 : la souris traversait donc une bande hors de la zone en
+ *    descendant vers le lien, `mouseleave` partait, et la bulle disparaissait
+ *    sous le curseur. Un pont invisible, enfant de la zone, comble l'écart.
+ *
+ * Ces deux défauts sont invisibles à la relecture et se voient au premier essai
+ * réel : `tests/e2e/glossaire.spec.ts` suit le lien au clavier ET à la souris.
+ *
+ * Le `role="note"` est porté par le TEXTE, pas par le cadre. La bulle « fait
+ * deux phrases » reste donc vrai pour un lecteur d'écran comme pour les tests
+ * de `UI-005`, que le lien ne vient pas allonger.
  */
 
 /**
@@ -35,6 +58,12 @@ const LARGEUR_BULLE = 264;
 
 /** Marge minimale entre la bulle et le bord de la fenêtre. */
 const MARGE_BORD = 8;
+
+/** Hauteur de la pastille, et donc bord haut du pont vers la bulle. */
+const HAUTEUR_PASTILLE = 15;
+
+/** Distance entre le haut de la pastille et le haut de la bulle. */
+const ECART_BULLE = 22;
 
 /** Position et largeur retenues à l'ouverture. `decalage` est relatif à la pastille. */
 interface Placement {
@@ -90,20 +119,55 @@ export function Pastille({ entree, terme = entree.terme }: { entree: Entree; ter
     setOuverte(true);
   };
 
+  /** Le bouton, pour lui rendre le focus quand Échap ferme depuis le lien. */
+  const declencheur = useRef<HTMLButtonElement>(null);
+
+  /**
+   * Vrai le temps que le bouton reprenne le focus après un Échap.
+   *
+   * Sans ce drapeau, Échap depuis le lien ne fermait rien : `focus()` déclenche
+   * l'événement de focus de façon synchrone, `onFocus` rouvrait la bulle, et la
+   * réouverture l'emportait sur la fermeture dans le même lot de rendu. La
+   * bulle restait ouverte, et le test le disait.
+   */
+  const restauration = useRef(false);
+
+  /** Ferme la bulle et remet le focus là où l'utilisateur peut repartir. */
+  const fermerEtRendreLeFocus = () => {
+    setOuverte(false);
+    if (document.activeElement === declencheur.current) return;
+    restauration.current = true;
+    declencheur.current?.focus();
+    restauration.current = false;
+  };
+
   return (
     <span
       ref={zone}
       className="relative inline-flex"
       onMouseEnter={ouvrir}
       onMouseLeave={() => setOuverte(false)}
+      /*
+       * La fermeture au départ du focus appartient à la ZONE, pas au bouton.
+       * Portée par le bouton, elle détruisait la bulle au moment même où l'on
+       * tabulait vers le lien qu'elle contient. `onBlur` de React est
+       * `focusout` : il remonte, et `relatedTarget` dit où le focus est allé.
+       */
+      onBlur={(e) => {
+        if (!zone.current?.contains(e.relatedTarget as Node | null)) setOuverte(false);
+      }}
       onKeyDown={(e) => {
         if (e.key === "Escape" && ouverte) {
           e.stopPropagation();
-          setOuverte(false);
+          // Sans reprise du focus, Échap depuis le lien le laisserait sur un
+          // élément qui vient d'être démonté : la tabulation suivante
+          // repartirait du haut du document.
+          fermerEtRendreLeFocus();
         }
       }}
     >
       <button
+        ref={declencheur}
         type="button"
         aria-expanded={ouverte}
         aria-describedby={ouverte ? id : undefined}
@@ -118,8 +182,9 @@ export function Pastille({ entree, terme = entree.terme }: { entree: Entree; ter
           if (avantLeGeste.current) setOuverte(false);
           else ouvrir();
         }}
-        onFocus={ouvrir}
-        onBlur={() => setOuverte(false)}
+        onFocus={() => {
+          if (!restauration.current) ouvrir();
+        }}
         className="ml-1.5 inline-flex h-[15px] w-[15px] shrink-0 items-center justify-center
                    rounded-full border border-pastille-filet text-[9px] font-semibold leading-none
                    text-accent transition-colors hover:bg-survol-fond
@@ -130,20 +195,57 @@ export function Pastille({ entree, terme = entree.terme }: { entree: Entree; ter
       </button>
 
       {ouverte && (
-        <span
-          id={id}
-          role="note"
-          data-bulle
-          // « alignee » : la bulle part de la pastille. « recalee » : elle a dû
-          // glisser pour tenir dans le cadre. L'attribut n'habille rien, il rend
-          // le placement lisible par un test.
-          data-placement={placement.decalage === 0 ? "alignee" : "recalee"}
-          style={{ left: placement.decalage, width: placement.largeur }}
-          className="absolute top-[22px] z-20 border border-infobulle-filet bg-infobulle-fond
-                     px-2.5 py-2 text-[11px] leading-[1.5] text-encre"
-        >
-          <strong className="font-semibold">{entree.accroche}</strong> {entree.suite}
-        </span>
+        <>
+          {/*
+            LE PONT. Il ne se voit pas et n'habille rien : il occupe les sept
+            pixels qui séparent le bas de la pastille du haut de la bulle, et
+            il est enfant de la zone. La souris qui descend vers le lien ne
+            quitte donc jamais la zone, et `mouseleave` ne part pas.
+          */}
+          <span
+            aria-hidden="true"
+            data-pont
+            style={{
+              left: placement.decalage,
+              width: placement.largeur,
+              top: HAUTEUR_PASTILLE,
+              height: ECART_BULLE - HAUTEUR_PASTILLE,
+            }}
+            className="absolute z-20"
+          />
+          <span
+            data-bulle
+            // « alignee » : la bulle part de la pastille. « recalee » : elle a dû
+            // glisser pour tenir dans le cadre. L'attribut n'habille rien, il rend
+            // le placement lisible par un test.
+            data-placement={placement.decalage === 0 ? "alignee" : "recalee"}
+            style={{ left: placement.decalage, width: placement.largeur, top: ECART_BULLE }}
+            className="absolute z-20 border border-infobulle-filet bg-infobulle-fond
+                       px-2.5 py-2 text-encre"
+          >
+            {/*
+              Le `role="note"` porte sur le TEXTE seul. La bulle continue donc
+              de « faire deux phrases » pour un lecteur d'écran comme pour les
+              tests de `UI-005` : le lien, qui n'en est pas une, reste dehors.
+            */}
+            <span id={id} role="note" className="block text-[11px] leading-[1.5]">
+              <strong className="font-semibold">{entree.accroche}</strong> {entree.suite}
+            </span>
+            <Link
+              href={lienGlossaire(entree.terme)}
+              data-lien-glossaire
+              // Le nom accessible nomme le terme : une page porte des dizaines
+              // de bulles, et autant de liens tous intitulés « le glossaire »
+              // seraient indiscernables dans une liste de liens.
+              aria-label={`« ${entree.terme} » dans le glossaire`}
+              className="mt-1.5 inline-block text-[10px] text-accent underline underline-offset-2
+                         hover:text-accent-survol focus-visible:outline focus-visible:outline-2
+                         focus-visible:outline-offset-2 focus-visible:outline-accent"
+            >
+              Voir dans le glossaire
+            </Link>
+          </span>
+        </>
       )}
     </span>
   );

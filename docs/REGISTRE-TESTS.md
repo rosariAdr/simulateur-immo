@@ -44,10 +44,27 @@ Relevé précédent, sur `feat/UI-005-infobulles` : 7 fichiers et 217 unitaires,
 9 fichiers et 172 tests de bout en bout. `CNT-002` apporte 21 unitaires et
 14 tests de bout en bout ; les deux qui restent viennent de `avertissement.spec.ts`,
 dont la liste `ROUTES` accueille la nouvelle route.
+Relevé du 22 août 2026, sur `feat/CNT-001-glossaire`.
 
-Les trois ignorés ne sont pas des trous : deux mesures du toucher n'ont de sens que
-sur le profil `mobile`, et l'alignement d'une bulle de 264 px sur sa pastille n'en a
-que sur un écran large. Chacun porte sa raison dans son `test.skip`.
+| Suite | Fichiers | Tests |
+| --- | --- | --- |
+| Unitaires | 8 | 553 |
+| Bout en bout | 10 | 192 (96 × 2 profils), dont 5 ignorés par construction |
+
+Le bond des unitaires — 217 à 553 — n'est pas une couverture qui triple : c'est
+`it.each` sur quarante-huit entrées de glossaire là où il y en avait dix-neuf, et six
+invariants par entrée au lieu de trois. Le nombre de **propriétés vérifiées** passe de
+quatre à dix ; le reste est de la multiplication.
+
+Les cinq ignorés ne sont pas des trous : trois mesures du toucher n'ont de sens que sur
+le profil `mobile`, un trajet de souris n'en a que sur le profil `bureau`, et
+l'alignement d'une bulle de 264 px sur sa pastille n'en a que sur un écran large. Chacun
+porte sa raison dans son `test.skip`.
+
+Un défaut d'outillage a été corrigé au passage : `vitest.config.mts` ne résolvait pas
+l'alias `@/`. Tout module qui l'emploie compilait mais ne s'exécutait pas sous Vitest —
+`src/lib/format.ts` et `src/content/valeurs.ts` étaient donc **intestables**, sans que
+rien ne le dise, parce qu'aucun test ne les avait encore touchés.
 
 ### Ce que couvrent les unitaires
 
@@ -75,10 +92,19 @@ que sur un écran large. Chacun porte sa raison dans son `test.skip`.
   Lemoine sont confrontés un à un à `params.ts` — et qu'aucune tournure prescriptive
   n'entre dans le module de contenu.
 - `src/content/__tests__/glossaire.test.ts` — 65 vérifications sur les entrées
+- `src/content/__tests__/glossaire.test.ts` — 152 vérifications sur les entrées
   d'infobulle : une phrase terminée par champ, longueur plafonnée, aucun terme défini
   deux fois, aucun jeton laissé sans valeur, aucune formule de recommandation. Cinq
   assertions y sont des `@ts-expect-error`, vérifiées par `npm run typecheck` et non
   par Vitest — elles échouent si la contrainte de type s'affaiblit.
+- `src/content/__tests__/developpements.test.ts` — 249 vérifications sur le texte long
+  du glossaire : chaque entrée a son développement et chaque développement son entrée,
+  chaque thème est peuplé, aucun renvoi ne pointe dans le vide, aucun développement ne
+  se contente de répéter sa bulle, **aucune valeur réglementaire n'est écrite à la
+  main** et aucun jeton ne survit au rendu. Les ancres y sont vérifiées non vides, de
+  forme `[a-z0-9-]` et toutes distinctes — c'est ce qui garantit qu'un lien d'infobulle
+  ne tombe pas sur la définition d'un autre terme. Trois `@ts-expect-error` y gardent la
+  vérification des jetons, des thèmes et des renvois à la compilation.
 
 ### Ce que couvrent les tests de bout en bout
 
@@ -92,6 +118,7 @@ que sur un écran large. Chacun porte sa raison dans son `test.skip`.
 | `legal.spec.ts` | 14 | Les trois textes s'affichent datés, sont atteignables depuis le simulateur, et **l'identité de l'hébergeur figure sur le site** — c'est la contrepartie de l'anonymat de l'éditeur, pas une politesse |
 | `infobulles.spec.ts` | 9 | Un appui du doigt ouvre la bulle **et l'y laisse**. Aucune bulle ne fait défiler la page, sur les deux profils. Aucune n'affiche un jeton resté sans valeur, et celle de la durée cite les plafonds du millésime |
 | `fiche-credit.spec.ts` | 14 | La fiche `/credit/comprendre` nomme les trois familles en toutes lettres et chaque section porte son étiquette **écrite**, jamais un simple trait coloré. Le chemin avec `/credit` est parcouru dans les deux sens, cliqué et suivi. **La mensualité annoncée par la fiche est celle que le module affiche** — la promesse « reproduisez-le » est exécutée, pas cochée. Et **aucune tournure prescriptive n'atteint le lecteur**, sur le document entier |
+| `glossaire.spec.ts` | 10 | La page rend ses quarante-huit termes, index compris, sans jeton laissé sans valeur et sans famille portée par la seule couleur. Surtout : le lien d'une bulle est **atteignable pour de vrai** — au clavier par tabulation, à la souris en traversant le vide entre la pastille et la bulle, au doigt par deux appuis. Et **aucun lien de bulle ne tombe dans le vide** : tous les liens de `/credit` et `/composants` sont relevés, puis confrontés aux ancres réelles de `/glossaire` |
 
 ### Gardes vérifiées par sabotage
 
@@ -151,6 +178,26 @@ gardes-là ont été cassées exprès, puis rétablies :
   `npm run typecheck` sur quatre `@ts-expect-error` devenus inutiles : la troisième
   phrase, la phrase inachevée et le texte assemblé à l'exécution redeviendraient
   écrivables.
+- **Valeur réglementaire écrite à la main** — remplacer `{plafondEndettement}` par
+  « 35 % » dans le développement du HCSF fait rougir « `hcsf` n'écrit aucune valeur
+  réglementaire à la main », qui cite le paragraphe fautif en entier.
+- **Exhaustivité des développements** — retirer l'entrée `taxeFonciere` de
+  `DEVELOPPEMENTS` fait échouer `npm run typecheck` sur `TS1360` **et** rougir le test
+  d'exhaustivité. Les deux comptent : le message de TypeScript ne nomme pas la clé
+  manquante, le test si.
+- **Unicité des ancres** — renommer « abattement pour durée de détention » en « plus
+  value immobilière », terme distinct de « plus-value immobilière » et donc accepté par
+  la garde d'unicité des termes, fait échouer l'unicité des ancres : « expected 47 to
+  be 48 ». Sans elle, le lien d'une bulle mènerait à la définition d'un autre terme.
+- **Le pont sous la bulle** — retirer le `[data-pont]` de la pastille fait rougir un
+  seul test, « à la souris, la bulle survit au trajet de la pastille vers le lien », avec
+  le bon message : la souris traverse de nouveau sept pixels hors de la zone, la bulle
+  se ferme, et le lien n'existe plus quand on arrive dessus.
+- **Fermeture au `blur` du bouton** — rétablir `onBlur={() => setOuverte(false)}` sur le
+  bouton fait rougir les deux tests clavier de `glossaire.spec.ts` : le lien ne reçoit
+  jamais le focus, parce qu'il est démonté par la tabulation même qui devait l'atteindre.
+  Les neuf tests de `infobulles.spec.ts` restent verts — c'est ce qui prouve qu'aucun
+  d'eux ne couvrait ce chemin.
 
 ---
 

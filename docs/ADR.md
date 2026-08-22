@@ -519,3 +519,131 @@ corriger. Corrigé ici, et gardé par un test.
 - Deux fichiers de valeurs au lieu d'un, et un import de plus dans `plan.ts`.
 - La fiabilité des cinq entrées est `estimee`. C'est un aveu, pas un objectif : le
   travail de recoupement reste entier, mais il est désormais nommé et localisé.
+---
+
+## ADR-009 — Le texte long du glossaire est une donnée séparée, pas un champ de plus sur `Entree`
+
+**Date** : 22 août 2026 · **Statut** : adoptée · **Tickets** : `CNT-001`
+
+### Contexte
+
+ADR-007 a fait de l'entrée d'infobulle une donnée typée : `{ terme, accroche, suite }`, où
+chaque phrase est contrainte **au type** à n'être qu'une phrase, sans valeur réglementaire
+écrite en clair. Sa conclusion se lit encore dans le fichier — « il n'existe donc aucun
+chemin par lequel du texte libre atteindrait une bulle ».
+
+`CNT-001` demande davantage. Une bulle donne deux phrases ; une entrée de glossaire peut
+dire d'où vient la règle, ce qu'elle implique, et ce qu'elle ne dit pas. Ce contenu-là est
+long, en plusieurs paragraphes, et n'a aucune raison de tenir en une phrase.
+
+Deux façons de le loger. **Étendre `Entree`** d'un champ long optionnel — une donnée, un
+terme, tout au même endroit. Ou **séparer** : deux enregistrements distincts, reliés par
+la clé.
+
+### Décision
+
+**Les deux contenus sont deux données distinctes.** `src/content/glossaire.ts` garde les
+entrées de bulle, inchangées dans leur type. `src/content/developpements.ts` porte le
+texte long, le thème et les renvois, dans un enregistrement indexé par les **mêmes clés**.
+
+`Entree` n'a pas gagné un champ.
+
+### Justification
+
+**Un champ optionnel de texte libre rouvrirait le chemin qu'ADR-007 a fermé.** La pastille
+reçoit une `Entree`. Lui donner un objet qui porte, en plus des deux phrases contraintes,
+un tableau de paragraphes libres, c'est faire entrer le texte non contraint dans la bulle
+— au sens propre : il est dans l'objet qu'elle a en main. Rien n'empêcherait un rendu
+ultérieur de l'afficher, « en repliable », « au survol prolongé », « sur les écrans
+larges ». La contrainte des deux phrases cesserait d'être une propriété de la donnée pour
+redevenir une discipline de composant, c'est-à-dire précisément ce qu'ADR-007 a refusé.
+
+**La séparation n'affaiblit rien, parce que la clé suffit.** Le lien entre les deux
+contenus n'a pas besoin d'être un champ : il est déjà porté par le nom de l'entrée, et
+`DEVELOPPEMENTS` satisfait `Record<CleGlossaire, Developpement>`. Ajouter un terme au
+glossaire sans écrire son développement **arrête `npm run typecheck`**. L'oubli est donc
+aussi impossible qu'avec un champ obligatoire, et l'exhaustivité tient en une ligne au
+lieu de quarante-huit.
+
+**Les deux contenus n'ont pas les mêmes contraintes, et ce n'est pas un détail.** La bulle
+est contrainte en **forme** — deux phrases, deux cents caractères — parce qu'elle s'affiche
+dans un cadre de 264 px posé sur un champ de saisie. Le développement est contraint en
+**fond** — aucune recommandation, aucune valeur réglementaire écrite à la main — mais pas
+en forme. Un type unique portant les deux régimes appliquerait le plus faible aux deux.
+
+**Un troisième contenu arrive.** `CNT-002` écrit des fiches par module, plus longues encore
+et illustrées de chiffres calculés. La séparation les accueille sans toucher au type de la
+bulle ; un champ `long` aurait appelé un champ `fiche`, puis un champ `exemple`.
+
+### Ce qui la garde
+
+- `DEVELOPPEMENTS … satisfies Readonly<Record<CleGlossaire, Developpement>>`, doublé d'un
+  test d'exécution qui **nomme** la clé manquante — le message de TypeScript sur un objet
+  de quarante-huit entrées ne la nomme pas.
+- La signature de `developpement()` : `Jetons<P[number]> extends CleValeur`. Un jeton que
+  `src/content/valeurs.ts` ne connaît pas ne compile pas. C'est la transposition au texte
+  long de ce qu'`avec()` fait pour les bulles.
+- `src/content/__tests__/developpements.test.ts` pour ce que le type ne peut pas dire : un
+  renvoi vers une clé inexistante, un thème vide, une valeur réglementaire écrite à la
+  main, une formule de recommandation, un développement qui n'en dit pas plus que sa bulle.
+
+Vérifié à l'adoption. Écrire « 35 % » à la place de `{plafondEndettement}` dans le
+développement du HCSF fait échouer « `hcsf` n'écrit aucune valeur réglementaire à la
+main ». Retirer l'entrée `taxeFonciere` de `DEVELOPPEMENTS` fait échouer
+`npm run typecheck` sur `TS1360` et rougir le test d'exhaustivité, qui donne le nom.
+
+### Conséquences acceptées
+
+- **Deux fichiers à ouvrir pour écrire un terme complet.** Coût réel, assumé : c'est le
+  prix de deux régimes de contrainte distincts.
+- **Le thème et la famille vivent du côté du texte long**, pas de l'entrée. C'est cohérent
+  — ils servent à la page, pas à la bulle — mais cela signifie qu'une bulle ne sait pas à
+  quelle famille son terme appartient. Le champ de saisie, lui, le sait déjà.
+- **`famille` est optionnelle.** Une mensualité ne se négocie pas, elle se calcule :
+  étiqueter de force les termes qui désignent un résultat rendrait l'étiquette
+  insignifiante là où elle porte le sens.
+
+---
+
+## ADR-010 — L'ancre d'un terme se calcule, elle ne s'écrit pas
+
+**Date** : 22 août 2026 · **Statut** : adoptée · **Tickets** : `CNT-001`
+
+### Contexte
+
+Chaque infobulle porte désormais un lien vers l'entrée correspondante de `/glossaire`. Ce
+lien a besoin d'une ancre, et la page a besoin de la même. Deux endroits, une valeur.
+
+### Décision
+
+L'ancre est **dérivée du terme** par une fonction pure, `ancre()`, employée aux deux bouts :
+par la pastille pour fabriquer le lien, par la page pour poser l'`id`. Aucune ancre n'est
+écrite à la main nulle part.
+
+### Justification
+
+Une ancre saisie deux fois finit par diverger du titre qu'elle désigne. Le symptôme est le
+pire qui soit : le lien ne casse pas, il mène simplement en haut de la page, et rien — ni
+type, ni compilation, ni erreur 404 — ne le signale. L'utilisateur clique pour en savoir
+plus et atterrit sur un titre général.
+
+Le calcul déplace le risque vers un endroit où un test peut le voir : deux termes qui se
+réduiraient à la même ancre, ce qui ferait tomber le lien d'une bulle sur la définition
+d'une autre.
+
+### Ce qui la garde
+
+`src/content/__tests__/developpements.test.ts` vérifie que les quarante-huit ancres sont
+non vides, de forme `[a-z0-9-]`, et **toutes distinctes**. `tests/e2e/glossaire.spec.ts`
+relève les liens de **toutes** les bulles de `/credit` et `/composants`, puis vérifie sur
+`/glossaire` que chaque ancre visée existe bel et bien.
+
+Vérifié à l'adoption : renommer « abattement pour durée de détention » en « plus value
+immobilière » — un terme distinct de « plus-value immobilière », donc accepté par la garde
+d'unicité des termes — fait échouer l'unicité des ancres, « expected 47 to be 48 ».
+
+### Conséquences acceptées
+
+- Renommer un terme change son ancre, donc casse les liens externes qui pointaient dessus.
+  Sans effet tant que le site est en `noindex` ; à reconsidérer le jour où le glossaire
+  est indexé, probablement par une table de redirections plutôt que par des ancres figées.

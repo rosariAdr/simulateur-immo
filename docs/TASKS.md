@@ -209,6 +209,13 @@ Transversales aux phases. Voir `docs/RELEASES.md` §3.
       écrit dans le texte : les seuils viennent de `src/core/fiscal/params.ts`, les
       montants d'exemple du moteur. Les cinq autres modules auront la leur quand ils
       existeront
+- [x] `CNT-001` Glossaire relié aux infobulles — `feat/CNT-001-glossaire`
+      → `/glossaire`, prérendue statiquement, quarante-huit termes groupés par thème
+      avec un index alphabétique. Le texte long est une donnée **séparée** de l'entrée
+      d'infobulle (ADR-009), et l'ancre d'un terme se **calcule** aux deux bouts
+      (ADR-010). Chaque bulle porte un lien vers son entrée ; le rendre atteignable a
+      demandé deux corrections à la pastille, l'une au `blur`, l'autre au survol
+- [ ] `CNT-002` Fiches pédagogiques par module
 - [x] `CNT-003` Page d'accueil énonçant la thèse — `feat/CNT-003-accueil`
 - [x] `LEG-001` Mentions légales, conditions d'utilisation, politique de confidentialité
       → trois pages publiées et atteignables depuis le pied de page. Régime de
@@ -1187,3 +1194,90 @@ profils, dont 3 ignorés par construction.
 et le site demeure en `noindex`. Elle décrit un état du droit au 22 août 2026 ; les
 valeurs qu'elle cite portent la date et la source de `params.ts`, dont trois entrées
 sont encore marquées `TODO_VERIFY`.
+### 22 août 2026 — `CNT-001`, le glossaire devient consultable
+
+Branche `feat/CNT-001-glossaire`. Trois volets, et le troisième a coûté plus cher que
+les deux premiers réunis.
+
+**Le contenu — dix-neuf entrées, puis quarante-huit**
+
+Le glossaire couvrait le module crédit. Vingt-neuf termes s'y ajoutent : les frais
+d'acquisition et leurs quatre postes, les trois garanties et la mainlevée qui les
+départage, le prêt à taux zéro, la vente en l'état futur d'achèvement, la plus-value et
+ses deux barèmes d'abattement, l'effet de levier, le reste à vivre, le saut de charge.
+Chacune tient toujours en **deux phrases exactement** — la contrainte d'ADR-007 n'a pas
+été touchée, et les cinq `@ts-expect-error` qui la gardent compilent encore.
+
+Neuf de ces entrées attendent une valeur réglementaire. Elles sont donc dans
+`GLOSSAIRE_PARAMETRE`, et `src/content/valeurs.ts` les sert depuis `params.ts` :
+droits de mutation, double plafond d'indemnité de remboursement anticipé, seuils de la
+loi Lemoine, remise sur les émoluments, part déductible du mobilier.
+
+**Le texte long — une décision, pas un champ**
+
+Le choix était entre étendre `Entree` d'un champ long optionnel et séparer les deux
+contenus. C'est la séparation qui l'emporte, et la raison est écrite en ADR-009 : un
+champ de texte libre sur l'objet que la pastille reçoit rouvre le chemin qu'ADR-007 a
+fermé. La contrainte des deux phrases redeviendrait une discipline de composant.
+
+La clé suffit à relier les deux. `DEVELOPPEMENTS satisfies Record<CleGlossaire,
+Developpement>` : un terme ajouté sans son développement arrête le typecheck. Et
+`developpement()` vérifie **au type** que chaque jeton existe dans `valeurs.ts` — la
+même garantie qu'`avec()` donne aux bulles, transposée au texte long.
+
+**Le chemin depuis la bulle — deux défauts invisibles à la relecture**
+
+Un lien posé dans une bulle qui se ferme au `blur` et au départ de la souris est, par
+défaut, un lien qu'on ne peut pas atteindre. Les deux façons de le rater ont été
+trouvées en écrivant le test, pas en relisant le composant.
+
+*Au clavier.* La fermeture était portée par le bouton. Tabuler vers le lien détruisait
+le lien avant qu'il ne reçoive le focus, et la tabulation atterrissait sur le contrôle
+suivant. La fermeture est remontée sur la zone entière et regarde `relatedTarget` : un
+focus qui reste à l'intérieur ne ferme rien.
+
+*À la souris.* La bulle est posée à 22 px du haut d'une pastille qui en fait 15. Les
+sept pixels de vide entre les deux sont hors de la zone : la souris qui descendait vers
+le lien déclenchait `mouseleave`, et la bulle disparaissait sous le curseur. Un pont
+invisible, enfant de la zone, comble l'écart. Le test le traverse en vingt pas — un
+`page.mouse.move` d'un seul saut ne produit qu'un `mousemove` à l'arrivée et n'aurait
+jamais vu le défaut.
+
+*Un troisième, découvert par le test.* Échap depuis le lien ne fermait rien : la reprise
+du focus par le bouton déclenche l'événement de focus de façon synchrone, `onFocus`
+rouvrait la bulle, et la réouverture l'emportait sur la fermeture dans le même lot de
+rendu. Un drapeau le temps de la restauration.
+
+**Ce que le `role="note"` porte désormais**
+
+Le cadre de la bulle et son texte sont devenus deux éléments. Le `role="note"` est sur
+le **texte** : la bulle continue donc de « faire deux phrases » pour un lecteur d'écran
+comme pour les tests de `UI-005`, que le lien ne vient pas allonger. Aucun test existant
+n'a eu besoin d'être modifié.
+
+**Un défaut d'outillage corrigé au passage**
+
+`vitest.config.mts` ne résolvait pas l'alias `@/`. Tout module qui l'emploie compilait
+mais ne s'exécutait pas sous Vitest : `src/lib/format.ts` et `src/content/valeurs.ts`
+étaient donc intestables, et personne ne l'avait vu parce qu'aucun test ne les touchait
+encore.
+
+**Ce qui a été trouvé et laissé en l'état**
+
+- `GLOSSAIRE.tauxNominal` cite « 2 200 € sur un prêt de 180 000 € » et
+  `GLOSSAIRE.baseAssurance` « 30 à 45 % ». Ce ne sont pas des valeurs réglementaires —
+  une illustration pour la première, une observation de marché pour la seconde — donc la
+  règle de `CLAUDE.md` n'est pas enfreinte. Mais le premier chiffre devrait sortir du
+  moteur et le second de `params.ts`, où `borrowerInsurance` porte déjà des fourchettes
+  de marché. La garde « aucune valeur écrite à la main » ne s'applique aujourd'hui
+  qu'aux développements, pour cette raison.
+- `params.ts` ne porte ni le taux des prélèvements sociaux, ni les deux barèmes
+  d'abattement pour durée de détention, ni les quotités du prêt à taux zéro. Les entrées
+  correspondantes décrivent donc la mécanique **sans le chiffre**. C'est honnête, mais
+  cela veut dire que le module M2 aura à alimenter `params.ts` avant de pouvoir
+  s'appuyer sur ces contenus.
+- `docs/RELEASES.md` ne mentionne `CNT-001` dans aucune version. Le ticket vit en
+  phase 7 sans jalon.
+
+**Porte** — `PORT_E2E=3112 npm run porte`, verte : 553 unitaires (8 fichiers),
+192 de bout en bout dont 5 ignorés par construction.
