@@ -171,3 +171,33 @@ par écrit dans le message de fusion, ou ne se fusionne pas.
 5. Consigner dans `docs/TASKS.md` : ce qui sort, ce qui est reporté, et pourquoi.
 
 Un compteur qui a baissé sans qu'un ticket l'explique arrête la version.
+
+---
+
+## 4. Notes d'exploitation
+
+### `typecheck` génère ses propres types
+
+`src/app/layout.tsx` emploie `LayoutProps`, un type **généré** par Next dans
+`.next/types` — il n'existe pas dans le dépôt. Sur un clone neuf, ou après le
+`rm -rf .next` qu'exige la porte de version, `tsc --noEmit` échouait donc d'entrée
+sur `Cannot find name 'LayoutProps'`.
+
+`npm run typecheck` lance désormais `next typegen` avant `tsc`. La porte est
+reproductible à froid, ce qui est toute sa raison d'être : une porte qui suppose un
+cache ne vérifie que la machine qui l'a déjà lancée.
+
+### Plusieurs copies en parallèle
+
+Chaque copie du dépôt qui vérifie sa branche fixe son port :
+
+```bash
+PORT_E2E=3102 npm run porte
+```
+
+`reuseExistingServer` réutilise sinon le serveur d'une autre copie, et la porte lit
+des tests verts sur un code qui n'est pas le sien.
+
+Les copies créées par `git worktree` sous `.claude/worktrees/` sont exclues du lint et
+du suivi Git. Sans cette exclusion, `npm run lint` remonte les fichiers d'une autre
+branche — y compris son `.next`.
