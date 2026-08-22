@@ -165,7 +165,7 @@ Transversales aux phases. Voir `docs/RELEASES.md` §3.
 
 - [ ] `CNT-001` Glossaire relié aux infobulles
 - [ ] `CNT-002` Fiches pédagogiques par module
-- [ ] `CNT-003` Page d'accueil énonçant la thèse
+- [x] `CNT-003` Page d'accueil énonçant la thèse — `feat/CNT-003-accueil`
 - [ ] `LEG-001` Mentions légales, conditions d'utilisation, politique de confidentialité
 - [ ] `LEG-002` Avertissement visible sur l'absence de conseil
 - [ ] `INF-005` Mesure d'audience sans cookie
@@ -578,3 +578,52 @@ Le port des tests de bout en bout se choisit (`PORT_E2E`). Sans cela, deux copie
 dépôt qui vérifient leur branche en même temps se servent l'une le build de l'autre :
 une porte qui se trompe de code est pire qu'une porte absente. `.claude/**` est exclu
 du lint pour la même raison.
+### 22 août 2026 — `CNT-003`, la page d'accueil
+
+**Fait**
+
+`src/app/page.tsx` remplace le gabarit de Next par la page d'annonce du produit :
+la thèse en trois phrases, les trois familles de paramètres, l'état réel des
+modules, la gratuité et le lien partageable, l'avertissement de fin. Composant
+serveur, prérendu statique — le build la marque bien `○`.
+
+**Une décision, et sa raison**
+
+Les libellés, les messages et les traits de bordure des trois familles sont lus
+dans `src/components/ui/taxonomie.ts`, la même source que les champs de saisie,
+plutôt que réécrits sur l'accueil. La page qui *enseigne* la taxonomie et les
+champs qui la *portent* ne peuvent donc pas diverger : renommer une famille les
+change ensemble. Seuls les exemples de paramètres sont propres à l'accueil.
+
+**Ce qui n'existe pas est dit comme tel**
+
+Quatre des cinq modules listés sont annoncés et non livrés. Ils ne sont ni des
+liens ni des boutons : des lignes de liste, bordure tiretée, mention « à venir »
+en toutes lettres. `accueil.spec.ts` échoue si l'un d'eux redevient cliquable, et
+vérifie aussi qu'aucun lien de la page ne pointe ailleurs que vers `/credit` —
+une route inventée par optimisme se verrait tout de suite.
+
+**Neuf tests de bout en bout**, dont un qui relit toute la page à la recherche de
+tournures prescriptives (« vous devriez », « nous recommandons », « le meilleur
+choix ») : l'interdit éditorial de `docs/CONTEXT.md` §8 est le genre de règle qui
+se perd dans une accroche, autant qu'une machine la surveille.
+
+**Validation** — `PORT_E2E=3102 npm run porte` : typecheck ✓ · lint ✓ ·
+Vitest **129/129 sur 4 fichiers** ✓ · build ✓ · Playwright **86/86** sur les deux
+profils ✓
+
+**Reste**
+
+- `LEG-002` — l'accueil porte son propre paragraphe d'avertissement, repris de la
+  planche de design. Ce n'est pas l'avertissement *visible sur tout le site* que
+  demande le ticket ; il reste entier.
+- Les six onglets de navigation de la planche `Accueil.dc.html` supposent une
+  barre commune, qui n'existe pas dans `layout.tsx`. La page vit sans. Le jour où
+  la barre arrive, la liste des modules de l'accueil fera doublon avec elle — à
+  arbitrer à ce moment-là, pas avant.
+
+> **Note de fusion.** Ces deux entrées ont été écrites le même jour sur deux branches
+> parallèles. `LEG-002` a été livré entre-temps : l'avertissement est désormais dans
+> `layout.tsx` et donc présent sur l'accueil aussi. Le paragraphe d'avertissement
+> propre à l'accueil subsiste et ne fait pas doublon — l'un dit la portée de l'outil,
+> l'autre clôt la page d'annonce.

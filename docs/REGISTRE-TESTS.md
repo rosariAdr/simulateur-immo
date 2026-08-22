@@ -32,7 +32,7 @@ Relevé du 22 août 2026, sur `main`.
 | Suite | Fichiers | Tests |
 | --- | --- | --- |
 | Unitaires | 5 | 142 |
-| Bout en bout | 4 | 94 (47 × 2 profils) |
+| Bout en bout | 5 | 112 (56 × 2 profils) |
 
 ### Ce que couvrent les unitaires
 
@@ -51,6 +51,7 @@ Relevé du 22 août 2026, sur `main`.
 | `credit.spec.ts` | 9 | Le module calcule les chiffres du moteur. **Un scénario partagé par URL redonne exactement les mêmes chiffres** — la promesse centrale du produit. Une URL trafiquée ne fait pas dérailler le calcul |
 | `avertissement.spec.ts` | 13 | L'avertissement est présent et visible sur toute route qui affiche un chiffre, il ne peut pas être fermé, et aucune page n'est indexable tant que les textes n'ont pas été relus |
 | `amortissement.spec.ts` | 12 | Le ruban ne ment pas sur les proportions, mesuré au pixel. Le curseur se déplace au clavier. Aucun montant n'est rogné dans sa cellule |
+| `accueil.spec.ts` | 9 | L'accueil énonce les trois familles en toutes lettres, mène réellement à `/credit` — cliqué et suivi — et **ne présente pas comme disponibles les quatre modules qui n'existent pas** |
 
 ### Gardes vérifiées par sabotage
 
@@ -71,6 +72,11 @@ gardes-là ont été cassées exprès, puis rétablies :
   échouer six tests, un par route et un par propriété.
 - **Assiette de la mainlevée** — asseoir le coût de mainlevée sur le capital emprunté
   au lieu du prix du bien fait échouer le test de garantie correspondant.
+- **Modules à venir non cliquables** — envelopper le titre d'un module à venir dans
+  un lien fait rougir `accueil.spec.ts` : « le module comparaison est cliquable ».
+- **Familles nommées en toutes lettres sur l'accueil** — vider le titre d'une carte
+  de famille la laisse avec son message et ses exemples, mais plus le mot
+  « négociable » : le test le voit.
 
 ---
 
