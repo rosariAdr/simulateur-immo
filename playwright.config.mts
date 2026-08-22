@@ -13,6 +13,22 @@ import { defineConfig, devices } from "@playwright/test";
  *   npm run e2e
  *   npm run e2e:ui
  */
+/**
+ * Le port est paramétrable, et ce n'est pas un confort.
+ *
+ * `reuseExistingServer` réutilise tout serveur qui répond déjà sur ce port. Deux
+ * copies du dépôt qui vérifient leur branche en même temps — deux `git worktree`,
+ * deux agents — se serviraient donc l'une le build de l'autre, et liraient des
+ * tests verts sur un code qui n'est pas le leur. Une porte qui se trompe de code
+ * est pire qu'une porte absente.
+ *
+ * Chaque copie fixe donc son propre port :
+ *
+ *   PORT_E2E=3101 npm run porte
+ */
+const PORT = Number(process.env["PORT_E2E"] ?? 3100);
+const RACINE = `http://localhost:${PORT}`;
+
 export default defineConfig({
   testDir: "./tests/e2e",
   // Le dossier est hors de src/, donc invisible pour Vitest, dont l'include est
@@ -27,7 +43,7 @@ export default defineConfig({
     // /_next/* venant d’une origine qu’il ne reconnaît pas, et la page ne
     // s’hydrate alors jamais. Le symptôme est trompeur — la page s’affiche,
     // mais aucun contrôle ne répond.
-    baseURL: "http://localhost:3100",
+    baseURL: RACINE,
     trace: "on-first-retry",
     locale: "fr-FR",
     timezoneId: "Europe/Paris",
@@ -52,8 +68,8 @@ export default defineConfig({
     // aux pages ouvertes : un composant se remonte en plein test et perd son
     // état. Le symptôme est déroutant — chaque test passe isolément, la suite
     // échoue. Le build coûte une quinzaine de secondes et rend tout stable.
-    command: "npm run build && npx next start --port 3100",
-    url: "http://localhost:3100/composants",
+    command: `npm run build && npx next start --port ${PORT}`,
+    url: `${RACINE}/composants`,
     reuseExistingServer: !process.env["CI"],
     timeout: 180_000,
   },
