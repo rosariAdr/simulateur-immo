@@ -32,7 +32,7 @@ Relevé du 22 août 2026, sur `feat/UI-005-infobulles`.
 | Suite | Fichiers | Tests |
 | --- | --- | --- |
 | Unitaires | 6 | 207 |
-| Bout en bout | 6 | 130 (65 × 2 profils), dont 3 ignorés par construction |
+| Bout en bout | 7 | 158 (79 × 2 profils), dont 3 ignorés par construction |
 
 Les trois ignorés ne sont pas des trous : deux mesures du toucher n'ont de sens que
 sur le profil `mobile`, et l'alignement d'une bulle de 264 px sur sa pastille n'en a
@@ -61,6 +61,7 @@ que sur un écran large. Chacun porte sa raison dans son `test.skip`.
 | `avertissement.spec.ts` | 13 | L'avertissement est présent et visible sur toute route qui affiche un chiffre, il ne peut pas être fermé, et aucune page n'est indexable tant que les textes n'ont pas été relus |
 | `amortissement.spec.ts` | 12 | Le ruban ne ment pas sur les proportions, mesuré au pixel. Le curseur se déplace au clavier. Aucun montant n'est rogné dans sa cellule |
 | `accueil.spec.ts` | 9 | L'accueil énonce les trois familles en toutes lettres, mène réellement à `/credit` — cliqué et suivi — et **ne présente pas comme disponibles les quatre modules qui n'existent pas** |
+| `legal.spec.ts` | 14 | Les trois textes s'affichent datés, sont atteignables depuis le simulateur, et **l'identité de l'hébergeur figure sur le site** — c'est la contrepartie de l'anonymat de l'éditeur, pas une politesse |
 | `infobulles.spec.ts` | 9 | Un appui du doigt ouvre la bulle **et l'y laisse**. Aucune bulle ne fait défiler la page, sur les deux profils. Aucune n'affiche un jeton resté sans valeur, et celle de la durée cite les plafonds du millésime |
 
 ### Gardes vérifiées par sabotage
@@ -80,6 +81,7 @@ gardes-là ont été cassées exprès, puis rétablies :
   « 409 874,79 € » dans la liste des cellules tronquées.
 - **Avertissement permanent** — retirer `<Avertissement />` de la mise en page fait
   échouer six tests, un par route et un par propriété.
+- **Identité de l'hébergeur** — retirer l'adresse de Vercel des mentions légales fait échouer la garde qui la cherche : sans elle, l'anonymat de l'éditeur n'a plus de fondement.
 - **Assiette de la mainlevée** — asseoir le coût de mainlevée sur le capital emprunté
   au lieu du prix du bien fait échouer le test de garantie correspondant.
 - **Modules à venir non cliquables** — envelopper le titre d'un module à venir dans

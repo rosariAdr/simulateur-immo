@@ -1,6 +1,6 @@
 # Mentions légales
 
-*Dernière mise à jour : [À COMPLÉTER]*
+*Dernière mise à jour : 22 août 2026*
 
 ## Éditeur
 
@@ -8,7 +8,7 @@ Ce site est édité à titre **non professionnel** par un particulier, qui a com
 son identité à l'hébergeur conformément au III de l'article 6 de la loi n° 2004-575
 du 21 juin 2004 pour la confiance dans l'économie numérique.
 
-- Contact : [À COMPLÉTER — adresse électronique]
+- Contact : adr.rosari@gmail.com
 
 > **Note de rédaction, à retirer avant publication.**
 >
@@ -31,14 +31,16 @@ du 21 juin 2004 pour la confiance dans l'économie numérique.
 ## Hébergeur
 
 - Vercel Inc.
-- [À COMPLÉTER — adresse postale et téléphone, à recopier depuis les mentions légales
-  publiées par Vercel ; ne pas les reprendre de mémoire]
+- 440 N Barranca Ave #4133, Covina, CA 91723, États-Unis
+- Téléphone : non publié par l'hébergeur
+- Relevé le 22 août 2026 dans les *Terms of Service* de Vercel, § 22.3.4
 - https://vercel.com
 
 ## Propriété intellectuelle
 
 Le code source de ce site est publié à l'adresse
-https://github.com/rosariAdr/simulateur-immo sous [À COMPLÉTER — licence].
+https://github.com/rosariAdr/simulateur-immo sans licence attachée à ce jour : le droit d'auteur
+s'applique pleinement, et aucune réutilisation n'est autorisée sans accord préalable.
 
 Les contenus rédactionnels, les méthodes de calcul et leur documentation restent la
 propriété de l'éditeur. Les valeurs réglementaires utilisées (taux, seuils, barèmes)
@@ -47,5 +49,5 @@ sont des données publiques, reproduites avec l'indication de leur source.
 ## Signaler une erreur de calcul
 
 Une erreur dans un calcul ou une valeur réglementaire peut être signalée à
-[À COMPLÉTER — adresse électronique] ou par une *issue* sur le dépôt public.
+adr.rosari@gmail.com ou par une *issue* sur le dépôt public.
 Les signalements portant sur l'exactitude sont traités en priorité.

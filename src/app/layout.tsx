@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Archivo, Public_Sans, IBM_Plex_Mono } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Avertissement } from "@/components/Avertissement";
+import { PiedDePage } from "@/components/PiedDePage";
 import { INDEXABLE } from "@/lib/site";
 import "./globals.css";
 
@@ -62,6 +63,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Avertissement />
         {/* L’état des scénarios vit dans l’URL. Voir src/lib/scenario.ts. */}
         <NuqsAdapter>{children}</NuqsAdapter>
+        {/* Les textes qu'on va chercher délibérément. Voir LEG-001. */}
+        <PiedDePage />
       </body>
     </html>
   );
