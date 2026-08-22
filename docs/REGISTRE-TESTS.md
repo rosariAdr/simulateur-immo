@@ -32,7 +32,7 @@ Relevé du 22 août 2026, sur `main`.
 | Suite | Fichiers | Tests |
 | --- | --- | --- |
 | Unitaires | 4 | 129 |
-| Bout en bout | 3 | 68 (34 × 2 profils) |
+| Bout en bout | 4 | 86 (43 × 2 profils) |
 
 ### Ce que couvrent les unitaires
 
@@ -50,6 +50,7 @@ Relevé du 22 août 2026, sur `main`.
 | `composants.spec.ts` | 13 | Les primitives dans leurs cinq états. Jamais d'information portée par la seule couleur ; tout état d'erreur porte un `role="alert"` visible |
 | `credit.spec.ts` | 9 | Le module calcule les chiffres du moteur. **Un scénario partagé par URL redonne exactement les mêmes chiffres** — la promesse centrale du produit. Une URL trafiquée ne fait pas dérailler le calcul |
 | `amortissement.spec.ts` | 12 | Le ruban ne ment pas sur les proportions, mesuré au pixel. Le curseur se déplace au clavier. Aucun montant n'est rogné dans sa cellule |
+| `accueil.spec.ts` | 9 | L'accueil énonce les trois familles en toutes lettres, mène réellement à `/credit` — cliqué et suivi — et **ne présente pas comme disponibles les quatre modules qui n'existent pas** |
 
 ### Gardes vérifiées par sabotage
 
@@ -66,6 +67,11 @@ gardes-là ont été cassées exprès, puis rétablies :
   fait échouer la mesure au pixel.
 - **Montants rognés** — retirer la largeur minimale du tableau fait réapparaître
   « 409 874,79 € » dans la liste des cellules tronquées.
+- **Modules à venir non cliquables** — envelopper le titre d'un module à venir dans
+  un lien fait rougir `accueil.spec.ts` : « le module comparaison est cliquable ».
+- **Familles nommées en toutes lettres sur l'accueil** — vider le titre d'une carte
+  de famille la laisse avec son message et ses exemples, mais plus le mot
+  « négociable » : le test le voit.
 
 ---
 
