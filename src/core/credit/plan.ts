@@ -7,6 +7,7 @@
 
 import { type Cents, applyPct, sum } from "../money";
 import type { FiscalParams, LoanKind } from "../fiscal/params";
+import { MARKET_2026, type MarketAssumptions } from "../assumptions/market";
 import { type LoanSpec, type ScheduleRow, amortize } from "./schedule";
 import { type InsuranceSpec, premiumSchedule } from "./insurance";
 import { apr, taea } from "./apr";
@@ -28,30 +29,43 @@ export interface GuaranteeCost {
 /**
  * Coûts de garantie.
  *
- * ⚠️ Ordres de grandeur de MARCHÉ, pas des valeurs réglementaires. Les barèmes
- * réels des organismes de caution sont progressifs et dépendent du montant.
- * @todo TODO_VERIFY auprès des barèmes publiés par les organismes.
+ * ⚠️ Le dernier paramètre n'est PAS un millésime fiscal : ce sont des hypothèses
+ * de MARCHÉ. Aucun texte ne fixe ces valeurs, les barèmes réels des organismes de
+ * caution sont progressifs et dépendent du montant. La séparation d'avec
+ * `FiscalParams` est la raison d'être de `FIS-005` — voir ADR-008 et
+ * `src/core/assumptions/market.ts`, où chaque valeur porte son intervalle observé
+ * et sa provenance.
  */
 export function guaranteeCost(
   kind: GuaranteeKind,
   guaranteedPrincipal: Cents,
   propertyPrice: Cents,
-  p: FiscalParams,
+  hypotheses: MarketAssumptions,
 ): GuaranteeCost {
-  const g = p.guarantee;
+  const g = hypotheses.guarantee;
   if (kind === "suretyship") {
-    const cost = applyPct(guaranteedPrincipal, g.suretyshipCostPct);
-    return { kind, cost, refundAtTerm: applyPct(cost, g.suretyshipRefundPct), releaseCostOnEarlySale: 0 };
+    const cost = applyPct(guaranteedPrincipal, g.suretyshipCostPct.valeur);
+    return {
+      kind,
+      cost,
+      refundAtTerm: applyPct(cost, g.suretyshipRefundPct.valeur),
+      releaseCostOnEarlySale: 0,
+    };
   }
   if (kind === "mortgage") {
     return {
       kind,
-      cost: applyPct(guaranteedPrincipal, g.mortgageCostPct),
+      cost: applyPct(guaranteedPrincipal, g.mortgageCostPct.valeur),
       refundAtTerm: 0,
-      releaseCostOnEarlySale: applyPct(propertyPrice, g.mortgageReleasePct),
+      releaseCostOnEarlySale: applyPct(propertyPrice, g.mortgageReleasePct.valeur),
     };
   }
-  return { kind, cost: applyPct(guaranteedPrincipal, g.pledgeCostPct), refundAtTerm: 0, releaseCostOnEarlySale: 0 };
+  return {
+    kind,
+    cost: applyPct(guaranteedPrincipal, g.pledgeCostPct.valeur),
+    refundAtTerm: 0,
+    releaseCostOnEarlySale: 0,
+  };
 }
 
 /* ── Entrée / sortie ──────────────────────────────────────────────────────── */
@@ -65,6 +79,12 @@ export interface CreditPlanInput {
   readonly propertyPrice: Cents;
   readonly netMonthlyIncome: Cents;
   readonly otherDebtService?: Cents;
+  /**
+   * Hypothèses de marché — coûts de garantie. Optionnelles : à défaut, celles du
+   * relevé courant. Le paramètre existe pour que l'appelant puisse les lui
+   * substituer, ce qu'aucune valeur réglementaire ne permettrait. Voir FIS-005.
+   */
+  readonly marketAssumptions?: MarketAssumptions;
   readonly loanKind?: LoanKind;
   readonly eligibleForExtendedDuration?: boolean;
 }
@@ -159,7 +179,12 @@ export function buildCreditPlan(input: CreditPlanInput, p: FiscalParams): Credit
     });
   }
 
-  const guarantee = guaranteeCost(input.guarantee, totalPrincipal, input.propertyPrice, p);
+  const guarantee = guaranteeCost(
+    input.guarantee,
+    totalPrincipal,
+    input.propertyPrice,
+    input.marketAssumptions ?? MARKET_2026,
+  );
   const upfrontFees = input.arrangementFee + guarantee.cost + (input.brokerageFee ?? 0);
 
   const totalInterest = sum(rows.map((r) => r.interest));

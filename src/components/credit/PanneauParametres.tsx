@@ -130,7 +130,7 @@ export function PanneauParametres({ scenario, definir, seuilUsure, params }: Pro
       <ListeDeroulante
         id="garantie"
         libelle="Garantie"
-        famille="reglementaire"
+        famille="negociable"
         options={OPTIONS_GARANTIE}
         valeur={scenario.garantie}
         onChange={(v) => void definir({ garantie: v })}

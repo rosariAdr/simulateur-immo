@@ -44,6 +44,25 @@ test("la mensualité n'annonce pas un différé qui n'existe pas", async ({ page
   await expect(legende).not.toContainText("elle monte");
 });
 
+test("la garantie est présentée comme négociable, parce qu'elle l'est", async ({ page }) => {
+  await page.goto("/credit");
+
+  // `docs/CONTEXT.md` §2 range « choix de la garantie » dans les paramètres
+  // NÉGOCIABLES — « ce sur quoi l'utilisateur a prise, s'il sait qu'il l'a ».
+  // Le champ était étiqueté « réglementaire », c'est-à-dire « ce qui s'impose et
+  // ne se discute pas.
+  //
+  // C'est l'erreur dans le pire sens : elle dit à quelqu'un qu'il n'a pas la
+  // main sur ce qu'il peut précisément négocier — exactement ce que ce produit
+  // existe pour corriger. `FIS-005` l'a rendue intenable, en établissant que les
+  // coûts de garantie sont des hypothèses de marché et non des valeurs de loi.
+  // `data-champ` est un attribut booléen posé par l'enveloppe `Champ` ; on
+  // atteint donc le bon en partant du contrôle qu'il enveloppe.
+  const champ = page.locator("[data-champ]").filter({ has: page.locator("#garantie") });
+  await expect(champ).toHaveAttribute("data-famille", "negociable");
+  await expect(champ).toContainText(/négociable/i);
+});
+
 test("une URL nue ne porte aucun paramètre", async ({ page }) => {
   await page.goto("/credit");
   expect(new URL(page.url()).search).toBe("");
