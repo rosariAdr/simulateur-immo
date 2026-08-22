@@ -647,3 +647,97 @@ d'unicité des termes — fait échouer l'unicité des ancres, « expected 47 to
 - Renommer un terme change son ancre, donc casse les liens externes qui pointaient dessus.
   Sans effet tant que le site est en `noindex` ; à reconsidérer le jour où le glossaire
   est indexé, probablement par une table de redirections plutôt que par des ancres figées.
+
+---
+
+## ADR-011 — Le portefeuille du locataire de référence ne descend pas sous zéro
+
+**Date** : 22 août 2026 · **Statut** : adoptée · **Tickets** : `ENG-011`
+
+### Contexte
+
+La comparaison « acheter ou louer » ne vaut que si les deux camps font le **même effort
+financier**. Le locataire de référence place donc l'apport, puis chaque mois l'écart entre
+le coût de propriétaire et son loyer. Cet écart change de signe : certains mois — un loyer
+de marché élevé, un taux bas, ou simplement le prêt arrivé à son terme — être propriétaire
+coûte moins cher que louer, et le locataire doit **retirer** de son portefeuille pour que
+l'effort reste identique.
+
+D'où une question qu'aucun simulateur ne pose : que se passe-t-il quand le portefeuille
+tombe à zéro et que le retrait demandé dépasse ce qui reste ?
+
+Trois réponses étaient possibles. Laisser la valeur devenir négative. Refuser l'entrée.
+Tronquer le retrait.
+
+### Décision
+
+**Le retrait est tronqué à la valeur disponible. La valeur reste à zéro, jamais négative.
+Le manque est rendu explicitement**, mois par mois (`nonFinance`) et par un `moisEpuisement`
+qui désigne la première rupture.
+
+`construirePortefeuille` refuse en revanche ce qui n'a pas de sens : un apport négatif — on
+ne place pas une dette —, un montant qui n'est pas un entier de centimes, et un rendement
+annuel de −100 % ou moins, dont la racine douzième n'est pas définie.
+
+### Justification
+
+**Une valeur négative n'est pas un portefeuille, c'est un crédit à la consommation.** Il a
+son taux, sa durée, son assurance, dont ce module ne sait rien. Lui appliquer le rendement
+des marchés produirait deux absurdités selon le signe : à rendement positif la dette
+*rapporterait*, à rendement négatif elle s'effacerait toute seule. Dans les deux cas le
+chiffre final resterait **plausible**, et il serait faux — le pire défaut possible pour un
+outil dont toute la valeur tient à la justesse de ses chiffres.
+
+**Refuser l'entrée aurait déplacé le problème sans le traiter.** La série de versements
+n'est pas saisie par l'utilisateur : elle est produite par `detention.ts` à partir du crédit
+et du loyer. Une erreur y serait incompréhensible, et surviendrait précisément dans les
+configurations les plus intéressantes à montrer.
+
+**Tronquer expose la rupture au lieu de la lisser.** À partir de `moisEpuisement`,
+l'hypothèse « effort d'épargne identique » ne tient plus, et la comparaison cesse d'être
+une comparaison. L'interface doit le dire — c'est `docs/CONTEXT.md` §7, « se terminer par
+ses limites » — plutôt que d'afficher un écart final comme si de rien n'était.
+
+Un mode « découvert » supposerait un taux d'emprunt en paramètre. Ce serait un autre modèle,
+pas une option de celui-ci.
+
+### Deux conventions qui vont avec, et qui engagent la suite
+
+**L'arrondi se fait chaque mois, pas à l'affichage.** Le gain mensuel est arrondi au centime
+et s'ajoute à un solde entier, comme les intérêts d'une échéance bancaire. L'invariant
+`capital versé + gains = valeur` tient alors **par construction** : c'est la même série
+d'entiers lue de deux façons. Porter le solde en flottant et n'arrondir qu'à la lecture
+donnerait trois nombres arrondis séparément, dont l'un ne serait pas la somme des deux
+autres — et un utilisateur qui additionne deux chiffres affichés sans retomber sur le
+troisième a raison de ne plus croire le reste. Prix payé, mesuré : **moins d'un centime**
+d'écart avec la capitalisation en flottant sur 300 mois, soit 1,6 × 10⁻⁸ du résultat.
+
+**Le rendement mensuel est l'équivalent actuariel, pas le taux proportionnel.** `money.ts`
+divise par douze parce qu'un contrat de prêt français le stipule (art. R314-3 du Code de la
+consommation) ; un rendement de portefeuille n'a pas de contrat, et « 5 % par an » y signifie
+5 % au bout d'un an. Diviser par douze puis capitaliser douze fois rendrait 5,1162 %. Sur
+300 mois, l'écart atteint **2,08 % de capital final**, et il joue dans le sens qui flatte
+les marchés face à la pierre. Le module emploie donc `(1 + rₐ)^(1/12) − 1`, et le dit à
+l'endroit où quelqu'un serait tenté de réutiliser `monthlyRate`.
+
+### Ce qui la garde
+
+`src/core/compare/__tests__/portefeuille.test.ts`, 42 tests. Les invariants sous `fast-check`
+portent la décision : la valeur n'est jamais négative, le manque n'apparaît qu'à partir du
+mois d'épuisement, le versement réalisé ne dépasse jamais le demandé et leur écart vaut
+exactement le manque, et `capital versé + gains = valeur` **au centime, à chaque échéance**.
+
+Vérifié par sabotage, trois fois. Retirer la troncature : 4 tests rouges, dont l'invariant
+de positivité. Porter le solde en flottant : 8 rouges, dont `capital + gains = valeur` et
+l'intégrité des centimes. Remplacer l'équivalence actuarielle par le taux proportionnel :
+7 rouges, dont « douze mois à 12 % rendent exactement 12 % ».
+
+### Conséquences acceptées
+
+- `capitalVerse` mesure l'effort **réel**, pas l'effort voulu : il ne compte pas ce que le
+  portefeuille n'a pas pu financer. C'est ce qui garde l'égalité avec la valeur, et cela
+  veut dire qu'au-delà de `moisEpuisement` les deux camps ne font plus le même effort. Le
+  module le signale ; il ne le corrige pas, parce qu'il n'y a rien à corriger.
+- Une troncature au mois *m* change la trajectoire de tous les mois suivants. Le résultat
+  reste déterministe et reproductible, mais il n'est plus interprétable comme « ce qu'aurait
+  fait un locataire » — seulement comme « où la comparaison a cessé de tenir ».

@@ -118,7 +118,9 @@ Le découpage en versions, le modèle de branches et les portes sont dans
       majoration du prix d'acquisition, exonération de la résidence principale. Sourcées,
       datées. Bloquant pour `ENG-012`, `ENG-014` et `ENG-016`
 - [ ] `ENG-010` Coûts de détention et flux mensuels comparés
-- [ ] `ENG-011` Portefeuille du locataire de référence
+- [x] `ENG-011` Portefeuille du locataire de référence
+      → `src/core/compare/portefeuille.ts`. Le retrait qui dépasse le solde est tronqué,
+      jamais mis en négatif, et le manque est rendu explicite. Voir ADR-011
 - [ ] `ENG-012` Scénario de vente, exonération résidence principale
 - [ ] `ENG-013` Régimes fiscaux locatifs
 - [ ] `ENG-014` Plus-value hors résidence principale, abattements par durée
@@ -1337,3 +1339,60 @@ pastille se cassait avant `UI-005`.
 identité de l'éditeur à communiquer à l'hébergeur, licence du dépôt non choisie,
 déploiement non vérifié. Nouvelles : `FIS-006` le recoupement des neuf hypothèses de
 marché, et la pastille « i » à 15 px, sous le seuil de cible tactile.
+
+### 22 août 2026 — `ENG-011`, le locataire de référence a un portefeuille
+
+Premier fichier de `src/core/compare/`. Un seul module, `portefeuille.ts`, et sa suite de
+tests : `detention.ts` et `types.ts` s'écrivaient en parallèle sur une autre copie.
+
+**Ce que le module fait.** À partir d'un apport, d'une série de versements mensuels — dont
+le signe peut changer — et d'un rendement net d'impôt, il rend la trajectoire de valeur du
+portefeuille, en séparant l'**effort d'épargne réel** des **gains**. Il ne compare rien, ne
+conclut rien, et n'a pas de champ `gagnant` : un test de forme le vérifie, parce que ce
+champ-là s'ajoute sans discussion et ne se retire plus une fois que l'interface s'y appuie.
+
+**Trois décisions, et une seule était vraiment ouverte.**
+
+*Le portefeuille épuisé.* Un versement négatif est un retrait, et un retrait peut dépasser
+ce qui reste. Le retrait est alors tronqué, la valeur reste à zéro, et le manque est rendu
+explicite — `nonFinance` par mois, `moisEpuisement` pour la première rupture. Laisser la
+valeur passer en négatif aurait fait *rapporter* une dette au rendement des marchés, ou
+l'aurait fait s'effacer toute seule à rendement négatif. Le chiffre serait resté plausible.
+Voir ADR-011.
+
+*L'arrondi.* Chaque mois, pas à l'affichage. C'est ce qui fait tenir
+`capital versé + gains = valeur` **par construction** plutôt que par chance : la même série
+d'entiers, lue de deux façons. Mesuré contre une capitalisation en flottant sur 300 mois :
+**0,73 centime d'écart sur 462 185 €**.
+
+*Le taux mensuel.* Pas `monthlyRate`. Le crédit divise par douze parce qu'un contrat le
+stipule ; un rendement de marché n'a pas de contrat, et « 5 % par an » y veut dire 5 % au
+bout d'un an. La convention proportionnelle aurait rendu **2,08 % de capital final en trop**
+sur 300 mois, dans le sens qui flatte les marchés face à la pierre — exactement le biais que
+le module M5 existe pour dénoncer.
+
+**Un chiffre que je croyais tenir à la main, et qui ne tenait pas.** Le cas de référence du
+portefeuille épuisé attendait 400 € manquants au mois 1 ; le moteur en rendait 399,67. Le
+moteur avait raison : le rendement du mois s'applique **avant** le retrait, et les 33
+centimes gagnés sur le solde de 100 € réduisent d'autant le manque. Le test dit maintenant
+le calcul complet. C'est la deuxième fois sur ce projet qu'un cas de référence est corrigé
+par le moteur plutôt que l'inverse, et à chaque fois c'est l'ordre des opérations qui était
+en cause.
+
+**Gardes cassées, trois fois.** Retirer la troncature du retrait : 4 tests rouges. Porter le
+solde en flottant : 8 rouges, dont l'invariant au centime et l'intégrité des entiers.
+Remplacer l'équivalence actuarielle par le taux proportionnel : 7 rouges. Rétabli, vert.
+
+**Ce que je laisse en l'état.** Les fourchettes de rendement (`RENDEMENTS_NETS_OBSERVES`)
+relèvent de `src/core/assumptions/market.ts` par ADR-008, mais ce fichier était pris par un
+autre chantier : elles sont déclarées dans `portefeuille.ts`, avec un type qui reproduit la
+forme de `FourchetteObservee` pour que le déplacement soit mécanique. **À déplacer à la
+fusion, sans les modifier.** Elles ne sont lues par aucun calcul.
+
+**Un invariant qui ne mord pas assez.** « le manque non financé n'apparaît qu'à partir du
+mois d'épuisement » ne détecte pas la suppression de la troncature : sans elle, `nonFinance`
+reste nul partout et `moisEpuisement` reste `null`, ce que la propriété accepte. Les quatre
+autres tests l'attrapent, mais celui-là est plus faible qu'il n'en a l'air.
+
+**Porte** — `PORT_E2E=3123 npm run porte`, verte : 661 unitaires (12 fichiers), dont 42
+nouveaux, et le bout en bout inchangé.
