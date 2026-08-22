@@ -219,3 +219,65 @@ variante texte.
 
 Vérifié à l'adoption : ramener `--marches-texte` à `#2170b0` fait échouer deux tests,
 dont celui qui nomme la divergence.
+
+---
+
+## ADR-004 — Le moteur crédit est gelé, les nouveaux répertoires sont ouverts
+
+**Date** : 22 août 2026 · **Statut** : adoptée
+
+### Contexte
+
+Le moteur crédit a été écrit et vérifié hors du dépôt, puis copié dans `src/core/`.
+Pour protéger ce travail — 95 tests, et une traçabilité réglementaire portée par les
+commentaires JSDoc — une consigne interdisait toute modification de `src/core/`,
+quelle qu'elle soit.
+
+Elle a tenu, y compris dans les cas où il aurait été commode de la contourner : la
+recherche du 21 août a produit des conclusions sur trois valeurs réglementaires
+sans que `fiscal/params.ts` soit touché.
+
+Mais les phases 3 à 5 demandent `compare/`, `prepayment/` et `markets/` — une
+vingtaine de modules qui n'existent pas. Une interdiction portant sur tout
+`src/core/` les rendait inécrivables. La règle protégeait un acquis ; elle bloquait
+désormais tout ce qui reste à faire.
+
+### Décision
+
+**Gelés**, ne se modifient qu'avec une raison explicite et un test qui la porte :
+
+- `src/core/money.ts`
+- `src/core/fiscal/params.ts`
+- `src/core/credit/**`
+
+**Ouverts**, s'écrivent comme n'importe quel code du dépôt, sous les règles
+habituelles :
+
+- `src/core/compare/`, `src/core/prepayment/`, `src/core/markets/`, `src/core/aides/`
+- `src/core/types.ts`
+
+### Justification
+
+La consigne d'origine visait un risque précis : qu'un fichier vérifié soit modifié
+par mégarde, et que sa justesse se perde sans que personne le remarque. Ce risque
+porte sur les fichiers déjà écrits, pas sur ceux qui n'existent pas encore.
+
+Étendre l'interdiction aux répertoires vides ne protégeait donc rien — elle rendait
+seulement le projet infaisable.
+
+### Ce qui ne change pas
+
+- La frontière moteur / interface reste gardée par ESLint sur tout `src/core/**`,
+  répertoires nouveaux compris. Voir ADR-001.
+- **Toute modification du moteur s'accompagne d'un test.** Les nouveaux modules
+  naissent avec leurs cas de référence et leurs invariants, comme le crédit.
+- Les valeurs réglementaires restent dans `fiscal/params.ts`, datées et sourcées.
+
+### Conséquences acceptées
+
+- Le gel repose sur une convention écrite, pas sur un mécanisme. Une règle de lint ne
+  sait pas distinguer « modifier » de « créer ». Le garde-fou réel est la revue :
+  un diff qui touche `credit/` sans raison énoncée doit être refusé.
+- Les conclusions de `docs/reference/FIS-002-verification.md` restent à reporter dans
+  `params.ts`, qui est gelé. Ce report est désormais possible, mais il demande une
+  raison explicite — il en a une, et un test qui fige les valeurs retenues.

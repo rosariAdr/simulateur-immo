@@ -19,6 +19,12 @@ Lire dans cet ordre :
 **`src/core/` ne connaît pas l'interface.** Aucun import de `react`, `next` ou d'une API navigateur.
 Fonctions pures uniquement. La règle de lint est là pour ça, ne pas la contourner.
 
+**Le moteur crédit est gelé, le reste du moteur est ouvert.** `src/core/money.ts`,
+`src/core/fiscal/params.ts` et `src/core/credit/**` ont été écrits et vérifiés hors dépôt :
+leurs 95 tests et la traçabilité réglementaire de leurs commentaires ne se retouchent pas
+sans raison explicite. Les nouveaux répertoires — `compare/`, `prepayment/`, `markets/`,
+`aides/`, `types.ts` — s'écrivent normalement. Voir `docs/ADR.md`, ADR-004.
+
 **Toute modification du moteur s'accompagne d'un test.** Les invariants listés dans `docs/03-spec-domaine.md`
 doivent continuer de passer.
 

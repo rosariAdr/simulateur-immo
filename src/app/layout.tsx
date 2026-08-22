@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Archivo, Public_Sans, IBM_Plex_Mono } from "next/font/google";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 import "./globals.css";
 
 /**
@@ -46,7 +47,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="fr"
       className={`${archivo.variable} ${publicSans.variable} ${plexMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {/* L’état des scénarios vit dans l’URL. Voir src/lib/scenario.ts. */}
+        <NuqsAdapter>{children}</NuqsAdapter>
+      </body>
     </html>
   );
 }

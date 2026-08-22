@@ -47,7 +47,12 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: "npm run dev -- --port 3100",
+    // Build de production, et non serveur de développement. Ce dernier
+    // recompile les routes à la demande et diffuse ses rechargements à chaud
+    // aux pages ouvertes : un composant se remonte en plein test et perd son
+    // état. Le symptôme est déroutant — chaque test passe isolément, la suite
+    // échoue. Le build coûte une quinzaine de secondes et rend tout stable.
+    command: "npm run build && npx next start --port 3100",
     url: "http://localhost:3100/composants",
     reuseExistingServer: !process.env["CI"],
     timeout: 180_000,

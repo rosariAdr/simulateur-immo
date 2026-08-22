@@ -40,14 +40,19 @@ Préfixes : `ENG` moteur de calcul · `FIS` paramètres fiscaux · `UI` interfac
 
 - [x] `UI-000` Galerie `/composants` — les primitives dans leurs cinq états, banc
       d’essai des tests de bout en bout et documentation vivante
-- [x] `INF-007` Playwright : 13 tests sur deux profils, bureau et mobile
-      → reste à couvrir : le scénario partagé par URL, quand `UI-003` existera
+- [x] `INF-007` Playwright : 22 tests sur deux profils, bureau et mobile
+      → le scénario partagé par URL est couvert
 
-- [ ] `UI-001` Grille de base, panneau de paramètres, zone de résultats
+- [x] `UI-001` Grille de base, panneau de paramètres, zone de résultats
+      → route `/credit`, saisie à gauche, résultat à droite, prérendue statiquement
 - [x] `UI-002` Composants de saisie et leurs états
       → 7 primitives dans `src/components/ui/`, cinq états chacune
-- [ ] `UI-003` État d'URL avec nuqs et zod
-- [ ] `UI-004` Bandeau d'indicateurs
+- [x] `UI-003` État d'URL avec nuqs et zod
+      → `src/lib/scenario.ts` : clés courtes, montants en euros, bornes de sécurité.
+      Seules les valeurs qui s'écartent du défaut sont inscrites
+- [x] `UI-004` Bandeau d'indicateurs
+      → cinq indicateurs, chacun avec sa légende qualifiante ; alerte sur franchissement
+      d'un seuil réglementaire, jamais sur un jugement de valeur
 - [ ] `VIZ-001` Ruban d'amortissement avec curseur de lecture
 - [ ] `VIZ-002` Tableau d'amortissement, agrégation annuelle
 - [ ] `UI-005` Infobulles pédagogiques sur les termes techniques
@@ -347,3 +352,46 @@ s'affichait parfaitement mais ne s'hydratait jamais. **Viser `localhost` et non
 - `VIZ-001` ruban, `VIZ-002` tableau.
 - Inchangé et bloquant : la liste des départements à taux réduit (`FIS-002`), le
   report des conclusions dans `params.ts`, la relecture juridique.
+
+### 22 août 2026 (suite) — Le module crédit calcule
+
+**Décision d'architecture**
+
+`src/core/` s'ouvre aux **nouveaux répertoires** ; `money.ts`, `fiscal/params.ts` et
+`credit/**` restent gelés. La consigne d'origine protégeait un acquis, elle bloquait
+tout ce qui reste à faire. Voir ADR-004, et la règle ajoutée à `CLAUDE.md`.
+
+**Fait — `UI-003`, `UI-001`, `UI-004`**
+
+- `src/lib/scenario.ts` : le scénario vit dans l'URL. Clés courtes, montants en
+  **euros** et non en centimes — `px=205000` se lit, `px=20500000` non. Bornes de
+  sécurité : une URL est du texte que n'importe qui peut écrire.
+- La traduction entre le vocabulaire de l'URL, en français, et celui du moteur, en
+  anglais, vit à un seul endroit. Le moteur ne connaît pas l'URL, l'URL ne connaît
+  pas le moteur.
+- Route `/credit`, prérendue statiquement. Saisie à gauche, résultat à droite, aucun
+  bouton « calculer » : le recalcul coûte moins d'une milliseconde sur 300 échéances.
+- Cinq indicateurs, chacun avec sa légende qualifiante. L'alerte ne se déclenche que
+  sur un franchissement de seuil réglementaire, jamais sur un jugement.
+- 9 tests de bout en bout de plus, dont celui qui portait la promesse du produit :
+  **un scénario partagé par URL redonne exactement les mêmes chiffres.**
+
+**Deux pièges de test, tous deux consignés dans `playwright.config.mts`**
+
+Le serveur de développement diffuse ses rechargements à chaud aux pages ouvertes :
+un composant se remontait en plein test et perdait son état. Symptôme déroutant —
+chaque test passait isolément, la suite échouait. Les tests tournent désormais sur un
+**build de production**.
+
+Les écritures dans l'URL sont groupées et différées. Lire `page.url()` juste après la
+dernière frappe attrape un état incomplet ; le test attend explicitement que
+l'adresse porte tout le scénario avant de la partager.
+
+**Reste sur le module**
+
+- `VIZ-001` ruban d'amortissement avec curseur de lecture
+- `VIZ-002` tableau, agrégation annuelle
+- `UI-005` les infobulles ont leur composant et leurs premiers contenus ; le
+  glossaire complet reste à écrire (`CNT-001`)
+- `UI-006` adaptation mobile — la grille se replie déjà, mais rien n'a été pensé
+  pour la densité
