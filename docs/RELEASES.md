@@ -37,6 +37,19 @@ tient des barres de dix pixels et le tableau défile dans son cadre. C'est `UI-0
 et c'est v0.2. La liste des départements à taux réduit (`FIS-002`) reste ouverte ;
 elle n'affecte pas le module crédit, qui ne calcule pas les droits de mutation.
 
+### v0.1.1 — correctif de lisibilité
+
+`UI-012` les options des listes déroulantes, illisibles à 1,21:1 — le navigateur peint
+le fond de sa liste déroulée d'après `color-scheme`, qui n'est déclaré nulle part.
+
+**Pourquoi un correctif et non un report en v0.2.0.** Un défaut de lisibilité sur un
+champ de saisie n'attend pas la prochaine version de contenu : on ne peut pas choisir
+ce qu'on ne peut pas lire. La correction tient en deux déclarations et ne touche à
+aucun calcul.
+
+**Critère de sortie.** Aucune option de liste déroulante ne descend sous 4,5:1, et la
+règle est gardée par un test qui échoue si `color-scheme` retombe à `normal`.
+
 ### v0.2.0 — « Le crédit s'explique »
 
 `UI-006` adaptation mobile — densité, cibles tactiles, ruban · `CNT-001` glossaire
