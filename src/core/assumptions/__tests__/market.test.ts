@@ -2,6 +2,10 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { MARKET_2026 } from "../market";
+import type { FourchetteObservee, HypotheseChiffree } from "../market";
+
+/** Ce que porte une entrée d'hypothèse, avec ou sans valeur centrale. */
+type Hypothese = HypotheseChiffree | FourchetteObservee;
 import { PARAMS_2026 } from "../../fiscal/params";
 
 /**
@@ -58,47 +62,81 @@ describe("le millésime fiscal ne contient que des valeurs de loi", () => {
 });
 
 describe("chaque hypothèse de marché déclare ce qu'elle vaut", () => {
-  const hypotheses = Object.entries(MARKET_2026.guarantee);
-
   it("porte un relevé daté, et non un millésime légal", () => {
     // Ces valeurs n'ont pas d'exercice : elles ont une date de lecture.
     expect(MARKET_2026.releve).toMatch(/^\d{4}-\d{2}$/);
   });
 
   it("couvre les cinq coûts de garantie", () => {
-    expect(hypotheses).toHaveLength(5);
+    expect(Object.keys(MARKET_2026.guarantee)).toHaveLength(5);
   });
 
-  for (const [nom, h] of hypotheses) {
-    describe(nom, () => {
-      it("annonce une provenance lisible", () => {
-        // Une phrase, pas un mot-clé : elle doit pouvoir être montrée à
-        // l'utilisateur telle quelle.
-        expect(h.provenance.length, "provenance trop courte pour dire quoi que ce soit").toBeGreaterThan(
-          60,
-        );
-        expect(h.provenance.trim().endsWith(".")).toBe(true);
-      });
+  /**
+   * La garde parcourt TOUS les blocs, pas seulement `guarantee`.
+   *
+   * Elle ne les nommait pas : elle itérait sur `MARKET_2026.guarantee`, si bien
+   * que les blocs ajoutés ensuite — `insurance`, `acquisition`, `detention` —
+   * échappaient à chacune de ses vérifications sans qu'aucun test ne rougisse.
+   * Le défaut a été signalé par l'agent qui a écrit `detention`, dont les quatre
+   * entrées en furent la première démonstration.
+   *
+   * Le parcours part donc de la structure, ce qui fait entrer dans la garde tout
+   * bloc futur du seul fait de son existence. Le prochain n'aura rien à faire.
+   */
+  const blocs = Object.entries(MARKET_2026).filter(
+    (paire): paire is [string, Record<string, Hypothese>] => typeof paire[1] === "object",
+  );
 
-      it("annonce une fiabilité, et pas la plus flatteuse par défaut", () => {
-        expect(["observee", "estimee"]).toContain(h.fiabilite);
-      });
+  it("ne laisse aucun bloc hors de portée de cette garde", () => {
+    // Si ce compte cesse de correspondre, c'est qu'un bloc a été ajouté ou
+    // retiré — et il faut le regarder, pas ajuster le chiffre par réflexe.
+    expect(blocs.map(([nom]) => nom).sort()).toEqual([
+      "acquisition",
+      "detention",
+      "guarantee",
+      "insurance",
+    ]);
+  });
 
-      it("tient dans l'intervalle qu'elle déclare", () => {
-        // L'invariant qui compte. Modifier une valeur sans toucher à son
-        // intervalle — ou l'inverse — est l'erreur qu'on commet en relisant vite
-        // une grille tarifaire, et elle ne se voit pas à l'œil.
-        const [bas, haut] = h.intervalle;
-        expect(bas, `${nom} : intervalle inversé`).toBeLessThanOrEqual(haut);
-        expect(h.valeur, `${nom} : valeur hors de son propre intervalle`).toBeGreaterThanOrEqual(bas);
-        expect(h.valeur, `${nom} : valeur hors de son propre intervalle`).toBeLessThanOrEqual(haut);
-      });
+  for (const [bloc, entrees] of blocs) {
+    for (const [nom, h] of Object.entries(entrees)) {
+      describe(`${bloc}.${nom}`, () => {
+        it("annonce une provenance lisible", () => {
+          // Une phrase, pas un mot-clé : elle doit pouvoir être montrée à
+          // l'utilisateur telle quelle quand il demande d'où sort un chiffre.
+          expect(
+            h.provenance.length,
+            "provenance trop courte pour dire quoi que ce soit",
+          ).toBeGreaterThan(60);
+          expect(h.provenance.trim().endsWith("."), "provenance non terminée").toBe(true);
+        });
 
-      it("reste un pourcentage plausible", () => {
-        expect(h.valeur).toBeGreaterThanOrEqual(0);
-        expect(h.valeur).toBeLessThanOrEqual(100);
+        it("annonce une fiabilité, et pas la plus flatteuse par défaut", () => {
+          expect(["observee", "estimee"]).toContain(h.fiabilite);
+        });
+
+        it("déclare un intervalle ordonné et plausible", () => {
+          const [bas, haut] = h.intervalle;
+          expect(bas, `${bloc}.${nom} : intervalle inversé`).toBeLessThanOrEqual(haut);
+          expect(bas, `${bloc}.${nom} : borne basse négative`).toBeGreaterThanOrEqual(0);
+          expect(haut, `${bloc}.${nom} : borne haute invraisemblable`).toBeLessThanOrEqual(100);
+        });
+
+        it("tient dans l'intervalle qu'elle déclare", () => {
+          // L'invariant qui compte, pour les hypothèses qui portent une valeur
+          // centrale. Modifier une valeur sans toucher à son intervalle — ou
+          // l'inverse — est l'erreur qu'on commet en relisant vite une grille
+          // tarifaire, et elle ne se voit pas à l'œil.
+          //
+          // Les fourchettes sans valeur centrale sautent ce test : leur donner
+          // une moyenne inventée serait précisément ce que le type refuse.
+          if (!("valeur" in h)) return;
+          const [bas, haut] = h.intervalle;
+          expect(h.valeur, `${bloc}.${nom} : valeur hors de son propre intervalle`).toBeGreaterThanOrEqual(bas);
+          expect(h.valeur, `${bloc}.${nom} : valeur hors de son propre intervalle`).toBeLessThanOrEqual(haut);
+        });
       });
-    });
+    }
   }
 });
 
