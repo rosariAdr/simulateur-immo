@@ -838,3 +838,119 @@ plancher à zéro de l'indexation, deux.
   décrit le niveau simple de la spécification, et c'est optimiste : sur un bien ancien,
   huit pour cent de frais jamais récupérés reculent le croisement de plusieurs années.
   L'interface qui les laisse à zéro doit le dire.
+
+---
+
+## ADR-013 — Deux abattements, deux assiettes, et un forfait qui ne s'applique pas tout seul
+
+**Date** : 23 août 2026 · **Statut** : adoptée · **Tickets** : `ENG-014`, `ENG-016`
+
+### Contexte
+
+Le calcul de la plus-value immobilière hors résidence principale fait intervenir deux
+barèmes d'abattement pour durée de détention qui **ne coïncident pas** : celui de l'impôt
+sur le revenu (CGI, art. 150 VC) éteint l'imposition au terme de la 22e année ; celui des
+prélèvements sociaux (CSS, art. L136-7) ne l'éteint qu'au terme de la 30e. Entre les deux,
+un vendeur ne doit plus un euro d'impôt sur le revenu et doit encore des prélèvements
+sociaux sur 72 % de sa plus-value à 22 ans, part qui décroît ensuite de 9 points par an.
+
+La forme naturelle d'une sortie de moteur est une « plus-value imposable » unique, dont
+l'appelant tirerait les deux impositions. Elle est fausse huit années sur trente, et
+plausible pendant les vingt-deux autres — le pire profil de défaut pour un simulateur.
+
+Deuxième sujet, signalé comme dette par `FIS-007`. Les deux forfaits de majoration du prix
+d'acquisition — 7,5 % de frais, 15 % de travaux — ont des conditions d'application que
+`params.ts` porte dans ses commentaires et **pas dans sa structure**. Le forfait travaux
+suppose un immeuble bâti détenu depuis plus de cinq ans ; le forfait de frais est fermé aux
+immeubles détenus par un fonds de placement immobilier. Rien n'empêchait un consommateur
+distrait de majorer de 15 % un terrain acheté deux ans plus tôt.
+
+### Décision
+
+**Le module produit deux assiettes nommées, jamais une.** `baseImpotRevenu` et
+`basePrelevementsSociaux` sont deux champs distincts de `ImpositionPlusValue`, chacun
+accompagné de son `AbattementApplique` — taux, montant, année d'exonération totale du
+barème employé. Aucun champ « plus-value imposable » n'existe : le nom serait ambigu, donc
+il n'est pas écrit.
+
+Corollaire retenu et non évident : **la surtaxe est assise sur l'assiette de l'impôt sur le
+revenu**, celle des articles 150 V à 150 VD auxquels renvoie l'art. 1609 nonies G. Elle
+s'éteint donc à 22 ans, avec l'impôt sur le revenu, et non à 30 avec les prélèvements
+sociaux.
+
+**Un forfait ne s'applique qu'au travers d'un jeton, et le jeton est revérifié.** Deux
+verrous, et il en faut deux :
+
+1. *Par le type.* `MajorationTravaux` et `MajorationFraisAcquisition` sont des unions
+   discriminées dont la branche `forfait` porte un jeton marqué par un `unique symbol`
+   privé au module. Le symbole n'est pas exporté : aucun appelant ne peut nommer la
+   propriété, donc aucun ne peut fabriquer le jeton. Les seuls producteurs sont
+   `travauxForfaitaires()` et `fraisAcquisitionForfaitaires()`, qui lèvent
+   `ForfaitHorsChampError` hors du champ d'application.
+2. *À l'exécution.* Le jeton atteste qu'un forfait a été ouvert **pour une** situation, pas
+   que c'est celle du calcul. `calculerPlusValue` revérifie donc les conditions contre
+   l'entrée effectivement soumise. Sans ce second contrôle, ouvrir le forfait sur un bien
+   bâti détenu vingt ans suffirait à majorer un terrain détenu deux ans.
+
+Un troisième point, purement pratique : **la durée de détention entre en mois**, pas en
+années révolues. Le forfait travaux suppose « plus de cinq ans » ; 60 et 71 mois valent
+tous deux 5 années révolues et n'ouvrent pas les mêmes droits. Les abattements, eux, se
+comptent en années révolues, dérivées par `anneesRevolues()`.
+
+**Ce que le module ne modélise pas est une sortie, pas un commentaire.** `nonModelise` est
+un tableau de phrases françaises, jamais vide, joint à chaque résultat et destiné à être
+affiché. Il grossit selon la configuration : le taux réduit EEE/Suisse y ajoute deux
+réserves, un terrain à bâtir une, une moins-value une autre.
+
+### Justification
+
+**Sur les deux assiettes.** Un moteur qui rend un chiffre ambigu délègue la
+désambiguïsation à l'interface, c'est-à-dire à l'endroit qui n'a ni les tests ni le
+contexte pour la faire. Le coût de deux champs est nul ; le coût d'une confusion est un
+impôt faux de plusieurs milliers d'euros, dans le sens qui rassure.
+
+**Sur le double verrou.** Le type seul est insuffisant et le contrôle d'exécution seul est
+tardif. Ensemble, ils rendent l'erreur difficile à écrire et impossible à exécuter. Le
+choix de lever plutôt que de retomber silencieusement sur les frais réels suit `money.ts`,
+qui lève sur une saisie illisible : un simulateur qui corrige tout seul produit un chiffre
+vraisemblable et faux.
+
+**Sur `nonModelise`.** Le positionnement du produit est de dire d'où viennent ses chiffres.
+La spécification écrit elle-même que le régime des non-résidents « doit être vérifié cas
+par cas ». Un module qui applique une règle à deux branches sans le dire laisserait croire
+à une exhaustivité qu'il n'a pas ; le champ rend la réserve indétachable du résultat.
+
+### Ce qui la garde
+
+- `src/core/compare/__tests__/plus-value.test.ts` — cas de référence à 22, 29 et 30 ans, le
+  calcul écrit en commentaire ; continuité de la surtaxe à ses neuf frontières internes, et
+  sa discontinuité voulue au seuil des 50 000 € constatée telle quelle ; sous `fast-check`,
+  l'assiette sociale toujours supérieure ou égale à l'assiette fiscale, et strictement
+  supérieure entre la 6e et la 29e année.
+- Une propriété tire le jeton et la situation de calcul indépendamment : à chaque tirage
+  hors champ, le calcul doit refuser plutôt que majorer.
+- `src/core/fiscal/__tests__/params-plus-value.test.ts`, écrit par `FIS-007`, garde la
+  donnée ; celui-ci garde sa lecture. Les deux sont nécessaires : un barème juste lu de
+  travers rend un chiffre faux, et l'inverse aussi.
+
+Vérifié à l'adoption, trois gardes cassées puis rétablies : appliquer le barème fiscal aux
+prélèvements sociaux fait rougir six tests ; retirer le contrôle d'exécution du forfait,
+deux ; annuler la décote de lissage de la surtaxe, trois.
+
+### Conséquences acceptées
+
+- **L'interface doit présenter deux assiettes.** C'est une ligne de plus dans une
+  restitution déjà dense, et c'est la seule façon d'expliquer pourquoi un vendeur à 25 ans
+  de détention paie encore quelque chose.
+- **Un forfait hors champ lève.** L'appelant qui laisse l'utilisateur choisir le mode
+  forfaitaire doit interroger `motifExclusionForfaitTravaux` /
+  `motifExclusionForfaitFraisAcquisition` pour griser l'option et en dire la raison, plutôt
+  que de rattraper une exception.
+- **Les amortissements déduits en location meublée au réel ne sont pas réintégrés.** La
+  plus-value imposable d'un bien loué meublé au réel est donc sous-estimée par ce module.
+  Le point est déclaré dans `nonModelise` et attend `ENG-013`, qui traitera les régimes
+  locatifs et saura ce qui a été amorti.
+- **L'abattement exceptionnel de l'art. 150 VE n'est pas appliqué**, bien que ses valeurs
+  soient dans `params.ts` : il dépend d'un engagement de démolition ou de reconstruction
+  pris par l'**acquéreur**, que le simulateur ne connaît pas. Les valeurs restent
+  disponibles pour un ticket ultérieur.

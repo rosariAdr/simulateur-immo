@@ -130,9 +130,18 @@ Le découpage en versions, le modèle de branches et les portes sont dans
 - [ ] `ENG-011` Portefeuille du locataire de référence
 - [ ] `ENG-012` Scénario de vente, exonération résidence principale
 - [ ] `ENG-013` Régimes fiscaux locatifs
-- [ ] `ENG-014` Plus-value hors résidence principale, abattements par durée
+- [x] `ENG-014` Plus-value hors résidence principale, abattements par durée
+      → `src/core/compare/plus-value.ts`. **Deux abattements, deux assiettes** —
+      `baseImpotRevenu` (22 ans) et `basePrelevementsSociaux` (30 ans) — jamais une
+      « plus-value imposable » unique. La surtaxe est assise sur l'assiette de l'impôt sur
+      le revenu, donc s'éteint à 22 ans. Les forfaits de majoration ne s'appliquent qu'au
+      travers d'un jeton non falsifiable, revérifié à l'exécution : la dette signalée par
+      `FIS-007` est soldée. Voir ADR-013
 - [ ] `ENG-015` Scénario location courte durée
-- [ ] `ENG-016` Statut de résidence fiscale et prélèvements sociaux applicables
+- [x] `ENG-016` Statut de résidence fiscale et prélèvements sociaux applicables
+      → même fichier. `RegimeSocialDuCedant` commande le taux, et lui seul : taux plein du
+      régime dérogatoire immobilier, ou taux réduit pour l'affilié EEE/Suisse. Ce que la
+      règle ne couvre pas sort avec le résultat, dans `nonModelise`
 - [x] `FIS-007` Valeurs réglementaires de la phase 3 dans `params.ts`, sourcées et datées :
       prélèvements sociaux et leur taux réduit EEE/Suisse, les **deux** barèmes d'abattement
       pour durée de détention, taux forfaitaire de 19 %, surtaxe et son barème à dix tranches,
@@ -1548,3 +1557,71 @@ l'appréciation du bien, ni les frais de revente, ni le coût d'opportunité de 
 Le dire dans le code ne suffira pas.
 
 **Porte** — `PORT_E2E=3122 npm run porte`, verte.
+
+### 23 août 2026 — `ENG-014` et `ENG-016`, plus-value hors résidence principale
+
+**Ce qui est livré.** `src/core/compare/plus-value.ts`, un seul fichier ajouté au
+répertoire — deux autres agents y travaillaient sur d'autres modules pendant la session.
+Fonction publique `calculerPlusValue(entree): ImpositionPlusValue`, entourée de quatre
+constructeurs de majoration, deux prédicats d'exclusion et trois fonctions de barème
+exportées pour être éprouvées séparément.
+
+**La décision de fond.** Deux abattements, donc **deux assiettes**, nommées en toutes
+lettres. Aucun champ « plus-value imposable » n'existe dans la sortie : le nom serait
+ambigu, et l'ambiguïté serait résolue par l'interface, c'est-à-dire à l'endroit qui n'a ni
+les tests ni le contexte pour la résoudre. Entre la 22e et la 30e année, un moteur qui ne
+rendrait qu'un chiffre serait faux de la totalité des prélèvements sociaux restants, et
+parfaitement vraisemblable. Détail dans ADR-013.
+
+**Un corollaire trouvé en chemin, et qui n'allait pas de soi.** La surtaxe est assise sur
+la plus-value imposable « déterminée dans les conditions prévues aux articles 150 V à
+150 VD » — c'est-à-dire l'assiette de l'**impôt sur le revenu**, pas celle des
+prélèvements sociaux. Elle s'éteint donc à 22 ans avec l'impôt sur le revenu, et non à 30.
+Prendre l'assiette sociale, plus large, aurait produit une surtaxe entre la 22e et la 30e
+année là où rien n'est dû. Un invariant sous `fast-check` le garde.
+
+**La dette de `FIS-007` est soldée, par deux verrous et pas un.** Le type d'abord : la
+branche `forfait` des unions de majoration porte un jeton marqué d'un `unique symbol` non
+exporté, que seuls `travauxForfaitaires()` et `fraisAcquisitionForfaitaires()` produisent,
+et qui lèvent hors champ. L'exécution ensuite : `calculerPlusValue` revérifie les
+conditions contre l'entrée soumise, parce qu'un jeton atteste d'**une** situation et pas
+de celle du calcul. Sans ce second contrôle, ouvrir le forfait sur un bien bâti détenu
+vingt ans suffisait à majorer de 15 % un terrain détenu deux ans — et c'est exactement le
+tirage qu'une propriété reproduit.
+
+**Une unité changée, et c'est la seule qui marche.** La durée de détention entre en
+**mois**. Le forfait travaux suppose « plus de cinq ans » ; 60 mois et 71 mois valent tous
+deux 5 années révolues, et n'ouvrent pas les mêmes droits. Une durée en années ne sait pas
+distinguer les deux.
+
+**Ce que le module ne modélise pas sort avec le résultat.** `nonModelise` est un champ,
+pas un commentaire : six réserves permanentes, deux de plus quand le taux réduit
+EEE/Suisse est retenu, une pour un terrain à bâtir, une pour une moins-value. La
+spécification écrit elle-même que le régime des non-résidents « doit être vérifié cas par
+cas » ; la réserve est rendue indétachable du chiffre plutôt que laissée à l'interface.
+
+**Trois gardes cassées, trois rouges obtenus.** Appliquer le barème fiscal aux
+prélèvements sociaux — la confusion classique : six tests rouges, dont « expected 100 to
+be 28 » sur l'abattement social à 22 ans et « expected 22 to be 30 » sur l'année
+d'exonération. Retirer le contrôle d'exécution du forfait travaux : deux rouges, dont la
+propriété qui tire le jeton et la situation indépendamment. Annuler la décote de lissage
+de la surtaxe : trois rouges, dont « saut de surtaxe à 100000 € : 2000 € puis 3000.03 € ».
+Rétabli après chaque essai, suite reverte.
+
+**Aucune valeur réglementaire écrite dans le module.** Tous les taux, barèmes, seuils et
+forfaits sont lus dans `params.ts`, y compris la durée de cinq ans du forfait travaux, qui
+sert de comparaison stricte. Aucun fichier existant de `src/core/` n'a été touché.
+
+**Trouvé sans être corrigé.** Trois points, tous déclarés dans `nonModelise` :
+les amortissements déduits en location meublée au réel ne sont pas réintégrés à la
+plus-value, alors que `docs/03-spec-domaine.md` §2 signale l'effet — la plus-value d'un
+bien loué meublé au réel est donc sous-estimée, et le sujet appartient à `ENG-013` qui
+saura ce qui a été amorti ; l'abattement exceptionnel de l'art. 150 VE n'est pas appliqué
+bien que ses valeurs soient dans `params.ts`, parce qu'il dépend d'un engagement de
+l'acquéreur ; et la restriction du forfait de 7,5 % aux fonds de placement immobilier a
+été reprise de la réserve écrite par `FIS-007`, sans être reconfrontée au texte de
+l'art. 150 VB, II, 3°.
+
+**Porte verte** — `PORT_E2E=3131 npm run porte` : typecheck, lint, **820 tests Vitest sur
+17 fichiers**, build, **242 tests Playwright passés et 10 ignorés**. Le ticket en apporte
+36, dans `src/core/compare/__tests__/plus-value.test.ts`.
