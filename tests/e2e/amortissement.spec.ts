@@ -19,14 +19,37 @@ const eur = (entier: string, decimales = "00") =>
 const lecture = (page: Page, poste: string) => page.locator(`[data-curseur] [data-lecture="${poste}"]`);
 const barre = (page: Page, annee: number) => page.locator(`[data-annee="${annee}"]`);
 
-/** Hauteur mesurée des trois segments d'une barre, en pixels. */
+/**
+ * Extension mesurée des trois segments d'une barre, le long de l'axe où ils
+ * s'empilent.
+ *
+ * POURQUOI CE N'EST PLUS « la hauteur ». Depuis `UI-006` le ruban a deux
+ * orientations : des colonnes quand il a la place de donner 24 px à chaque
+ * année, des lignes quand il ne l'a pas. Ce que cette garde protège n'a jamais
+ * été la hauteur — c'est la PROPORTION. Une mesure verticale écrite en dur ne
+ * protégeait pas l'invariant : elle interdisait l'orientation, et le seul moyen
+ * de la faire passer sur un téléphone aurait été d'y renoncer.
+ *
+ * L'axe se lit dans le style calculé de la piste, pas dans une hypothèse sur le
+ * profil : une garde qui devine son propre contexte finit par mesurer autre
+ * chose que ce qu'elle croit. `tests/e2e/mobile.spec.ts` vérifie séparément que
+ * les deux orientations existent bien, sans quoi cette généralisation pourrait
+ * devenir vraie pour une mauvaise raison.
+ */
 async function segments(page: Page, annee: number) {
-  const hauteur = async (poste: string) =>
-    (await barre(page, annee).locator(`[data-part="${poste}"]`).boundingBox())?.height ?? 0;
+  const enColonnes = await page
+    .locator('[role="radiogroup"][aria-label^="Année lue"]')
+    .evaluate((piste) => getComputedStyle(piste).flexDirection === "row");
+
+  const mesure = async (poste: string) => {
+    const boite = await barre(page, annee).locator(`[data-part="${poste}"]`).boundingBox();
+    if (!boite) return 0;
+    return enColonnes ? boite.height : boite.width;
+  };
   return {
-    interets: await hauteur("interets"),
-    assurance: await hauteur("assurance"),
-    capital: await hauteur("capital"),
+    interets: await mesure("interets"),
+    assurance: await mesure("assurance"),
+    capital: await mesure("capital"),
   };
 }
 
@@ -36,7 +59,7 @@ test("le ruban porte une barre par année", async ({ page }) => {
   await expect(page.locator("[data-annee]")).toHaveCount(20);
 });
 
-test("les hauteurs du ruban sont proportionnelles aux montants", async ({ page }) => {
+test("les parts du ruban sont proportionnelles aux montants", async ({ page }) => {
   await page.goto("/credit");
 
   // Année 1 : 5 664,76 € d'intérêts, 540,00 € d'assurance, 6 531,92 € de capital.

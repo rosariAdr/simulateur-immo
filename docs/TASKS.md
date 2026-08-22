@@ -89,7 +89,11 @@ Le découpage en versions, le modèle de branches et les portes sont dans
       → `src/content/glossaire.ts` : dix-neuf entrées, la règle des deux phrases portée
       par le type, les valeurs réglementaires reçues en paramètre. Deux défauts de la
       pastille corrigés — le toucher et le débordement de la bulle. Voir ADR-007
-- [ ] `UI-006` Adaptation mobile
+- [x] `UI-006` Adaptation mobile
+      → le ruban change d'axe quand sa largeur ne permet plus 24 px par année,
+      le bandeau déduit son nombre de colonnes, et le résumé chiffré passe devant
+      la saisie sur écran étroit. Deux défauts trouvés au passage à 1 024 px, sur
+      un écran de bureau. `tests/e2e/mobile.spec.ts`, 11 tests. Voir le journal
 - [x] `UI-012` **Les options des listes déroulantes sont illisibles** — voir la fiche
       détaillée plus bas. Contraste mesuré **1,21:1**, contre 4,5:1 exigés. Défaut
       présent dans `v0.1.0`, sur toutes les listes du site
@@ -895,3 +899,98 @@ déroulée n'appartient à aucun élément et reste hors de portée d'une mesure
 prouvent que la consigne est donnée au navigateur, pas ce qu'il en peint.
 
 **Porte de version** — à froid : 217 unitaires, 172 de bout en bout sur deux profils.
+
+### 22 août 2026 (suite) — `UI-006`, le mobile cesse d'être « lisible mais pas travaillé »
+
+**Le défaut mesuré** — sur Pixel 7, `/credit?du=300` : une barre du ruban faisait
+**10,63 × 154 px**. Le critère WCAG 2.2 § 2.5.8 demande 24 px, et l'exception
+d'espacement ne s'applique pas — les barres se touchent. Le ruban était pointable au
+doigt par accident seulement. Vingt ans donnaient 14,05 px, quinze ans 19,72 px :
+aucune durée proposée par la liste ne passait le seuil.
+
+**Ce qui a été écarté, et pourquoi**
+
+- *Un défilement horizontal du ruban.* Le ruban existe pour montrer d'un seul regard
+  le reflux des intérêts sur toute la durée. Un ruban qu'il faut faire défiler pour
+  en voir la fin demande de mémoriser l'année 1 pour la comparer à l'année 25 : il ne
+  montre plus ce pour quoi il existe. Et la page aurait porté deux cadres à
+  défilement horizontal, le tableau étant déjà l'un d'eux.
+- *Regrouper les années par deux.* Vingt-cinq années groupées par deux donnent
+  treize barres de 27 px — le compte tombe juste, et le résultat ment. Le dernier
+  groupe n'aurait qu'une année : à hauteurs strictement proportionnelles, sa barre
+  ferait la moitié des autres et se lirait comme un effondrement du versement qui
+  n'existe pas. Le seul moyen de la rattraper aurait été un plancher, c'est-à-dire
+  exactement ce que ce ruban s'interdit.
+- *Un point de rupture de fenêtre.* Il se serait trompé — voir plus bas.
+- *Rendre le ruban non cliquable en dessous d'un seuil.* Le critère cesse de
+  s'appliquer, le défaut reste : on aurait retiré à l'utilisateur de téléphone le
+  seul graphique manipulable du module pour faire passer une mesure.
+
+**Ce qui a été fait — le ruban tourne d'un quart de tour**
+
+Sous 700 px de large, une ligne par année empilée vers le bas, les bandes courant
+vers la droite. Toutes les années restent visibles d'un seul tenant, la cible passe
+de 10,63 × 154 à **346 × 26 px**, et le repère d'année cesse d'être masqué une fois
+sur deux — en lignes il n'y a plus de chevauchement à éviter.
+
+Les proportions ne bougent pas. Les segments portent la même fraction `--part` dans
+les deux orientations ; seule la dimension qui la reçoit change. Vérifié au pixel :
+intérêts / capital de l'année 1 mesuré à 0,8673 contre 0,86725 attendu.
+
+**La découverte : ce n'est pas la fenêtre qui contraint, c'est le ruban**
+
+Le seuil est arithmétique — 25 × 24 + 24 × 3 + 26 de cadre = 698 px — et il porte sur
+la largeur du RUBAN. D'où une requête de conteneur et non un point de rupture. La
+différence n'est pas théorique : **à 1 024 px de fenêtre, la colonne de résultats
+n'en fait que 640 et les barres y tombaient à 21,7 px**. Sur un écran de bureau, dans
+une bande de largeurs que ni le profil `bureau` (1 280) ni le profil `mobile` (412) ne
+traversait. Un point de rupture de fenêtre aurait laissé ce défaut intact.
+
+Le même raisonnement a rattrapé un second défaut au même endroit. Le bandeau
+d'indicateurs passait à cinq colonnes sur `lg:` : à 1 024 px les cartes tombaient à
+120 px et **trois montants sur cinq débordaient de leur carte** — « 281 636,97 € » de
+34 px. `auto-fit` sur un minimum de 165 px règle la question par construction. Le
+compte de colonnes des deux profils de test est inchangé — cinq à 1 280, deux sur
+Pixel 7 — mais il est désormais conclu et non supposé.
+
+**Hiérarchie de lecture** — les deux colonnes s'empilaient dans l'ordre du DOM : dix
+champs de saisie avant le premier chiffre, alors que le scénario par défaut est déjà
+calculé à l'arrivée. L'ordre du document devient « ce que ça donne, ce qui le
+produit, le détail » ; la grille de bureau replace le panneau à gauche par un
+placement explicite, et rien n'y change visuellement. L'alerte de dépassement suit le
+bandeau : elle explique l'indicateur qu'elle a fait passer en brique, les séparer les
+rendrait tous les deux muets.
+
+**Densité** — le libellé et la légende des indicateurs montent d'un point sous
+1 024 px (11 → 12 px, 10 → 11 px). Ce n'est pas la largeur de la carte qui le commande
+— elle est la même qu'au bureau, 177 contre 171 px — mais la distance de lecture. Le
+chiffre ne bouge pas : il est déjà le plus gros élément de la carte, et le grossir le
+ferait déborder.
+
+**Cibles tactiles des contrôles** — deux primitives manquaient le seuil sans que cela
+se voie au pointeur, où la cible est le curseur :
+
+- le curseur de taux avait une zone sensible de **342 × 3 px**, la hauteur de sa
+  piste. La boîte passe à 24 px de haut sans que la peinture change d'un pixel ;
+- le `select` se calait sur son interligne, **19,5 px**. Hauteur minimale à 26 px.
+
+**Ce qui reste, et qui n'est pas de ce ticket**
+
+- **La pastille « i » fait 15 × 15 px** et manque le critère. Sa géométrie est tenue
+  par une garde d'`UI-005` : `infobulles.spec.ts` mesure au pixel près l'alignement de
+  la bulle sur le bord gauche de la pastille. Agrandir sa boîte casse cette garde, et
+  la refaire est un ticket, pas un effet de bord de celui-ci. La dette est nommée dans
+  `tests/e2e/mobile.spec.ts`, à l'endroit exact où elle est exclue de l'énumération,
+  pour qu'elle ne se perde pas.
+- **Les liens du pied de page font 18 px de haut.** Ils relèvent de l'exception
+  d'espacement du critère — 26 px entre les centres de deux rangées, 20 px entre deux
+  liens d'une même rangée — et sont laissés tels quels délibérément.
+- **Sous 360 px de large le bandeau tombe à une colonne**, et le module fait alors
+  4 005 px de haut. C'est le prix de « aucun montant n'est rogné » : à deux colonnes,
+  la carte descend à 151 px et « 281 636,97 € » déborde de 3 px. L'arbitrage est
+  assumé — un montant tronqué ressemble encore à un montant.
+- **La convention clavier du ruban a changé** : `ArrowDown` avance, `ArrowUp` recule.
+  C'était l'inverse, ce qui ne correspondait à aucune des deux orientations.
+
+**Porte** — `PORT_E2E=3111 npm run porte` verte : 217 unitaires sur 7 fichiers,
+194 de bout en bout (97 × 2 profils) sur 10 fichiers, dont 7 ignorés par construction.

@@ -13,6 +13,23 @@ import { useScenario } from "./useScenario";
  *
  * Saisie à gauche, résultat à droite, comme le veut le brief §6. Le résultat
  * réagit immédiatement : aucun bouton « calculer », aucune animation d'attente.
+ *
+ * SUR UN ÉCRAN ÉTROIT, LE VERDICT PASSE DEVANT — `UI-006`. Les deux colonnes
+ * s'empilaient dans l'ordre du DOM : dix champs de saisie, puis les chiffres. Il
+ * fallait donc traverser tout le formulaire pour voir la première mensualité,
+ * alors qu'elle est déjà calculée à l'arrivée — le scénario par défaut est
+ * complet. L'ordre du document est désormais « ce que ça donne, ce qui le
+ * produit, le détail », et c'est la grille de bureau qui replace le panneau à
+ * gauche par un placement explicite.
+ *
+ * Le bandeau et l'alerte de dépassement voyagent ensemble : l'alerte explique
+ * l'indicateur qu'elle a fait passer en brique, les séparer les rendrait tous
+ * les deux muets.
+ *
+ * L'ordre de tabulation suit le document et non le dessin. Il reste cohérent
+ * dans les deux cas — on lit un résumé avant de le modifier — et c'est le prix
+ * à payer pour hisser le résumé sans le dupliquer. Une seconde copie du bandeau
+ * cachée par média serait deux `role="status"` pour un seul chiffre.
  */
 export function ModuleCredit() {
   const { scenario, definir, plan, params } = useScenario();
@@ -62,15 +79,11 @@ export function ModuleCredit() {
         </div>
       </header>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[296px_minmax(0,1fr)]">
-        <PanneauParametres
-          scenario={scenario}
-          definir={definir}
-          seuilUsure={plan.usury.threshold}
-          params={params}
-        />
-
-        <div className="flex min-w-0 flex-col gap-5">
+      <div
+        className="grid grid-cols-1 gap-5
+                   lg:grid-cols-[296px_minmax(0,1fr)] lg:grid-rows-[auto_minmax(0,1fr)] lg:gap-6"
+      >
+        <div className="flex min-w-0 flex-col gap-5 lg:col-start-2 lg:row-start-1">
           <BandeauIndicateurs plan={plan} />
 
           {!conforme && (
@@ -104,7 +117,18 @@ export function ModuleCredit() {
               )}
             </div>
           )}
+        </div>
 
+        <div className="lg:col-start-1 lg:row-span-2 lg:row-start-1">
+          <PanneauParametres
+            scenario={scenario}
+            definir={definir}
+            seuilUsure={plan.usury.threshold}
+            params={params}
+          />
+        </div>
+
+        <div className="flex min-w-0 flex-col gap-5 lg:col-start-2 lg:row-start-2">
           <section className="border border-filet bg-panneau px-3.5 py-3">
             <p className="mb-2 text-[11px] uppercase tracking-[0.07em] text-encre-secondaire">
               Répartition de ce que vous verserez
