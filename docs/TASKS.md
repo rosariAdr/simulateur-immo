@@ -31,15 +31,36 @@ Le découpage en versions, le modèle de branches et les portes sont dans
 
 ## Phase 1 — Moteur crédit
 
-- [ ] `ENG-001` Annuité constante, cas taux nul inclus
-- [ ] `ENG-002` Échéancier avec différé, dernière échéance soldante
-- [ ] `ENG-003` Agrégation multi-prêts
-- [ ] `ENG-004` Assurance emprunteur, deux bases de calcul, quotité
-- [ ] `ENG-005` Coût de garantie et part restituable
-- [ ] `ENG-006` TAEG par dichotomie
-- [ ] `ENG-007` Taux d'endettement et contrôle de seuil
+- [x] `ENG-001` Annuité constante, cas taux nul inclus
+      → cas de référence 150 000 € / 4 % / 20 ans, dégénérescence à taux nul, capital
+      ou durée nuls
+- [x] `ENG-002` Échéancier avec différé, dernière échéance soldante
+      → différé total avec capitalisation, différé partiel, et l'invariant « la somme des
+      parts de capital égale le capital emprunté » sous fast-check
+- [x] `ENG-003` Agrégation multi-prêts
+      → plan consolidé avec PTZ : la mensualité grimpe à la fin du différé, les deux
+      prêts s'amortissent intégralement
+- [x] `ENG-004` Assurance emprunteur, deux bases de calcul, quotité
+      → prime constante sur capital initial, décroissante sur capital restant dû,
+      quotité 200 % à l'arrondi près
+- [x] `ENG-005` Coût de garantie et part restituable
+      → `src/core/credit/__tests__/garantie.test.ts`, ajouté le 22 août 2026. Avant lui,
+      seule la caution était exercée : l'hypothèque et le nantissement n'avaient aucun
+      test, alors que l'interface les propose. Les tests portent sur des relations,
+      jamais sur un montant — les barèmes sont des hypothèses de marché (`FIS-005`)
+- [x] `ENG-006` TAEG par dichotomie
+      → égale le taux nominal sans frais, le dépasse dès qu'il y en a, croît avec eux
+- [x] `ENG-007` Taux d'endettement et contrôle de seuil
+      → l'assurance entre dans le taux d'effort, la mensualité MAXIMALE est confrontée
+      au plafond, le seuil d'usure est pris dans la bonne tranche de durée
 - [ ] `ENG-008` Cas de référence vérifiés contre une source externe
-- [ ] `ENG-009` Tests de propriétés sur les invariants d'échéancier
+      → **partiel, et c'est le seul `ENG` qui le reste.** Un seul cas cite une source
+      extérieure (150 000 € / 4 % / 20 ans, La finance pour tous). `docs/02-architecture.md`
+      demande « une poignée de scénarios » confrontés à un tableau produit par une banque
+      ou une feuille de calcul indépendante. Un cas n'est pas une poignée
+- [x] `ENG-009` Tests de propriétés sur les invariants d'échéancier
+      → fast-check sur capital, taux et durée : capital soldé, restant dû décroissant
+      jusqu'à zéro exact, aucune part négative, allonger augmente le coût
 
 ## Phase 2 — Interface crédit
 
@@ -496,3 +517,64 @@ anticipation : c'est de la phase 4, elle attend `ENG-017`. Nouveau ticket `VIZ-0
 - `LEG-002` l'avertissement visible. `/credit` affiche désormais des chiffres réels
   sur un déploiement public ; un simulateur utilisable et sans avertissement est plus
   exposé qu'un simulateur incomplet
+
+### 22 août 2026 (suite) — Un avertissement, des versions, et un audit du moteur
+
+**`LEG-002` — l'avertissement**
+
+En tête de document, avant le contenu, sur toutes les pages. **Sans bouton de
+fermeture** : un avertissement qu'on escamote cesse d'en être un au deuxième
+chargement de page, et c'est l'utilisateur qui revient souvent qui prend l'habitude de
+croire les chiffres. Le texte long vit à `/avertissement` et cite ses articles —
+L. 541-1 et L. 519-1 du code monétaire et financier — pour qu'ils se vérifient.
+
+Le site n'est pas indexable tant que `LEG-001` et `LEG-002` n'ont pas été relus. Un
+seul interrupteur, `src/lib/site.ts`, lu par `robots.txt` **et** par les métadonnées :
+deux endroits qui se contrediraient est un défaut qu'on remarque une fois le site
+indexé, c'est-à-dire trop tard.
+
+Régime d'éditeur retenu : **non professionnel anonyme**, art. 6 III de la LCEN.
+L'identité va à l'hébergeur, le site publie l'hébergeur et une adresse de contact.
+Reste à fournir cette adresse — elle sera publique, quatre fois.
+
+**Versions, branches, portes — ADR-006**
+
+`npm run porte` enchaîne typecheck, lint, Vitest, build et Playwright. Une branche par
+ticket, fusion en `--no-ff`. Le découpage en versions est dans `docs/RELEASES.md`, avec
+un critère de sortie par version écrit du point de vue de quelqu'un qui arrive sur le
+site sans rien savoir.
+
+Deux faits l'ont imposé, tous deux du même jour. Une garde est passée pendant deux
+suites complètes puis a échoué, alors que le défaut qu'elle visait était constant :
+**124 montants rognés** sur le profil mobile. Et rien ne distinguait un commit ayant
+passé la suite d'un commit ne l'ayant pas passée.
+
+**Audit `ENG-001` à `ENG-009`**
+
+Huit tickets cochés après relecture de la couverture, ticket par ticket. Deux
+conclusions valent d'être écrites.
+
+`ENG-005` était un **vrai trou** : seule la caution était exercée par un test.
+L'hypothèque et le nantissement n'en avaient aucun, alors que l'interface les propose
+et que le coût de mainlevée est un chiffre que l'utilisateur voit.
+`src/core/credit/__tests__/garantie.test.ts` le comble — 13 tests portant sur des
+**relations** (assiette, proportionnalité, restitution) et jamais sur un montant, parce
+que ces barèmes sont des hypothèses de marché et non des valeurs réglementaires
+(`FIS-005`). Un test qui figerait « 2 250 € » donnerait l'illusion que ce chiffre a été
+vérifié quelque part.
+
+Ce fichier vit sous `src/core/credit/`, qui est gelé. Il n'y touche pas : il ajoute de
+la couverture sans modifier une ligne vérifiée, et `git diff -- src/core` est resté vide
+après la sonde. Le gel protège un acquis ; l'éprouver le sert.
+
+`ENG-008` **reste ouvert, et c'est le seul.** Un seul cas de référence cite une source
+extérieure. `docs/02-architecture.md` en demande « une poignée », confrontés à un
+tableau produit par une banque ou une feuille de calcul indépendante. Un cas n'est pas
+une poignée, et cocher aurait été se mentir.
+
+**Outillage**
+
+Le port des tests de bout en bout se choisit (`PORT_E2E`). Sans cela, deux copies du
+dépôt qui vérifient leur branche en même temps se servent l'une le build de l'autre :
+une porte qui se trompe de code est pire qu'une porte absente. `.claude/**` est exclu
+du lint pour la même raison.

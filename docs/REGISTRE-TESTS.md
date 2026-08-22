@@ -31,8 +31,8 @@ Relevé du 22 août 2026, sur `main`.
 
 | Suite | Fichiers | Tests |
 | --- | --- | --- |
-| Unitaires | 4 | 129 |
-| Bout en bout | 3 | 68 (34 × 2 profils) |
+| Unitaires | 5 | 142 |
+| Bout en bout | 4 | 94 (47 × 2 profils) |
 
 ### Ce que couvrent les unitaires
 
@@ -49,6 +49,7 @@ Relevé du 22 août 2026, sur `main`.
 | --- | --- | --- |
 | `composants.spec.ts` | 13 | Les primitives dans leurs cinq états. Jamais d'information portée par la seule couleur ; tout état d'erreur porte un `role="alert"` visible |
 | `credit.spec.ts` | 9 | Le module calcule les chiffres du moteur. **Un scénario partagé par URL redonne exactement les mêmes chiffres** — la promesse centrale du produit. Une URL trafiquée ne fait pas dérailler le calcul |
+| `avertissement.spec.ts` | 13 | L'avertissement est présent et visible sur toute route qui affiche un chiffre, il ne peut pas être fermé, et aucune page n'est indexable tant que les textes n'ont pas été relus |
 | `amortissement.spec.ts` | 12 | Le ruban ne ment pas sur les proportions, mesuré au pixel. Le curseur se déplace au clavier. Aucun montant n'est rogné dans sa cellule |
 
 ### Gardes vérifiées par sabotage
@@ -66,6 +67,10 @@ gardes-là ont été cassées exprès, puis rétablies :
   fait échouer la mesure au pixel.
 - **Montants rognés** — retirer la largeur minimale du tableau fait réapparaître
   « 409 874,79 € » dans la liste des cellules tronquées.
+- **Avertissement permanent** — retirer `<Avertissement />` de la mise en page fait
+  échouer six tests, un par route et un par propriété.
+- **Assiette de la mainlevée** — asseoir le coût de mainlevée sur le capital emprunté
+  au lieu du prix du bien fait échouer le test de garantie correspondant.
 
 ---
 
