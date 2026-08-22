@@ -165,6 +165,23 @@ test("la note disparaît quand les échéances ne sont pas constantes", async ({
   await expect(page.locator("[data-note-derniere]")).toHaveCount(0);
 });
 
+test("aucun montant n'est rogné dans sa cellule", async ({ page }) => {
+  // Le scénario tendu porte les montants les plus larges du jeu de référence :
+  // 409 874,79 € de capital restant dû.
+  await page.goto("/credit?px=465000&ap=45000&tx=3.9&du=300&as=0.34&ga=hypotheque&fd=1500&rv=6080&ac=180");
+
+  // Un montant tronqué ressemble encore à un montant. C'est le seul défaut
+  // d'affichage de ce produit qui puisse tromper quelqu'un sur un chiffre.
+  const rognes = await page.evaluate(() =>
+    [...document.querySelectorAll<HTMLElement>("[data-tableau] td, [data-valeur], [data-lecture]")]
+      .filter((el) => el.scrollWidth > el.clientWidth + 1)
+      .map((el) => (el.textContent ?? "").trim())
+      .slice(0, 10),
+  );
+
+  expect(rognes, "montants rognés").toEqual([]);
+});
+
 test("le tableau ne fait pas déborder la page, même déplié", async ({ page }) => {
   await page.goto("/credit");
   await page.locator('[data-granularite="mois"]').click();
