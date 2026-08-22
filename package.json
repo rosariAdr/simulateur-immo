@@ -9,12 +9,13 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "npm run typegen && tsc --noEmit",
     "fixtures": "node scripts/run.mjs scripts/export-fixtures.mts && node scripts/run.mjs scripts/export-design-sheet.mts",
     "design-pack": "node scripts/build-design-pack.mjs",
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",
-    "porte": "npm run typecheck && npm run lint && npm run test && npm run build && npm run e2e"
+    "porte": "npm run typecheck && npm run lint && npm run test && npm run build && npm run e2e",
+    "typegen": "next typegen"
   },
   "dependencies": {
     "next": "16.3.1",
