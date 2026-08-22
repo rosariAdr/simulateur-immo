@@ -40,7 +40,7 @@ Préfixes : `ENG` moteur de calcul · `FIS` paramètres fiscaux · `UI` interfac
 
 - [x] `UI-000` Galerie `/composants` — les primitives dans leurs cinq états, banc
       d’essai des tests de bout en bout et documentation vivante
-- [x] `INF-007` Playwright : 22 tests sur deux profils, bureau et mobile
+- [x] `INF-007` Playwright : 33 tests sur deux profils, bureau et mobile
       → le scénario partagé par URL est couvert
 
 - [x] `UI-001` Grille de base, panneau de paramètres, zone de résultats
@@ -53,8 +53,12 @@ Préfixes : `ENG` moteur de calcul · `FIS` paramètres fiscaux · `UI` interfac
 - [x] `UI-004` Bandeau d'indicateurs
       → cinq indicateurs, chacun avec sa légende qualifiante ; alerte sur franchissement
       d'un seuil réglementaire, jamais sur un jugement de valeur
-- [ ] `VIZ-001` Ruban d'amortissement avec curseur de lecture
-- [ ] `VIZ-002` Tableau d'amortissement, agrégation annuelle
+- [x] `VIZ-001` Ruban d'amortissement avec curseur de lecture
+      → une barre par année, hauteurs strictement proportionnelles, curseur au clavier,
+      ligne de lecture relue par les lecteurs d'écran
+- [x] `VIZ-002` Tableau d'amortissement, agrégation annuelle
+      → agrégation reprise du moteur, bascule par année / par mois, curseur partagé
+      avec le ruban. Le curseur ne part pas dans l'URL, voir ADR-005
 - [ ] `UI-005` Infobulles pédagogiques sur les termes techniques
 - [ ] `UI-006` Adaptation mobile
 
@@ -78,6 +82,10 @@ Préfixes : `ENG` moteur de calcul · `FIS` paramètres fiscaux · `UI` interfac
 - [ ] `ENG-020` Comparaison de patrimoine à effort constant
 - [ ] `ENG-021` Suggestion gloutonne sous contraintes contractuelles
 - [ ] `VIZ-004` Frise cliquable des versements
+- [ ] `VIZ-006` Les deux tables de lecture sous le ruban, prévues par la planche de
+      design : « où en est le crédit » — le mois où la part d'intérêts passe sous 25,
+      15, 10 puis 5 % de l'échéance — et « où agir », qui chiffre ce que rapporte un
+      euro remboursé par anticipation. La seconde attend `ENG-017`
 - [ ] `UI-008` Cascade des trois indicateurs
 
 ## Phase 5 — Pierre ou marchés
@@ -395,3 +403,63 @@ l'adresse porte tout le scénario avant de la partager.
   glossaire complet reste à écrire (`CNT-001`)
 - `UI-006` adaptation mobile — la grille se replie déjà, mais rien n'a été pensé
   pour la densité
+
+### 22 août 2026 (suite) — Le crédit se regarde
+
+**Fait — `VIZ-001`, `VIZ-002`**
+
+- `RubanAmortissement.tsx` : une barre par année, intérêts en haut, assurance au
+  milieu, capital en bas. Le capital pousse par le bas et les intérêts refluent par
+  le haut, ce qui est exactement ce qui se passe.
+- `TableauAmortissement.tsx` : l'agrégation annuelle est celle du moteur, pas une
+  somme refaite dans le composant — deux additions des mêmes centimes finiraient par
+  diverger d'un arrondi, et c'est le genre d'écart qu'un comparateur ne pardonne pas.
+  Bascule par année / par mois, les trois cents échéances sans pagination.
+- Les deux vues partagent un curseur. Cliquer une barre marque la ligne, cliquer une
+  ligne déplace la barre.
+
+**Décision d'architecture — ADR-005**
+
+Le curseur de lecture et la granularité **ne partent pas dans l'URL**. L'URL décrit un
+crédit, pas la façon dont on le regardait. Ce qui change un chiffre y entre, ce qui
+change un cadrage n'y entre pas — sans quoi `?px=465000&an=14` ne se lit plus d'un
+coup d'œil.
+
+**Aucune hauteur plancher sur le ruban**
+
+Même quand la bande d'assurance ne fait que deux pixels. Un produit dont la thèse est
+l'honnêteté du chiffre ne peut pas grossir une part pour la rendre lisible : une
+assurance invisible sur le ruban est une assurance négligeable, et c'est une
+information.
+
+Le test correspondant mesure les pixels réels des trois segments et les confronte aux
+montants de la fixture. Il a été **vérifié par sabotage** : rétablir un plancher de
+6 % sur l'assurance le fait échouer.
+
+**Deux pièges, tous deux consignés dans le code**
+
+Les barres doivent s'étirer sur toute la hauteur du ruban — surtout pas `items-end`.
+Les segments sont dimensionnés en pourcentage, et un pourcentage de hauteur ne se
+résout que contre un parent de hauteur définie. Avec des barres calées en bas, elles
+s'ajustent à leur contenu, le contenu s'ajuste à elles, et **tout retombe à zéro** :
+le ruban existe dans le DOM, porte les bons libellés, et ne se voit pas.
+
+`scrollIntoView` sur la vue mensuelle prend `block: "nearest"` et non `"center"`.
+Autrement, cliquer une ligne visible du tableau dérobe le tableau à celui qui vient
+de le pointer.
+
+**Ce que le ruban ne porte pas encore**
+
+La planche de design prévoit deux tables de lecture sous le ruban — « où en est le
+crédit » et « où agir ». La seconde chiffre ce que rapporte un euro remboursé par
+anticipation : c'est de la phase 4, elle attend `ENG-017`. Nouveau ticket `VIZ-006`.
+
+**Reste sur le module**
+
+- `UI-005` les infobulles ont leur composant et leurs premiers contenus ; le
+  glossaire complet reste à écrire (`CNT-001`)
+- `UI-006` adaptation mobile — sur Pixel 7 une barre du ruban fait quinze pixels de
+  large, ce qui passe, mais rien n'a été pensé pour la densité
+- `LEG-002` l'avertissement visible. `/credit` affiche désormais des chiffres réels
+  sur un déploiement public ; un simulateur utilisable et sans avertissement est plus
+  exposé qu'un simulateur incomplet

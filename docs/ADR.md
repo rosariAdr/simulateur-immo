@@ -281,3 +281,49 @@ seulement le projet infaisable.
 - Les conclusions de `docs/reference/FIS-002-verification.md` restent à reporter dans
   `params.ts`, qui est gelé. Ce report est désormais possible, mais il demande une
   raison explicite — il en a une, et un test qui fige les valeurs retenues.
+
+## ADR-005 — Le curseur de lecture ne part pas dans l'URL
+
+**Date** : 22 août 2026 · **Statut** : adoptée
+
+### Contexte
+
+Le ruban d'amortissement (`VIZ-001`) et le tableau (`VIZ-002`) partagent un curseur :
+l'année qu'on est en train de lire. Le tableau porte en plus une granularité, par
+année ou par mois.
+
+L'état d'URL est déjà en place (ADR-001, `src/lib/scenario.ts`) et il aurait accueilli
+ces deux valeurs sans effort : deux clés de plus, `an` et `gr`. La planche de design
+prévoyait d'ailleurs `annee_lue` parmi ses propriétés.
+
+### Décision
+
+**L'URL décrit un crédit, pas la façon dont on le regardait.** Le curseur de lecture
+et la granularité du tableau restent des états locaux de composant.
+
+Ce qui entre dans l'URL : ce qui change un chiffre. Ce qui n'y entre pas : ce qui
+change un cadrage.
+
+### Justification
+
+La promesse du produit est qu'un lien partagé redonne exactement les mêmes chiffres.
+Elle repose sur une lecture immédiate de l'adresse : chaque clé présente est un
+paramètre du scénario, et une URL nue décrit le scénario par défaut — c'est ce que
+vérifie le test « une URL nue ne porte aucun paramètre ».
+
+Mélanger des paramètres de calcul et des positions de lecture dans le même espace de
+noms abîme cette lecture. `?px=465000&an=14` ne se lit plus d'un coup d'œil : il faut
+savoir lesquelles des deux clés comptent. Et le jour où l'on partagerait un lien après
+avoir fait défiler le tableau, l'adresse porterait une trace de ce geste sans que
+personne l'ait voulu.
+
+### Conséquences acceptées
+
+- On ne peut pas partager « regarde l'année 14 de ce crédit ». C'est une perte réelle,
+  et petite : le curseur ouvre déjà sur l'année où le crédit bascule, et le
+  destinataire d'un lien cherche d'abord ses propres chiffres.
+- Recharger la page ramène le curseur à son ouverture. Acceptable pour une position de
+  lecture ; inacceptable pour un paramètre, d'où la distinction.
+- Si un module ultérieur devait vraiment partager une position — un versement anticipé
+  pointé sur la frise de `VIZ-004`, par exemple — ce ne serait plus une position de
+  lecture mais une hypothèse du scénario, et elle entrerait dans l'URL à ce titre.

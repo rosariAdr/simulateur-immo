@@ -4,6 +4,8 @@ import { useState } from "react";
 import { formatEuros, formatPourcentage } from "@/lib/format";
 import { BandeauIndicateurs } from "./BandeauIndicateurs";
 import { PanneauParametres } from "./PanneauParametres";
+import { RubanAmortissement } from "./RubanAmortissement";
+import { TableauAmortissement } from "./TableauAmortissement";
 import { useScenario } from "./useScenario";
 
 /**
@@ -11,15 +13,23 @@ import { useScenario } from "./useScenario";
  *
  * Saisie à gauche, résultat à droite, comme le veut le brief §6. Le résultat
  * réagit immédiatement : aucun bouton « calculer », aucune animation d'attente.
- *
- * Ce qui manque encore, et qui a son ticket : le ruban d'amortissement
- * (`VIZ-001`) et le tableau (`VIZ-002`). La grille les attend.
  */
 export function ModuleCredit() {
   const { scenario, definir, plan } = useScenario();
   const [copie, setCopie] = useState(false);
+  const [anneeChoisie, setAnneeChoisie] = useState<number | null>(null);
 
   const conforme = plan.usury.compliant && plan.hcsf.compliant;
+
+  // Le curseur de lecture ouvre sur l'année où le crédit bascule — celle où
+  // l'échéance rembourse enfin plus de capital qu'elle ne paie d'intérêts.
+  // C'est le seul moment que le ruban existe pour montrer ; l'ouvrir sur la
+  // première année reviendrait à faire chercher.
+  const anneeBascule = plan.crossoverMonth !== null ? Math.ceil(plan.crossoverMonth / 12) : 1;
+  const dernier = plan.annual.length;
+  // Bornée à chaque rendu plutôt que réinitialisée par un effet : raccourcir la
+  // durée ne doit pas laisser le curseur pointer une année qui n'existe plus.
+  const annee = Math.min(Math.max(anneeChoisie ?? anneeBascule, 1), Math.max(dernier, 1));
 
   return (
     <div className="min-h-full bg-papier px-6 py-6 text-encre lg:px-8">
@@ -96,6 +106,10 @@ export function ModuleCredit() {
             </p>
             <Repartition plan={plan} />
           </section>
+
+          <RubanAmortissement plan={plan} annee={annee} onAnnee={setAnneeChoisie} />
+
+          <TableauAmortissement plan={plan} annee={annee} onAnnee={setAnneeChoisie} />
 
           <section className="border-t border-filet pt-3">
             <p className="mb-1.5 text-[11px] uppercase tracking-[0.07em] text-encre-secondaire">
