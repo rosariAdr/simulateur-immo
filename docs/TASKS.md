@@ -53,11 +53,12 @@ Le découpage en versions, le modèle de branches et les portes sont dans
 - [x] `ENG-007` Taux d'endettement et contrôle de seuil
       → l'assurance entre dans le taux d'effort, la mensualité MAXIMALE est confrontée
       au plafond, le seuil d'usure est pris dans la bonne tranche de durée
-- [ ] `ENG-008` Cas de référence vérifiés contre une source externe
-      → **partiel, et c'est le seul `ENG` qui le reste.** Un seul cas cite une source
-      extérieure (150 000 € / 4 % / 20 ans, La finance pour tous). `docs/02-architecture.md`
-      demande « une poignée de scénarios » confrontés à un tableau produit par une banque
-      ou une feuille de calcul indépendante. Un cas n'est pas une poignée
+- [x] `ENG-008` Cas de référence vérifiés contre une source externe
+      → cinq sources extérieures dans `cas-de-reference.test.ts`, 18 tests : tableau
+      d'amortissement de La finance pour tous ligne à ligne, exemple représentatif
+      publié par Société Générale (échéancier, assurance, TAEG frais compris, TAEA)
+      reproduit **au centime**, seuils d'usure de l'avis du 26 juin 2026 au JO,
+      décision HCSF du 29 septembre 2021. Aucune valeur attendue ne vient du moteur
 - [x] `ENG-009` Tests de propriétés sur les invariants d'échéancier
       → fast-check sur capital, taux et durée : capital soldé, restant dû décroissant
       jusqu'à zéro exact, aucune part négative, allonger augmente le coût
@@ -895,3 +896,95 @@ déroulée n'appartient à aucun élément et reste hors de portée d'une mesure
 prouvent que la consigne est donnée au navigateur, pas ce qu'il en peint.
 
 **Porte de version** — à froid : 217 unitaires, 172 de bout en bout sur deux profils.
+
+### 22 août 2026 — `ENG-008`, cinq sources extérieures et aucun désaccord
+
+**Fait**
+
+`src/core/credit/__tests__/cas-de-reference.test.ts`, 18 tests, cinq sources
+extérieures au projet. Le ticket se coche : l'architecture demandait « une poignée de
+scénarios » vérifiés hors du dépôt, il y en avait un.
+
+| Source | Ce qu'elle vérifie | Accord |
+| --- | --- | --- |
+| La finance pour tous, hypothèse A — 200 000 € / 1,65 % / 15 ans | Mensualité 1 255,04 €, coût global 25 906,67 € | Mensualité exacte ; coût à 5 centimes |
+| La finance pour tous, tableau par annuités — 50 000 € / 2 % / 4 périodes | Les quatre lignes : intérêts, capital, restant dû | Exact au centime |
+| Société Générale, exemple représentatif — 200 000 € / 3,30 % / 20 ans | Mensualité 1 139,47 €, dernière échéance 1 139,70 €, intérêts 73 473,03 €, montant total dû 289 234,23 € | **Exact au centime** |
+| Le même, volet assurance | Cotisation 43,33 €/mois, coût total 10 399,20 € | Exact au centime |
+| Le même, volet TAEG | TAEG 4,10 %, TAEA 0,44 % | 4,0961 % et 0,4403 % |
+| Avis du 26 juin 2026 au *Journal officiel* | Les cinq seuils d'usure du 3e trimestre 2026 | Exact |
+| Décision HCSF du 29 septembre 2021 | Taux d'effort 35 %, maturité 25 et 27 ans, flexibilité 20 % | Exact |
+
+**Aucun désaccord entre le moteur et une source retenue.** C'était l'issue à ne pas
+présumer : le ticket existait pour faire apparaître un écart s'il y en avait un.
+
+**Le résultat qui compte**
+
+L'exemple représentatif d'une banque n'est pas une illustration pédagogique : c'est
+une mention imposée à la publicité, produite par l'établissement avec l'outil qui
+produira l'offre. Le moteur le reproduit **au centime** sur l'échéancier complet —
+mensualité, dernière échéance majorée publiée séparément, total d'intérêts sur
+240 échéances, coût d'assurance, montant total dû.
+
+Cela établit plus que la justesse d'une formule : notre convention d'arrondi —
+arrondi commercial de chaque intérêt, dernière échéance soldante — **est celle de
+l'établissement**, et pas seulement une convention défendable parmi d'autres. La
+perturbation le confirme : en troncature l'accord disparaît, 73 471,32 € au lieu de
+73 473,03 €.
+
+**Trois choses apprises en chemin**
+
+*Le TAEG dépend du calendrier des frais autant que de leur montant.* Les 612 € de
+tenue de compte de l'exemple SG, traités comme un frais initial, donnent 4,11 % ;
+étalés sur 240 échéances comme le veut leur nature, 4,10 %, la valeur publiée. Le
+périmètre des frais ne suffit pas, il faut leur chronologie.
+
+*`half-even` est indiscernable de `half-up` sur ce prêt.* Un intérêt mensuel ne tombe
+pratiquement jamais sur un demi-centime pile ; sans égalité parfaite, les deux
+conventions décident à l'identique. Seule la troncature se distingue. Cela recoupe la
+mesure de `docs/INDEX.md` — moins de 5 € d'écart entre conventions sur 300 échéances.
+
+*Le texte du HCSF valide un choix d'implémentation.* L'article 4 de la décision
+apprécie le taux d'effort « en prenant les charges annuelles d'emprunt MAXIMALES sur
+l'ensemble de la période d'amortissement ». Le moteur confronte `maxPayment` et non
+`firstPayment` au plafond : ce n'était jusqu'ici justifié que par le raisonnement sur
+le PTZ en différé. C'est maintenant sourcé.
+
+**Sources écartées, et pourquoi**
+
+Une source n'est pas fiable en bloc. La page de La finance pour tous publie trois
+hypothèses ; deux sont fausses et ne portent aucun test :
+
+- *Hypothèse B* — 200 000 € à 1,8 % sur 20 ans, mensualité annoncée **922,93 €** pour
+  un coût global de 38 303,70 €. Les deux chiffres se contredisent : ce coût implique
+  une mensualité de 992,93 €, qui est aussi ce que donne la formule. Inversion de
+  chiffres. Bâtir un test sur une valeur qu'il faut corriger soi-même, c'est redevenir
+  sa propre source.
+- *Hypothèse C* — 253 000 € à 1,8 % sur 25 ans, annoncés 1 256,06 € et 48 454,18 €,
+  quand ces paramètres donnent 1 047,89 € et 61 366,57 €. Aucune lecture ne réconcilie
+  les trois nombres. Ligne fausse.
+
+Écartés aussi : les comparateurs et courtiers remontés par les recherches. Ils
+publient des chiffres sans dire d'où ils viennent, et un simulateur qui en recopie un
+autre n'est pas une source extérieure.
+
+**Deux points signalés, non corrigés**
+
+- Le taux d'assurance déduit de l'exemple SG — 0,26 % du capital initial pour un
+  emprunteur de 35 ans — tombe **sous** la fourchette `marketGroupRatePct`
+  `[0,30 ; 0,42]` de `params.ts`. Ce sont des ordres de grandeur de marché, pas des
+  valeurs réglementaires, et un seul exemple ne fait pas une fourchette ; mais la
+  borne basse mérite d'être revue quand `FIS-005` sera repris.
+- Le cas historique de `reference.test.ts` emploie `toBeCloseTo(908.97, 1)`, soit une
+  tolérance de 5 centimes, muette. La valeur exacte est 908,9705 € : le test passerait
+  encore si le moteur dérivait. Fichier gelé, non touché — mais c'est exactement le
+  travers que les tolérances nommées de `cas-de-reference.test.ts` évitent.
+
+**Contrainte de gel respectée** — `git diff -- src/core` ne montre que le fichier
+ajouté. Aucune ligne d'implémentation modifiée. La perturbation qui prouve que la
+garde mord passe par `LoanSpec.rounding`, que le moteur expose déjà, et non par une
+retouche temporaire du code gelé.
+
+**Note d'outillage** — `banque-france.fr` et `economie.gouv.fr` renvoient 403 aux
+requêtes automatisées. Les seuils d'usure et la décision HCSF ont donc été lus sur
+Légifrance, qui est de toute façon la source de droit.
