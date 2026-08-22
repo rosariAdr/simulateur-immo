@@ -446,3 +446,76 @@ par un type nommé) : rendre l'erreur inexprimable plutôt que la détecter.
   la mauvaise.
 - Le glossaire long de `CNT-001` viendra se brancher ici : la bulle donne la
   définition, la fiche donnera le raisonnement.
+
+## ADR-008 — La loi et le marché ne vivent pas dans le même fichier
+
+**Date** : 22 août 2026 · **Statut** : adoptée
+
+### Contexte
+
+`src/core/fiscal/params.ts` a été conçu pour une chose : contenir les valeurs **que
+la loi fixe**. Chacune porte un `@source` renvoyant à un article, et sa mise à jour
+est un fait daté — la loi de finances change, on change la valeur. C'est la promesse
+d'ADR-001 : « les règles sont du code, les valeurs sont des données ».
+
+Les coûts de garantie y avaient été rangés faute d'un meilleur endroit. Ils n'ont
+pourtant pas cette nature : **aucun texte ne les fixe.** Un organisme de caution
+publie une grille commerciale, progressive, qu'il révise quand il veut. Une
+inscription hypothécaire mêle des émoluments réglementés, une taxe et des débours.
+Ce sont des ordres de grandeur observés.
+
+Trois conséquences, dont une seule aurait suffi.
+
+**Rien ne les distinguait du reste.** Un lecteur de `params.ts` ne pouvait pas savoir,
+sans lire les commentaires, quelles valeurs opposer à une banque et lesquelles ne
+sont qu'une estimation de notre part.
+
+**Leur `TODO_VERIFY` était insoluble.** Vérifier « à la source » suppose une source
+qui fasse autorité. Il n'y en a pas ; il n'y a que des grilles divergentes, datées du
+jour où on les a lues. Ce marqueur allait rester là indéfiniment, et sa présence
+affaiblissait les trois autres, qui portent sur du droit et se vérifient vraiment.
+
+**Elles n'auraient jamais dû être immuables.** Une valeur négociable a vocation à
+devenir un paramètre que l'utilisateur ajuste. Enfermée dans le millésime fiscal,
+elle ne le pouvait pas.
+
+### Décision
+
+- `src/core/assumptions/market.ts` accueille les hypothèses de marché. Chaque valeur
+  y porte son **intervalle observé**, sa **fiabilité** — `observee` ou `estimee` — et
+  sa **provenance** en une phrase montrable à l'utilisateur.
+- `guaranteeCost` reçoit ces hypothèses et non plus un millésime fiscal. Le type
+  interdit désormais de confondre les deux.
+- `CreditPlanInput` gagne un `marketAssumptions?` optionnel : l'appelant peut les
+  substituer, ce qu'aucune valeur réglementaire ne permettrait.
+- `params.ts` ne contient plus que des valeurs dont un article peut être cité.
+
+### Ce qui a été touché malgré le gel
+
+`fiscal/params.ts` et `credit/plan.ts` sont gelés (ADR-004). La modification était la
+raison d'être du ticket `FIS-005`, et elle est accompagnée de ses tests, comme ADR-004
+l'exige. `guaranteeCost` change de signature ; `buildCreditPlan` garde la sienne, pour
+que les tests de référence existants n'aient pas à être retouchés.
+
+**Le déplacement ne corrige aucun chiffre.** Les cinq valeurs sont reprises à
+l'identique, et un test le garde : un remaniement qui corrige au passage est un
+remaniement qu'on ne peut plus relire. Les recouper sur des grilles publiées reste à
+faire, et c'est désormais un travail borné.
+
+### Une conséquence qu'on n'attendait pas
+
+En qualifiant ces coûts d'hypothèses de marché, la décision a rendu intenable
+l'étiquette du champ « Garantie » dans l'interface : il était présenté comme
+**réglementaire**, « ce qui s'impose et ne se discute pas », alors que
+`docs/CONTEXT.md` §2 range le choix de la garantie parmi les paramètres
+**négociables** depuis le premier jour.
+
+C'est l'erreur dans le pire sens : elle disait à quelqu'un qu'il n'a pas la main sur
+ce qu'il peut précisément négocier — exactement ce que ce produit existe pour
+corriger. Corrigé ici, et gardé par un test.
+
+### Conséquences acceptées
+
+- Deux fichiers de valeurs au lieu d'un, et un import de plus dans `plan.ts`.
+- La fiabilité des cinq entrées est `estimee`. C'est un aveu, pas un objectif : le
+  travail de recoupement reste entier, mais il est désormais nommé et localisé.

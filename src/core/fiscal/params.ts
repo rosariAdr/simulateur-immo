@@ -121,17 +121,17 @@ export interface FiscalParams {
     readonly notaryDiscountThreshold: Cents;
   };
 
-  /**
-   * Coûts de garantie — ordres de grandeur de marché, non réglementaires.
-   * @todo TODO_VERIFY auprès des barèmes des organismes de caution.
+  /*
+   * Les coûts de garantie ont quitté ce fichier le 22 août 2026 — `FIS-005`.
+   *
+   * Ils vivent dans `src/core/assumptions/market.ts`. Aucun texte ne les fixe :
+   * ce sont des grilles commerciales, révisables sans loi de finances. Les
+   * garder ici revenait à leur prêter l'autorité des valeurs qui les entourent,
+   * et leur `TODO_VERIFY` était insoluble faute de source qui fasse autorité.
+   *
+   * Ce fichier ne contient plus que des valeurs dont un article peut être cité.
+   * Voir `docs/ADR.md`, ADR-008.
    */
-  readonly guarantee: {
-    readonly suretyshipCostPct: number;
-    readonly suretyshipRefundPct: number;
-    readonly mortgageCostPct: number;
-    readonly mortgageReleasePct: number;
-    readonly pledgeCostPct: number;
-  };
 
   /**
    * TAEG.
@@ -196,14 +196,6 @@ export const PARAMS_2026: FiscalParams = {
     furnitureDeductionMaxPct: 5,
     notaryDiscountMaxPct: 20,
     notaryDiscountThreshold: euros(100_000),
-  },
-
-  guarantee: {
-    suretyshipCostPct: 1.25,
-    suretyshipRefundPct: 55,
-    mortgageCostPct: 1.5,
-    mortgageReleasePct: 0.4,
-    pledgeCostPct: 0.3,
   },
 
   apr: {

@@ -25,7 +25,9 @@ Le découpage en versions, le modèle de branches et les portes sont dans
 - [x] `FIS-001` Structure des paramètres fiscaux versionnés par millésime
       → `src/core/fiscal/params.ts`, typé, daté, sourcé par JSDoc `@source`/`@see`
 - [ ] `FIS-002` **Vérifier à la source toutes les valeurs réglementaires du prototype**
-      → 3 entrées `TODO_VERIFY` dans `params.ts`. Recherche menée le 21 août :
+      → **2 entrées** `TODO_VERIFY` dans `params.ts` depuis `FIS-005` (la troisième,
+      les barèmes de caution, était insoluble faute de source faisant autorité — elle a
+      quitté le fichier plutôt que d'y rester indéfiniment). Recherche menée le 21 août :
       voir `docs/reference/FIS-002-verification.md`. Une seule reste non résolue,
       la liste des départements à taux réduit. Bloquant avant mise en ligne.
 
@@ -144,8 +146,14 @@ Le découpage en versions, le modèle de branches et les portes sont dans
 - [ ] `FIS-003` Barèmes, zonage, plafonds de ressources, avec sources
 - [ ] `FIS-004` Exonération de la hausse DMTO pour première propriété — non modélisée,
       concerne le public prioritaire. Voir `docs/reference/FIS-002-verification.md`
-- [ ] `FIS-005` Sortir les barèmes de caution de `params.ts` : ce sont des hypothèses
+- [x] `FIS-005` Sortir les barèmes de caution de `params.ts` : ce sont des hypothèses
       de marché, aucune loi ne les fixe. Décision d’architecture à prendre
+      → `src/core/assumptions/market.ts`. Chaque valeur porte son intervalle observé, sa
+      fiabilité et sa provenance. Aucun chiffre modifié, et un test le garde. Voir ADR-008
+- [x] `UI-013` Le champ « Garantie » était étiqueté **réglementaire** alors que
+      `docs/CONTEXT.md` §2 range le choix de la garantie parmi les **négociables**.
+      L'erreur dans le pire sens : elle disait à quelqu'un qu'il n'a pas la main sur ce
+      qu'il peut négocier. Découvert en traitant `FIS-005`, corrigé et gardé par un test
 - [ ] `UI-010` Assistant d'éligibilité
 
 ## Portes de vérification

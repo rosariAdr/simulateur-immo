@@ -115,3 +115,15 @@ gardes-là ont été cassées exprès, puis rétablies :
 **Ce que ce relevé ne couvre pas.** La porte s'exécute sur un build local. Elle ne dit
 rien de ce que l'hébergeur sert réellement : la vérification du déploiement est une
 étape distincte, postérieure à l'étiquette, et elle se fait à la main.
+
+### Gardes ajoutées par `FIS-005` (22 août 2026)
+
+- **Frontière loi / marché** — rétablir un champ `guarantee` dans `PARAMS_2026` fait
+  échouer « le millésime fiscal ne porte plus les coûts de garantie ». La frontière est
+  facile à refranchir sans y penser : le réflexe, la prochaine fois qu'une valeur de
+  marché sera nécessaire, sera de l'ajouter là où il y a déjà tout le reste.
+- **Valeur hors de son intervalle** — porter `suretyshipCostPct` à 1,85 sans toucher à
+  son intervalle `[1,0 ; 1,5]` fait échouer deux tests. C'est l'erreur qu'on commet en
+  relisant vite une grille tarifaire, et elle ne se voit pas à l'œil.
+- **Taxonomie de la garantie** — remettre le champ « Garantie » en `réglementaire` fait
+  échouer un test de bout en bout sur les deux profils.
