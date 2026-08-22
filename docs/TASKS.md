@@ -90,9 +90,12 @@ Le découpage en versions, le modèle de branches et les portes sont dans
       par le type, les valeurs réglementaires reçues en paramètre. Deux défauts de la
       pastille corrigés — le toucher et le débordement de la bulle. Voir ADR-007
 - [ ] `UI-006` Adaptation mobile
-- [ ] `UI-011` La légende de la mensualité annonce un différé qui n'existe pas :
+- [x] `UI-011` La légende de la mensualité annonce un différé qui n'existe pas :
       `firstPayment !== maxPayment` se déclenche sur un écart d'arrondi de 1,02 €.
       Une phrase fausse sous un chiffre juste
+      → règle extraite dans `src/lib/marche.ts` et testée sur ses deux versants : une
+      marche réelle se repère, un solde final et un bruit d'arrondi ne se confondent
+      plus avec elle
 
 ## Phase 3 — Acheter ou louer
 
