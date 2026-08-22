@@ -185,7 +185,8 @@ Transversales aux phases. Voir `docs/RELEASES.md` §3.
       exécuté par `tests/e2e/parcours-v0-1.spec.ts`. À couvrir avant l'étiquette : le
       parcours d'accueil vers `/credit`, la présence de l'avertissement sur chaque
       écran qui affiche un chiffre, l'atteignabilité des mentions légales
-- [ ] `TST-020` Porte de version **v0.2.0**. Le parcours complet mené au pouce sur
+- [x] `TST-020` Porte de version **v0.2.0** — passée le 22 août 2026, critère de sortie
+      exécuté au pouce par `tests/e2e/parcours-v0-2.spec.ts` sur le profil tactile. Le parcours complet mené au pouce sur
       le profil mobile : cibles tactiles d'au moins 24 px, aucun montant rogné,
       aucune infobulle hors écran
 - [ ] `TST-030` Porte de version **v0.3.0**. Les cas de référence d'« acheter ou
@@ -1281,3 +1282,50 @@ encore.
 
 **Porte** — `PORT_E2E=3112 npm run porte`, verte : 553 unitaires (8 fichiers),
 192 de bout en bout dont 5 ignorés par construction.
+
+### 22 août 2026 — Sortie de **v0.2.0**, « Le crédit s'explique »
+
+**Ce qui sort.** Onze routes, toutes prérendues. Le mobile travaillé, un glossaire de
+quarante-huit termes relié aux infobulles, une fiche pédagogique, et deux chantiers de
+fond ajoutés en cours de route : les cas de référence externes et la séparation entre
+valeurs de loi et hypothèses de marché.
+
+**Cinq chantiers menés en parallèle**, quatre par des agents sur leur propre copie du
+dépôt, chacun avec sa branche, son port de test et sa porte. Ce qu'il faut en retenir
+tient en trois points.
+
+**Le type a arrêté trois confusions.** `FIS-005` a déplacé les coûts de garantie et les
+fourchettes de marché hors de `params.ts` pendant que deux autres chantiers les
+lisaient. À chaque fusion, la compilation a refusé. C'est exactement ce qu'on demandait
+à cette séparation : une hypothèse de marché ne se glisse plus là où on attend une
+valeur de loi.
+
+**Une source publique s'est révélée fausse, pas notre moteur.** `ENG-008` cherchait un
+désaccord entre nos calculs et des sources extérieures. Il n'en a trouvé aucun — mais
+deux chiffres publiés par La finance pour tous sont faux, et la page se contredit
+elle-même. Vérifié indépendamment avant d'être écrit. À l'inverse, l'exemple
+représentatif de la Société Générale — une mention légalement imposée, produite par la
+banque avec l'outil qui produira l'offre — est reproduit **au centime** sur
+l'échéancier, l'assurance et le TAEG.
+
+**Les agents ont trouvé ce que je n'avais pas mesuré.** `UI-006` a relevé deux défauts
+à 1024 px, une bande qu'aucun de nos deux profils ne traverse : les barres du ruban y
+tombaient à 21,7 px et trois montants sur cinq débordaient. `CNT-001` a trouvé trois
+défauts du chemin entre la bulle et le glossaire, dont sept pixels de vide qui
+fermaient la bulle pendant le trajet de la souris.
+
+**Le coût du travail en parallèle, mesuré.** Chaque agent consignant sa propre entrée
+de journal, les quatre fusions ont produit un conflit chacune sur `docs/TASKS.md` et
+`docs/REGISTRE-TESTS.md`, et le registre s'est retrouvé avec quatre relevés empilés,
+tous périmés sauf un. Consolidé ici. Deux branches ont aussi pris le numéro `ADR-008`
+en même temps ; celle déjà fusionnée et citée depuis `src/core` l'a gardé.
+
+**Le critère de sortie est exécuté au pouce.** `parcours-v0-2.spec.ts` mène le parcours
+complet par `tap()` et non par `click()` : sur un écran tactile, un appui produit une
+rafale d'événements qu'un clic simulé ne reproduit pas, et c'est précisément là que la
+pastille se cassait avant `UI-005`.
+
+**Réserves inchangées.** Aucun texte légal relu par un juriste, site en `noindex`,
+identité de l'éditeur à communiquer à l'hébergeur, licence du dépôt non choisie,
+déploiement non vérifié. Nouvelles : `FIS-006` le recoupement des neuf hypothèses de
+marché, et la pastille « i » à 15 px, sous le seuil de cible tactile.

@@ -53,11 +53,17 @@ règle est gardée par un test qui échoue si `color-scheme` retombe à `normal`
 ### v0.2.0 — « Le crédit s'explique »
 
 `UI-006` adaptation mobile — densité, cibles tactiles, ruban · `CNT-001` glossaire
-relié aux infobulles · `CNT-002` fiches pédagogiques du module crédit · `TST-020`
+relié aux infobulles · `CNT-002` fiche pédagogique du module crédit · `TST-020`
 porte de version.
 
+**Ajoutés en cours de route**, sur décision du 22 août 2026 : `ENG-008` cas de
+référence vérifiés contre une source externe — le dernier ticket `ENG` ouvert — et
+`FIS-005` la séparation des valeurs de loi et des hypothèses de marché. Ils sont
+arrivés avec `UI-013` et `FIS-006`, découverts en les traitant.
+
 **Critère de sortie.** Le même parcours qu'en v0.1, mené au pouce sur un téléphone,
-sans jamais avoir à zoomer ni à viser.
+sans jamais avoir à zoomer ni à viser — et un terme technique explicable partout où
+il apparaît.
 
 ### v0.3.0 — « Acheter ou louer »
 

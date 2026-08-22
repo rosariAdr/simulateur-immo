@@ -25,46 +25,33 @@ ouvertes et remonte un composant en plein test.
 
 ---
 
-## État courant — non publié
+## État courant
 
-Relevé du 22 août 2026, sur `feat/ENG-008-cas-de-reference`.
-
-| Suite | Fichiers | Tests |
-| --- | --- | --- |
-| Unitaires | 8 | 235 |
-| Bout en bout | 9 | 172 (86 × 2 profils), dont 3 ignorés par construction |
-Relevé du 22 août 2026, sur `feat/CNT-002-fiches`.
+Relevé du 22 août 2026 sur `main`, porte passée à froid.
 
 | Suite | Fichiers | Tests |
 | --- | --- | --- |
-| Unitaires | 8 | 238 |
-| Bout en bout | 10 | 204 (102 × 2 profils), dont 3 ignorés par construction |
+| Unitaires | 11 | 619 |
+| Bout en bout | 13 | 252 (126 × 2 profils), dont 10 ignorés par construction |
 
-Relevé précédent, sur `feat/UI-005-infobulles` : 7 fichiers et 217 unitaires,
-9 fichiers et 172 tests de bout en bout. `CNT-002` apporte 21 unitaires et
-14 tests de bout en bout ; les deux qui restent viennent de `avertissement.spec.ts`,
-dont la liste `ROUTES` accueille la nouvelle route.
-Relevé du 22 août 2026, sur `feat/CNT-001-glossaire`.
-
-| Suite | Fichiers | Tests |
-| --- | --- | --- |
-| Unitaires | 8 | 553 |
-| Bout en bout | 10 | 192 (96 × 2 profils), dont 5 ignorés par construction |
-
-Le bond des unitaires — 217 à 553 — n'est pas une couverture qui triple : c'est
+**Le bond des unitaires — 217 à 619 — n'est pas une couverture qui triple.** C'est
 `it.each` sur quarante-huit entrées de glossaire là où il y en avait dix-neuf, et six
 invariants par entrée au lieu de trois. Le nombre de **propriétés vérifiées** passe de
-quatre à dix ; le reste est de la multiplication.
+quatre à dix ; le reste est de la multiplication. Un compteur qui monte n'est pas en
+soi une bonne nouvelle, et le dire ici est la moitié de l'intérêt de ce registre.
 
-Les cinq ignorés ne sont pas des trous : trois mesures du toucher n'ont de sens que sur
-le profil `mobile`, un trajet de souris n'en a que sur le profil `bureau`, et
-l'alignement d'une bulle de 264 px sur sa pastille n'en a que sur un écran large. Chacun
-porte sa raison dans son `test.skip`.
+**Les dix ignorés ne sont pas des trous.** Sept mesures tactiles n'ont de sens que sur
+le profil `mobile`, un trajet de souris que sur `bureau`, et l'alignement d'une bulle
+de 264 px sur sa pastille que sur un écran large. Chacun porte sa raison dans son
+`test.skip`.
 
-Un défaut d'outillage a été corrigé au passage : `vitest.config.mts` ne résolvait pas
-l'alias `@/`. Tout module qui l'emploie compilait mais ne s'exécutait pas sous Vitest —
-`src/lib/format.ts` et `src/content/valeurs.ts` étaient donc **intestables**, sans que
-rien ne le dise, parce qu'aucun test ne les avait encore touchés.
+**Un défaut d'outillage corrigé en chemin.** `vitest.config.mts` ne résolvait pas
+l'alias `@/`. Tout module qui l'emploie compilait mais ne s'exécutait pas sous Vitest :
+`src/lib/format.ts`, `src/lib/scenario.ts` et `src/content/valeurs.ts` étaient
+**intestables unitairement**, sans que rien ne le signale, parce qu'aucun test ne les
+avait encore touchés. Le compteur ne pouvait pas révéler ce manque — un test qu'on
+n'écrit pas ne laisse aucune trace. C'est la limite de ce registre, et elle mérite
+d'être écrite à côté de ses chiffres.
 
 ### Ce que couvrent les unitaires
 
@@ -205,6 +192,7 @@ gardes-là ont été cassées exprès, puis rétablies :
 
 | Version | Date | Unitaires | Bout en bout | Notes |
 | --- | --- | --- | --- | --- |
+| v0.2.0 | 22 août 2026 | 619 | 252 (126 × 2 profils) | Mobile, glossaire, fiche, cas de référence externes, séparation loi/marché. Critère de sortie exécuté au pouce par `parcours-v0-2.spec.ts` |
 | v0.1.1 | 22 août 2026 | 217 | 172 (86 × 2 profils) | Correctif UI-012. Deux gardes pour un seul défaut : ce que la feuille déclare, et ce que le navigateur calcule |
 | v0.1.0 | 22 août 2026 | 214 | 164 (82 × 2 profils) | Porte passée à froid, `.next` supprimé. Critère de sortie **exécuté** et non coché : `parcours-v0-1.spec.ts` va de l'accueil au lien partagé, sur les deux profils |
 
@@ -212,7 +200,7 @@ gardes-là ont été cassées exprès, puis rétablies :
 rien de ce que l'hébergeur sert réellement : la vérification du déploiement est une
 étape distincte, postérieure à l'étiquette, et elle se fait à la main.
 
-### Gardes ajoutées par `FIS-005` (22 août 2026)
+## Annexe — les gardes ajoutées par `FIS-005`
 
 - **Frontière loi / marché** — rétablir un champ `guarantee` dans `PARAMS_2026` fait
   échouer « le millésime fiscal ne porte plus les coûts de garantie ». La frontière est
@@ -225,7 +213,7 @@ rien de ce que l'hébergeur sert réellement : la vérification du déploiement 
   échouer un test de bout en bout sur les deux profils.
 ---
 
-## Relevé du 22 août 2026, sur `feat/UI-006-mobile`
+## Annexe — le détail de `UI-006`, adaptation mobile
 
 | Suite | Fichiers | Tests |
 | --- | --- | --- |
@@ -264,7 +252,7 @@ exclue de l'énumération de `mobile.spec.ts`, avec la raison écrite à l'endro
 l'exclusion : sa géométrie est tenue par une garde d'`UI-005` qui mesure l'alignement
 de la bulle sur son bord gauche au pixel près.
 
-### Gardes vérifiées par sabotage
+### Gardes de `UI-006` vérifiées par sabotage
 
 - **Plancher sur une part du ruban** — remettre `max(var(--part), 6px)` sur la bande
   étroite fait rougir **deux** tests sur le profil `mobile` et aucun sur `bureau` : la
