@@ -166,9 +166,14 @@ par écrit dans le message de fusion, ou ne se fusionne pas.
    par construction : aucun test n'est supprimé d'une version à l'autre. Le registre
    dit combien il y en avait, ce qui rend visible une suite qui aurait maigri.
 3. Relever les compteurs réels et les inscrire dans `docs/REGISTRE-TESTS.md`.
-4. Relire le critère de sortie de la version, écrit plus haut, et **le confronter au
-   site tel qu'il est déployé** — pas au code.
-5. Consigner dans `docs/TASKS.md` : ce qui sort, ce qui est reporté, et pourquoi.
+4. **Exécuter le critère de sortie**, qui vit dans `tests/e2e/parcours-v0-X.spec.ts` :
+   un parcours de bout en bout, de l'accueil au lien partagé. Un critère qu'on coche
+   à la main est un critère qu'on coche de mémoire à la version suivante.
+5. **Après l'étiquette, vérifier le déploiement.** La porte s'exécute sur un build
+   local ; elle ne dit rien de ce que l'hébergeur sert réellement. Ouvrir le site
+   déployé et refaire le parcours à la main est la dernière étape, et elle n'est pas
+   automatisable depuis le dépôt.
+6. Consigner dans `docs/TASKS.md` : ce qui sort, ce qui est reporté, et pourquoi.
 
 Un compteur qui a baissé sans qu'un ticket l'explique arrête la version.
 

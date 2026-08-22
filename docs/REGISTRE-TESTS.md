@@ -32,7 +32,7 @@ Relevé du 22 août 2026, sur `feat/UI-005-infobulles`.
 | Suite | Fichiers | Tests |
 | --- | --- | --- |
 | Unitaires | 7 | 214 |
-| Bout en bout | 7 | 160 (80 × 2 profils), dont 3 ignorés par construction |
+| Bout en bout | 8 | 164 (82 × 2 profils), dont 3 ignorés par construction |
 
 Les trois ignorés ne sont pas des trous : deux mesures du toucher n'ont de sens que
 sur le profil `mobile`, et l'alignement d'une bulle de 264 px sur sa pastille n'en a
@@ -106,7 +106,10 @@ gardes-là ont été cassées exprès, puis rétablies :
 
 ## Versions publiées
 
-*Aucune pour l'instant. La première ligne s'écrira à la sortie de v0.1.0.*
-
 | Version | Date | Unitaires | Bout en bout | Notes |
 | --- | --- | --- | --- | --- |
+| v0.1.0 | 22 août 2026 | 214 | 164 (82 × 2 profils) | Porte passée à froid, `.next` supprimé. Critère de sortie **exécuté** et non coché : `parcours-v0-1.spec.ts` va de l'accueil au lien partagé, sur les deux profils |
+
+**Ce que ce relevé ne couvre pas.** La porte s'exécute sur un build local. Elle ne dit
+rien de ce que l'hébergeur sert réellement : la vérification du déploiement est une
+étape distincte, postérieure à l'étiquette, et elle se fait à la main.

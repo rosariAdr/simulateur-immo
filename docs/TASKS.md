@@ -150,10 +150,11 @@ Transversales aux phases. Voir `docs/RELEASES.md` §3.
       build, Playwright sur deux profils. Aucune fusion dans `main` sans elle, et
       toute branche apporte ses propres tests ou justifie par écrit qu'elle n'en a
       pas besoin
-- [ ] `TST-001` **Porte de version** — la porte de branche à froid, plus le relevé
+- [x] `TST-001` **Porte de version** — la porte de branche à froid, plus le relevé
       des compteurs dans `docs/REGISTRE-TESTS.md` et la confrontation du critère de
       sortie au site déployé, pas au code
-- [ ] `TST-010` Porte de version **v0.1.0**. À couvrir avant l'étiquette : le
+- [x] `TST-010` Porte de version **v0.1.0** — passée le 22 août 2026, critère de sortie
+      exécuté par `tests/e2e/parcours-v0-1.spec.ts`. À couvrir avant l'étiquette : le
       parcours d'accueil vers `/credit`, la présence de l'avertissement sur chaque
       écran qui affiche un chiffre, l'atteignabilité des mentions légales
 - [ ] `TST-020` Porte de version **v0.2.0**. Le parcours complet mené au pouce sur
@@ -733,3 +734,49 @@ La légende de l'indicateur « Mensualité » se déclenche sur `firstPayment !=
 soit un écart de 1,02 € dû aux seuls arrondis d'assurance, et affiche « elle monte à
 1 062,41 € **après le différé** » alors qu'aucun différé n'existe. C'est une phrase
 fausse sous un chiffre juste. Ticket `UI-011`.
+
+### 22 août 2026 — Sortie de **v0.1.0**, « Le crédit se calcule »
+
+**Ce qui sort**
+
+Le simulateur de crédit, publiable et compréhensible sans accompagnement. Neuf routes,
+toutes prérendues statiquement : accueil, module crédit, galerie de composants, portée
+de l'outil, mentions légales, confidentialité, conditions, `robots.txt`.
+
+**La porte de version, passée à froid**
+
+`rm -rf .next` puis `npm run porte`. 214 tests unitaires sur 7 fichiers, 164 de bout en
+bout sur 8 fichiers et deux profils, dont 3 ignorés par construction et documentés.
+
+**Le critère de sortie est exécuté, pas coché**
+
+`tests/e2e/parcours-v0-1.spec.ts` traverse le produit d'un bout à l'autre : un inconnu
+arrive sur l'accueil, y est prévenu avant d'avoir rien lu, comprend les trois familles,
+ouvre le module crédit, saisit son scénario, le partage par lien, le recharge — mêmes
+chiffres — puis va voir qui édite le site. Sur les deux profils.
+
+Un critère de sortie qu'on coche à la main est un critère qu'on coche de mémoire à la
+version suivante. `docs/RELEASES.md` §3 a été amendé en conséquence.
+
+**Ce que la porte ne dit pas, et qui reste à faire à la main**
+
+Elle s'exécute sur un build **local**. Elle ne dit rien de ce que Vercel sert
+réellement. Ouvrir le site déployé et refaire le parcours est une étape distincte,
+postérieure à l'étiquette — elle est désormais écrite comme telle dans la procédure.
+
+**Réserves qui accompagnent cette version**
+
+- **Aucun texte légal n'a été relu par un juriste.** Le site reste en `noindex`
+  jusque-là, piloté par un seul interrupteur.
+- **L'identité de l'éditeur doit avoir été communiquée à Vercel.** C'est la première
+  des deux conditions de l'article 6 III de la LCEN ; rien dans ce dépôt ne peut
+  l'attester, et sans elle le régime d'anonymat ne s'applique pas.
+- **Le mobile est lisible, pas travaillé.** Une barre du ruban fait dix pixels sur
+  Pixel 7, sous le seuil d'une cible tactile. C'est `UI-006`, reporté à v0.2.0 par
+  décision explicite.
+- **`ENG-008`** — un seul cas de référence cite une source extérieure quand
+  l'architecture en demande une poignée.
+- **`FIS-002`** — la liste des départements à taux réduit reste ouverte. Sans effet
+  sur ce module, qui ne calcule pas les droits de mutation ; bloquant pour v1.0.0.
+- **La licence du dépôt** n'est pas choisie. Les mentions légales le disent : sans
+  licence, un dépôt public reste sous droit d'auteur plein.
