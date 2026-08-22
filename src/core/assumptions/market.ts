@@ -125,6 +125,43 @@ export interface DetentionAssumptions {
   readonly indexationChargesPctAnnuel: HypotheseChiffree;
 }
 
+/**
+ * SCÉNARIO DE VENTE — `ENG-012`.
+ *
+ * Deux hypothèses, et **elles ne sont pas de la même espèce**. C'est pourquoi
+ * elles n'ont pas le même type, et il faut le lire comme une prise de position.
+ *
+ * ── L'APPRÉCIATION N'A PAS DE VALEUR CENTRALE, ET N'EN AURA PAS ─────────────
+ *
+ * `FourchetteObservee`, donc **sans `valeur`**. Publier un chiffre central pour
+ * l'appréciation d'un bien reviendrait à publier une prévision de marché, ce que
+ * `docs/CONTEXT.md` §8 exclut explicitement. Le simulateur n'a aucune idée de ce
+ * que vaudra un appartement dans quinze ans, et personne n'en a.
+ *
+ * La conséquence est voulue et elle se voit dans le code : `produitDeVente` n'a
+ * **aucune valeur par défaut** pour l'appréciation, et le champ est obligatoire
+ * dans son type d'entrée. L'interface montre l'intervalle, l'utilisateur choisit
+ * son point, et le résultat porte l'hypothèse retenue. Même discipline que
+ * `RENDEMENTS_NETS_OBSERVES` dans `compare/portefeuille.ts`.
+ *
+ * ── LA COMMISSION D'AGENCE, ELLE, S'OBSERVE ────────────────────────────────
+ *
+ * `HypotheseChiffree`, donc avec une valeur centrale, parce qu'il y en a une :
+ * les grilles sont publiques, affichées en vitrine, et l'ordre de grandeur ne
+ * dépend d'aucune anticipation. Elle sert de valeur par défaut, et l'utilisateur
+ * peut la ramener à zéro pour chiffrer une vente entre particuliers.
+ */
+export interface VenteAssumptions {
+  /**
+   * Appréciation annuelle du bien, en %. Sans valeur centrale — voir ci-dessus.
+   * L'intervalle est large et sa borne basse est négative : les marchés reculent,
+   * et un intervalle strictement positif serait déjà une prévision.
+   */
+  readonly appreciationAnnuellePct: FourchetteObservee;
+  /** Commission d'agence à la revente, en % du prix de cession. */
+  readonly commissionAgencePct: HypotheseChiffree;
+}
+
 export interface MarketAssumptions {
   /** Date du relevé, et non millésime légal : ces valeurs n'ont pas d'exercice. */
   readonly releve: string;
@@ -132,6 +169,7 @@ export interface MarketAssumptions {
   readonly insurance: InsuranceAssumptions;
   readonly acquisition: AcquisitionAssumptions;
   readonly detention: DetentionAssumptions;
+  readonly vente: VenteAssumptions;
 }
 
 /**
@@ -270,6 +308,31 @@ export const MARKET_2026: MarketAssumptions = {
         "de long terme, appliqué identiquement aux deux côtés de la comparaison : ces postes " +
         "existent chez le propriétaire comme chez le locataire et n'ont pas de raison de dériver " +
         "à des vitesses différentes.",
+    },
+  },
+
+  vente: {
+    appreciationAnnuellePct: {
+      intervalle: [-2, 4],
+      fiabilite: "estimee",
+      provenance:
+        "Appréciation annuelle d'un logement, en termes nominaux. Aucune valeur centrale n'est " +
+        "publiée ici, et c'est délibéré : la donner reviendrait à annoncer ce que vaudra un bien " +
+        "dans quinze ans. Les bornes encadrent ce qu'ont connu les marchés français sur de longues " +
+        "périodes, hausses soutenues comme reculs prolongés ; elles décrivent le passé et ne " +
+        "prédisent rien. L'écart entre deux points de cet intervalle change le produit de la vente " +
+        "de plusieurs dizaines de milliers d'euros sur vingt ans : c'est l'hypothèse la plus " +
+        "sensible du scénario, et de très loin.",
+    },
+    commissionAgencePct: {
+      valeur: 5,
+      intervalle: [3, 8],
+      fiabilite: "estimee",
+      provenance:
+        "Commission d'agence à la revente, toutes taxes comprises, en pourcentage du prix de " +
+        "cession. Les honoraires sont libres depuis la loi du 1er août 1986 ; les grilles sont " +
+        "affichées en agence et souvent dégressives selon le prix, ce qu'un taux unique ne " +
+        "reproduit pas. Zéro chiffre la vente de particulier à particulier.",
     },
   },
 };
