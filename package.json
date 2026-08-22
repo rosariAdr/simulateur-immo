@@ -11,7 +11,9 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "fixtures": "node scripts/run.mjs scripts/export-fixtures.mts && node scripts/run.mjs scripts/export-design-sheet.mts",
-    "design-pack": "node scripts/build-design-pack.mjs"
+    "design-pack": "node scripts/build-design-pack.mjs",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "next": "16.3.1",
@@ -22,6 +24,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

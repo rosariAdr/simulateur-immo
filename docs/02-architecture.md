@@ -73,6 +73,16 @@ Cette approche trouve les cas limites qu'on n'imagine pas : taux nul, durée d'u
 
 **Tests de non-régression.** Chaque correction de calcul ajoute son cas.
 
+**Tests de bout en bout**, avec `playwright`. Le moteur peut être juste et l'interface
+mentir : un montant au format anglo-saxon, un champ inatteignable au clavier, une
+information portée par la seule couleur. Ces défauts ne se voient que dans un vrai
+navigateur. La galerie `/composants` leur sert de banc d’essai, sur deux profils —
+bureau et mobile.
+
+Ce que ces tests couvrent, et qu’aucune autre suite ne peut voir : le format français
+strict des montants, la navigation au clavier, les cinq états des composants de saisie,
+et la règle « jamais de couleur seule », vérifiée champ par champ.
+
 ## 6. Protection des données et conformité
 
 Sans compte ni formulaire, aucune donnée personnelle n'est traitée. Cela reste vrai à condition de choisir une mesure d'audience sans cookie ni identifiant persistant, ce qui évite le bandeau de consentement.

@@ -36,13 +36,14 @@ Préfixes : `ENG` moteur de calcul · `FIS` paramètres fiscaux · `UI` interfac
 
 ## Phase 2 — Interface crédit
 
-- [ ] `UI-000` Galerie `/composants` — les primitives dans leurs cinq états, banc
+- [x] `UI-000` Galerie `/composants` — les primitives dans leurs cinq états, banc
       d’essai des tests de bout en bout et documentation vivante
-- [ ] `INF-007` Playwright : scénario partagé par URL, navigation au clavier,
-      tableau long sur fenêtre étroite
+- [x] `INF-007` Playwright : 13 tests sur deux profils, bureau et mobile
+      → reste à couvrir : le scénario partagé par URL, quand `UI-003` existera
 
 - [ ] `UI-001` Grille de base, panneau de paramètres, zone de résultats
-- [ ] `UI-002` Composants de saisie et leurs états
+- [x] `UI-002` Composants de saisie et leurs états
+      → 7 primitives dans `src/components/ui/`, cinq états chacune
 - [ ] `UI-003` État d'URL avec nuqs et zod
 - [ ] `UI-004` Bandeau d'indicateurs
 - [ ] `VIZ-001` Ruban d'amortissement avec curseur de lecture
@@ -301,3 +302,46 @@ intouchable.
 - **Le report dans `src/core/fiscal/params.ts` n'a pas été fait** : la consigne
   interdit de toucher à `src/core/`. À faire par quelqu'un qui en a le droit, ou
   lever la consigne pour ce fichier.
+
+### 22 août 2026 — Les primitives de saisie, et le premier test qui voit vraiment
+
+**Fait**
+
+- **Sept primitives** dans `src/components/ui/` : champ montant, champ taux,
+  sélecteur segmenté, liste déroulante, case à cocher, pastille pédagogique, et
+  l'enveloppe `Champ` qui porte ce qu'elles partagent. Cinq états chacune.
+- **`src/lib/format.ts`** : la couche de présentation. Format français strict dans
+  un sens, analyse de saisie tolérante dans l'autre — elle accepte l'espace
+  insécable, le point de milliers, la virgule et le symbole euro.
+- **Galerie `/composants`** : documentation vivante et banc d'essai. Hors
+  indexation, mais publiquement atteignable — un lien suffit à la montrer.
+- **13 tests de bout en bout** sur deux profils, bureau et mobile. Ils couvrent le
+  format des montants, la circulation des valeurs, le clavier — flèches du
+  sélecteur, barre d'espace de la case, Échap sur la pastille —, les attributs
+  d'accessibilité, l'absence de débordement horizontal, et la règle « jamais de
+  couleur seule » vérifiée champ par champ.
+- `docs/02-architecture.md` §5 : un quatrième niveau de test documenté.
+
+**Deux choix de conception à connaître**
+
+- Le champ montant ne se reformate **qu'à la sortie du champ**. Reformater à chaque
+  touche déplacerait le curseur sous les doigts — le défaut classique des champs
+  monétaires.
+- La case à cocher vit **hors de la taxonomie**. Une option n'est pas un paramètre :
+  lui coller une étiquette « négociable » n'aurait pas de sens.
+
+**Piège rencontré, et qui resservira**
+
+Les six premiers tests interactifs échouaient tous, les sept statiques passaient.
+Ce n'était pas le code : le serveur de développement refusait en 403 les requêtes
+`/_next/*` venant de `127.0.0.1`, une origine qu'il ne reconnaît pas. La page
+s'affichait parfaitement mais ne s'hydratait jamais. **Viser `localhost` et non
+`127.0.0.1`** — c'est consigné dans `playwright.config.mts`.
+
+**Reste**
+
+- `UI-001` grille et zone de résultats, `UI-003` état d'URL avec nuqs et zod.
+  Le test « un scénario partagé par URL redonne les mêmes chiffres » attend `UI-003`.
+- `VIZ-001` ruban, `VIZ-002` tableau.
+- Inchangé et bloquant : la liste des départements à taux réduit (`FIS-002`), le
+  report des conclusions dans `params.ts`, la relecture juridique.
