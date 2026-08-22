@@ -327,3 +327,57 @@ personne l'ait voulu.
 - Si un module ultérieur devait vraiment partager une position — un versement anticipé
   pointé sur la frise de `VIZ-004`, par exemple — ce ne serait plus une position de
   lecture mais une hypothèse du scénario, et elle entrerait dans l'URL à ce titre.
+
+## ADR-006 — Une porte de vérification, pas une intention de vérifier
+
+**Date** : 22 août 2026 · **Statut** : adoptée
+
+### Contexte
+
+Le projet avançait par sessions, chacune validée à la main : lancer `typecheck`, puis
+`lint`, puis Vitest, puis le build, puis Playwright, et lire les sorties. Cela a tenu
+tant qu'une session livrait un lot cohérent.
+
+Deux faits ont montré que cela ne tiendrait plus.
+
+Le premier : la garde « la page ne défile pas latéralement » est passée pendant deux
+exécutions complètes de la suite, puis a échoué. Le défaut, lui, était constant —
+cent vingt-quatre montants rognés sur le profil mobile. Le test dépendait de l'état
+du cache de polices au moment de la mesure. Une suite verte ne prouvait donc rien
+sur ce point précis, et rien ne l'avait signalé.
+
+Le second : rien ne distinguait un commit qui avait passé la suite d'un commit qui ne
+l'avait pas passée. L'histoire de `main` était plate, et l'intention de vérifier
+n'était écrite nulle part.
+
+### Décision
+
+- **`npm run porte`** enchaîne les cinq vérifications et s'arrête à la première
+  erreur. C'est une commande, pas une liste dans un document.
+- **Une branche par ticket**, fusionnée en `--no-ff` après la porte. L'histoire garde
+  la trace du lot livré.
+- **Une porte de version** en plus de la porte de branche : la suite à froid, le
+  relevé des compteurs dans un registre, et la confrontation du critère de sortie au
+  site déployé.
+- **Toute branche apporte ses tests**, ou dit par écrit dans le message de fusion
+  pourquoi elle n'en a pas besoin.
+
+### Justification
+
+Le registre des compteurs ne sert pas à se féliciter d'un nombre. Il sert à rendre
+visible une suite qui **maigrit** : un test supprimé pour faire passer une version
+laisse une trace, un test qui n'a jamais existé n'en laisse aucune.
+
+La règle « on corrige le code, jamais le test » avait déjà été énoncée dans le brief
+d'origine. Elle prend ici sa forme opérationnelle : le test qui a tort se corrige,
+mais la correction s'explique.
+
+### Conséquences acceptées
+
+- La porte dure environ une minute. C'est long pour une correction d'une ligne, et
+  c'est le prix de ne pas avoir à se demander si on l'a lancée.
+- Le modèle repose sur une convention, pas sur une protection de branche côté
+  GitHub. Tant que le dépôt n'a qu'un auteur, la convention suffit ; le jour où il en
+  aura deux, il faudra une règle côté serveur.
+- Les tests de bout en bout tournent sur un build de production. La porte reconstruit
+  donc le site à chaque passage.
