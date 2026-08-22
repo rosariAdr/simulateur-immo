@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Archivo, Public_Sans, IBM_Plex_Mono } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
+import { Avertissement } from "@/components/Avertissement";
+import { INDEXABLE } from "@/lib/site";
 import "./globals.css";
 
 /**
@@ -39,6 +41,10 @@ export const metadata: Metadata = {
   description:
     "Calcule et explique une acquisition immobilière : crédit, aides, comparaison " +
     "avec la location, remboursements anticipés. Gratuit, sans compte, sans collecte de données.",
+  // Hérité par toutes les routes qui ne définissent pas les leurs. Tant que les
+  // textes légaux n'ont pas été relus, le site fonctionne et se partage par lien
+  // mais n'entre pas dans les moteurs. Voir src/lib/site.ts.
+  ...(INDEXABLE ? {} : { robots: { index: false, follow: false } }),
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -48,6 +54,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${archivo.variable} ${publicSans.variable} ${plexMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        {/*
+          L’avertissement est en tête de document, avant le contenu, sur toutes
+          les pages — y compris la galerie de composants. « Visible, pas relégué
+          en pied de page », et il ne se ferme pas. Voir LEG-002.
+        */}
+        <Avertissement />
         {/* L’état des scénarios vit dans l’URL. Voir src/lib/scenario.ts. */}
         <NuqsAdapter>{children}</NuqsAdapter>
       </body>
