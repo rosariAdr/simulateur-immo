@@ -94,9 +94,19 @@ export function TableauAmortissement({ plan, annee, onAnnee }: Props) {
       <div
         ref={corps}
         data-tableau={granularite}
-        className={`border border-filet bg-panneau ${granularite === "mois" ? "max-h-[420px] overflow-y-auto" : ""}`}
+        // Le tableau défile dans son propre cadre, jamais la page.
+        //
+        // Sans cela, `table-fixed` laisse les montants déborder de leurs cellules
+        // dès que la fenêtre est étroite : les chiffres sont rognés — un montant
+        // tronqué ressemble encore à un montant — et la page se met à défiler
+        // latéralement. La garde correspondante passait par intermittence, selon
+        // que la police de chiffres était déjà chargée ou non au moment de la
+        // mesure ; la largeur minimale la rend déterministe.
+        className={`overflow-x-auto border border-filet bg-panneau ${
+          granularite === "mois" ? "max-h-[420px] overflow-y-auto" : ""
+        }`}
       >
-        <table className="w-full table-fixed border-collapse">
+        <table className="w-full min-w-[600px] table-fixed border-collapse">
           <caption className="sr-only">
             {granularite === "annee"
               ? "Amortissement agrégé par année : intérêts, capital, assurance, total versé et capital restant dû."
