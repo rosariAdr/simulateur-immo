@@ -1,7 +1,12 @@
 # TASKS
 
 Préfixes : `ENG` moteur de calcul · `FIS` paramètres fiscaux · `UI` interface ·
-`VIZ` visualisations · `CNT` contenus · `INF` infrastructure · `LEG` conformité
+`VIZ` visualisations · `CNT` contenus · `INF` infrastructure · `LEG` conformité ·
+`TST` portes de vérification
+
+Le découpage en versions, le modèle de branches et les portes sont dans
+`docs/RELEASES.md`. Ce que la suite couvre à chaque version est dans
+`docs/REGISTRE-TESTS.md`.
 
 ---
 
@@ -106,6 +111,34 @@ Préfixes : `ENG` moteur de calcul · `FIS` paramètres fiscaux · `UI` interfac
 - [ ] `FIS-005` Sortir les barèmes de caution de `params.ts` : ce sont des hypothèses
       de marché, aucune loi ne les fixe. Décision d’architecture à prendre
 - [ ] `UI-010` Assistant d'éligibilité
+
+## Portes de vérification
+
+Transversales aux phases. Voir `docs/RELEASES.md` §3.
+
+- [x] `TST-000` **Porte de branche** — `npm run porte` : typecheck, lint, Vitest,
+      build, Playwright sur deux profils. Aucune fusion dans `main` sans elle, et
+      toute branche apporte ses propres tests ou justifie par écrit qu'elle n'en a
+      pas besoin
+- [ ] `TST-001` **Porte de version** — la porte de branche à froid, plus le relevé
+      des compteurs dans `docs/REGISTRE-TESTS.md` et la confrontation du critère de
+      sortie au site déployé, pas au code
+- [ ] `TST-010` Porte de version **v0.1.0**. À couvrir avant l'étiquette : le
+      parcours d'accueil vers `/credit`, la présence de l'avertissement sur chaque
+      écran qui affiche un chiffre, l'atteignabilité des mentions légales
+- [ ] `TST-020` Porte de version **v0.2.0**. Le parcours complet mené au pouce sur
+      le profil mobile : cibles tactiles d'au moins 24 px, aucun montant rogné,
+      aucune infobulle hors écran
+- [ ] `TST-030` Porte de version **v0.3.0**. Les cas de référence d'« acheter ou
+      louer » vérifiés contre une source externe, comme ceux du crédit
+- [ ] `TST-040` Porte de version **v0.4.0**. Le double plafond légal d'indemnité de
+      remboursement anticipé, éprouvé sur ses bornes
+- [ ] `TST-050` Porte de version **v0.5.0**. Les trajectoires simulées : reproductibilité
+      à graine fixée, et quantiles vérifiés sur une distribution connue
+- [ ] `TST-060` Porte de version **v0.6.0**. Les règles d'éligibilité, chacune avec
+      son cas passant et son cas bloquant
+- [ ] `TST-100` Porte de version **v1.0.0**. Plus aucun `TODO_VERIFY` dans
+      `src/core/fiscal/`, et un test qui échoue s'il en réapparaît un
 
 ## Phase 7 — Contenus et mise en ligne
 

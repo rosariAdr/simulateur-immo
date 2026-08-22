@@ -13,6 +13,7 @@ Lire dans cet ordre :
 4. `docs/03-spec-domaine.md` — formules, règles fiscales, invariants
 5. `docs/ADR.md` — décisions d'architecture et leurs raisons
 6. `docs/TASKS.md` — tickets ouverts
+7. `docs/RELEASES.md` — versions, branches, portes de vérification
 
 ## Règles non négociables
 
@@ -39,6 +40,16 @@ dans `src/core/fiscal/`, datés et sourcés.
 
 **Le sens des couleurs est fixe.** Vert pour le capital et les gains, brique pour les intérêts
 et les coûts, violet pour l'assurance, bleu pour les marchés. Identique dans tous les modules.
+
+**On travaille sur une branche, jamais sur `main`.** Une branche par ticket,
+`npm run porte` avant toute fusion, fusion en `--no-ff`. La porte enchaîne typecheck,
+lint, Vitest, build et Playwright ; elle n'est pas facultative parce que le
+changement est petit. Toute branche apporte ses tests, ou dit dans le message de
+fusion pourquoi elle n'en a pas besoin. Voir `docs/RELEASES.md` et ADR-006.
+
+**Une garde ne vaut que cassée au moins une fois.** Avant de déclarer qu'un test
+protège quelque chose, le faire échouer exprès, puis rétablir. Les gardes ainsi
+vérifiées sont listées dans `docs/REGISTRE-TESTS.md`.
 
 ## Fin de session
 

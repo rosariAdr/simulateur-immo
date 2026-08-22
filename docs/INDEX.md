@@ -113,6 +113,9 @@ Un taux dénormal de 3×10⁻³²¹ % annule le dénominateur de l'annuité — 
 | `05-plan-production.md` | Processus de production détaillé |
 | `CLAUDE.md` | Fichier de contexte minimal pour Claude Code |
 | `TASKS.md` | Tickets par phase, convention de préfixes |
+| `RELEASES.md` | Découpage en versions, modèle de branches, portes de vérification |
+| `REGISTRE-TESTS.md` | Ce que la suite couvre à chaque version, et les gardes vérifiées par sabotage |
+| `ADR.md` | Décisions d'architecture et leurs raisons |
 
 ### Moteur crédit — `src/core/`
 
