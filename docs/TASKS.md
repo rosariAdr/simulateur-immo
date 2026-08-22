@@ -90,6 +90,9 @@ Le découpage en versions, le modèle de branches et les portes sont dans
       par le type, les valeurs réglementaires reçues en paramètre. Deux défauts de la
       pastille corrigés — le toucher et le débordement de la bulle. Voir ADR-007
 - [ ] `UI-006` Adaptation mobile
+- [ ] `UI-011` La légende de la mensualité annonce un différé qui n'existe pas :
+      `firstPayment !== maxPayment` se déclenche sur un écart d'arrondi de 1,02 €.
+      Une phrase fausse sous un chiffre juste
 
 ## Phase 3 — Acheter ou louer
 
@@ -169,8 +172,13 @@ Transversales aux phases. Voir `docs/RELEASES.md` §3.
 - [ ] `CNT-001` Glossaire relié aux infobulles
 - [ ] `CNT-002` Fiches pédagogiques par module
 - [x] `CNT-003` Page d'accueil énonçant la thèse — `feat/CNT-003-accueil`
-- [ ] `LEG-001` Mentions légales, conditions d'utilisation, politique de confidentialité
-- [ ] `LEG-002` Avertissement visible sur l'absence de conseil
+- [x] `LEG-001` Mentions légales, conditions d'utilisation, politique de confidentialité
+      → trois pages publiées et atteignables depuis le pied de page. Régime de
+      l'éditeur non professionnel anonyme (LCEN, art. 6 III). **Non relu par un juriste**,
+      et le site reste en `noindex` jusque-là. Licence du dépôt encore à décider
+- [x] `LEG-002` Avertissement visible sur l'absence de conseil
+      → bandeau en tête de document sur toutes les pages, sans bouton de fermeture,
+      et texte long à `/avertissement`. **Non relu par un juriste**
 - [ ] `INF-005` Mesure d'audience sans cookie
 - [ ] `INF-006` Métadonnées de partage reflétant le scénario
 
@@ -677,3 +685,48 @@ de forme est portée par le type plutôt que par un test.
   scénario par défaut, qui n'a pas de différé : `firstPayment` et `maxPayment` diffèrent
   de 1,02 € par le seul jeu des arrondis d'assurance. Défaut antérieur à ce ticket,
   non corrigé ici — il appartient à `UI-004`.
+
+### 22 août 2026 (suite) — Les textes légaux sont publiés
+
+**Fait — `LEG-001`**
+
+Trois pages : `/mentions-legales`, `/confidentialite`, `/conditions`. Un pied de page
+commun y mène depuis n'importe quelle route.
+
+Le pied de page n'est **pas** l'endroit de l'avertissement — celui-ci est en tête,
+voir `LEG-002`. La distinction tient à qui cherche quoi : l'avertissement doit
+atteindre celui qui ne le cherche pas, les mentions légales doivent être trouvables
+par celui qui les cherche. Ce ne sont pas les mêmes emplacements.
+
+**L'adresse de Vercel n'a pas été écrite de mémoire.** Elle est relevée dans les
+*Terms of Service* de Vercel, § 22.3.4, avec la date du relevé. Vercel ne publie
+aucun téléphone : la page le dit, plutôt que d'en inventer un — et un test vérifie
+que cette mention subsiste.
+
+**Ce qui a été retiré du brouillon.** La clause de médiation de la consommation :
+elle n'est obligatoire que pour un professionnel, et l'y laisser aurait annoncé un
+recours qui n'existe pas. Un test vérifie qu'elle ne revient pas.
+
+**Ce que la politique de confidentialité ne dit pas.** Elle ne prétend pas qu'aucune
+donnée personnelle n'est traitée — ce serait faux, l'hébergeur journalise les
+connexions. Un texte de confidentialité qui commence par une contre-vérité ne vaut
+rien. Elle dit aussi l'envers de la promesse du produit : l'état vit dans l'URL, donc
+**partager un lien revient à partager les chiffres qu'il contient.**
+
+**Ce qui reste ouvert, et qui n'est pas mince**
+
+- **La relecture juridique.** `LEG-001` et `LEG-002` sont livrés, pas validés. Le site
+  reste en `noindex` jusque-là.
+- **L'identité de l'éditeur doit avoir été communiquée à Vercel.** C'est la première
+  des deux conditions de l'article 6 III ; rien dans ce dépôt ne peut l'attester, et
+  sans elle le régime d'anonymat ne s'applique pas.
+- **La licence du dépôt.** Aucune n'est attachée, ce que les mentions légales disent
+  explicitement : un dépôt public sans licence reste sous droit d'auteur plein et
+  n'autorise aucune réutilisation. C'est un défaut, pas une décision.
+
+**Défaut relevé par l'agent `UI-005`, non corrigé ici**
+
+La légende de l'indicateur « Mensualité » se déclenche sur `firstPayment !== maxPayment`,
+soit un écart de 1,02 € dû aux seuls arrondis d'assurance, et affiche « elle monte à
+1 062,41 € **après le différé** » alors qu'aucun différé n'existe. C'est une phrase
+fausse sous un chiffre juste. Ticket `UI-011`.

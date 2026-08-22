@@ -62,4 +62,4 @@ leur sont propres. **En cas de divergence, c'est l'offre de prêt qui fait foi.*
 ### Signaler une erreur
 
 Une erreur de calcul ou de valeur peut être signalée à
-[À COMPLÉTER — adresse électronique]. Ces signalements sont traités en priorité.
+adr.rosari@gmail.com. Ces signalements sont traités en priorité.

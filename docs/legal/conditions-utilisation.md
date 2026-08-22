@@ -1,11 +1,11 @@
 # Conditions générales d'utilisation
 
-*Dernière mise à jour : [À COMPLÉTER]*
+*Dernière mise à jour : 22 août 2026*
 
 ## 1. Objet
 
-Les présentes conditions régissent l'utilisation du simulateur accessible à
-l'adresse [À COMPLÉTER]. L'utilisation du site vaut acceptation de ces conditions.
+Les présentes conditions régissent l'utilisation du simulateur accessible
+depuis ce site. L'utilisation du site vaut acceptation de ces conditions.
 
 ## 2. Accès
 
@@ -51,6 +51,7 @@ par l'utilisateur.
 Les présentes conditions sont soumises au droit français. À défaut de résolution
 amiable, le litige relève des juridictions françaises compétentes.
 
-En cas de litige, l'utilisateur peut recourir gratuitement à un médiateur de la
-consommation. [À COMPLÉTER — cette mention n'est obligatoire que pour un
-professionnel ; à supprimer si l'édition reste non professionnelle.]
+> **Note de rédaction.** La clause de médiation de la consommation a été retirée le
+> 22 août 2026 : elle n'est obligatoire que pour un professionnel, et le régime
+> retenu est celui de l'éditeur non professionnel. L'y laisser aurait annoncé un
+> recours qui n'existe pas. À rétablir si une activité commerciale apparaît.

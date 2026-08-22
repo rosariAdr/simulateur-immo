@@ -1,6 +1,6 @@
 # Politique de confidentialité
 
-*Dernière mise à jour : [À COMPLÉTER]*
+*Dernière mise à jour : 22 août 2026*
 
 ## En résumé
 
@@ -44,6 +44,6 @@ distante, afin qu'aucune requête vers un tiers ne transmette votre adresse IP.
 Aucune donnée ne permettant de vous identifier n'étant conservée par l'éditeur, les
 droits d'accès, de rectification et d'effacement sont sans objet pour ce qui le
 concerne. Pour les journaux techniques, adressez-vous à
-[À COMPLÉTER — adresse électronique].
+adr.rosari@gmail.com.
 
 Vous pouvez introduire une réclamation auprès de la CNIL — www.cnil.fr.
