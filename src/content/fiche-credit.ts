@@ -214,7 +214,7 @@ const NOMS_GARANTIE: Readonly<Record<GuaranteeKind, string>> = {
 };
 
 const comparer = (cle: GuaranteeKind): GarantieComparee => {
-  const g = guaranteeCost(cle, PLAN.totalPrincipal, ENTREE_REFERENCE.propertyPrice, MARKET_2026);
+  const g = guaranteeCost(cle, PLAN.totalPrincipal, MARKET_2026);
   return {
     cle,
     nom: NOMS_GARANTIE[cle],

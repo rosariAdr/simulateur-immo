@@ -225,6 +225,16 @@ Le découpage en versions, le modèle de branches et les portes sont dans
       `MODULES`. La phrase « Un seul module est en ligne : le crédit. Les quatre
       autres… » était écrite à la main et aucun test ne relisait une phrase. Deux
       gardes, cassées toutes les deux
+- [x] `ENG-028` **L'assiette de la mainlevée était le prix du bien** au lieu du capital
+      garanti. Surestimation d'un quart à 20 % d'apport, au détriment de l'hypothèque
+      dans l'arbitrage même que le module éclaire. Un test gardait la règle fausse, et
+      il avait été cassé pour de bon : son motif — « la mainlevée est un acte sur
+      l'immeuble » — était convaincant et faux. Trouvé en traitant `FIS-006`, par la
+      source qui énonce son assiette
+      → corrigé dans `credit/plan.ts`, fichier gelé, raison écrite. Le prix quitte la
+      signature de `guaranteeCost` : plus aucun poste ne s'y adossait. La garde nomme
+      désormais son assiette — la version proportionnelle laissait passer un facteur
+      1,25 sans un seul rouge. Voir ADR-019
 - [ ] `UI-010` Assistant d'éligibilité
 
 ## Portes de vérification

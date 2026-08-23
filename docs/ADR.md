@@ -1486,3 +1486,70 @@ le dire ici parce que c'est le prix de la règle.
   à l'intérieur d'une phrase de provenance ne fait rougir personne — vérifié par
   sabotage. La provenance est de la prose montrable, pas une donnée vérifiable ; le
   seul rempart est la relecture humaine.
+
+---
+
+## ADR-019 — Une garde cassée reste une garde qui peut se tromper
+
+**Date** : 23 août 2026 · **Statut** : adoptée · **Tickets** : `ENG-028`
+
+### Contexte
+
+Le coût de mainlevée d'une hypothèque était calculé sur le **prix du bien**. Un test le
+gardait, ce test avait été cassé pour de bon — il figure au registre sous « Assiette de la
+mainlevée » — et son commentaire donnait le motif : « la mainlevée est un acte sur
+l'immeuble ; deux emprunteurs au même capital sur des biens de prix différents ne paient
+pas la même chose ».
+
+Le motif est convaincant. Il est faux. Ce qu'on radie n'est pas l'immeuble mais une
+**inscription**, dont le montant est celui de la créance garantie. Les trois postes le
+disent : émoluments au forfait — 78 € sous 77 090 € de garantie, 150 € au-delà —,
+contribution de sécurité immobilière assise sur le montant garanti, et débours. Le prix
+du bien n'entre nulle part.
+
+Le défaut penchait dans le mauvais sens. Avec 20 % d'apport, le prix vaut 1,25 fois le
+capital : la mainlevée était **surestimée d'un quart**, au détriment de l'hypothèque dans
+toute comparaison de garanties — c'est-à-dire dans l'arbitrage même que le module existe
+pour éclairer.
+
+Il n'a pas été trouvé par un test. Il a été trouvé en traitant `FIS-006` : la source qui
+chiffre ce taux — la question écrite n° 6820 de la XVIIe législature — énonce aussi son
+assiette, et l'assiette ne disait pas la même chose que le code.
+
+### Décision
+
+**1. La mainlevée est assise sur le capital garanti.**
+
+**2. Le prix du bien quitte la signature de `guaranteeCost`.** Aucun des trois postes ne
+s'y adossait plus. Un paramètre que rien ne lit est une invitation à s'en resservir, et
+c'est très exactement l'erreur qu'on vient de corriger. Une garde de type — un
+`@ts-expect-error` sur un quatrième argument — le tient à la compilation.
+
+**3. La garde de la mainlevée nomme son assiette au lieu de la supposer.** Elle vérifiait
+la proportionnalité : doubler le capital double le coût. Le sabotage a montré ce que cela
+laisse passer — remplacer l'assiette par `capital × 1,25`, c'est-à-dire refaire l'erreur
+d'origine, préserve la proportionnalité et ne fait rougir personne. **945 tests verts sur
+une assiette fausse.** La garde confronte désormais le montant au taux déclaré dans les
+hypothèses de marché.
+
+### Justification, et ce qu'il faut en retenir
+
+Le projet tient une règle : une garde ne vaut que cassée au moins une fois. Elle reste
+juste, et ce ticket montre sa limite exacte.
+
+**Casser une garde prouve qu'elle tient à quelque chose. Cela ne prouve pas que ce
+quelque chose est vrai.** Le test de la mainlevée avait passé l'épreuve du sabotage en
+gardant fidèlement une règle fausse. Aucune quantité de rouge n'aurait révélé l'erreur,
+parce que l'erreur n'était pas dans le code : elle était dans ce que nous croyions du
+monde, et le test l'avait recopiée.
+
+Ce qui l'a démentie est d'une autre nature : **une source qui énonce son assiette**. C'est
+la raison d'être de la campagne `FIS-006` et du champ `provenance` d'ADR-008 — une phrase
+qui dit d'où vient un chiffre dit aussi, souvent, à quoi il s'applique. Les deux gardes se
+complètent et ne se remplacent pas : le sabotage protège du code qui dérive, la source
+protège de la croyance qui se fige.
+
+### Ce qui la garde
+
+`src/core/credit/__tests__/garantie.test.ts` — le rapport du coût de mainlevée au capital
+confronté au taux déclaré, et la garde de type sur le paramètre retiré.
