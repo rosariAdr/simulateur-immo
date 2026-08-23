@@ -35,11 +35,16 @@ export interface GuaranteeCost {
  * `FiscalParams` est la raison d'être de `FIS-005` — voir ADR-008 et
  * `src/core/assumptions/market.ts`, où chaque valeur porte son intervalle observé
  * et sa provenance.
+ *
+ * Le prix du bien n'est plus un paramètre — `ENG-028`. Il ne l'était plus en fait
+ * depuis que la mainlevée a retrouvé sa vraie assiette : aucun des trois postes ne
+ * dépend du prix, tous se calculent sur le capital garanti. Un paramètre que rien
+ * ne lit est une invitation à s'en resservir, et c'est exactement l'erreur qu'on
+ * vient de corriger. Voir ADR-019.
  */
 export function guaranteeCost(
   kind: GuaranteeKind,
   guaranteedPrincipal: Cents,
-  propertyPrice: Cents,
   hypotheses: MarketAssumptions,
 ): GuaranteeCost {
   const g = hypotheses.guarantee;
@@ -57,7 +62,26 @@ export function guaranteeCost(
       kind,
       cost: applyPct(guaranteedPrincipal, g.mortgageCostPct.valeur),
       refundAtTerm: 0,
-      releaseCostOnEarlySale: applyPct(propertyPrice, g.mortgageReleasePct.valeur),
+      /*
+        Assiette : le CAPITAL GARANTI, et non le prix du bien — `ENG-028`.
+
+        Ce module a longtemps assis la mainlevée sur le prix, au motif écrit
+        dans son test qu'elle est « un acte sur l'immeuble ». Le motif sonne
+        juste et ne l'est pas : la mainlevée radie une INSCRIPTION, et le
+        montant d'une inscription hypothécaire est celui de la créance garantie.
+        Le prix du bien n'entre dans aucun des trois postes — émoluments au
+        forfait, contribution de sécurité immobilière assise sur le montant
+        garanti, débours.
+
+        Le défaut se voyait dans le mauvais sens : avec 20 % d'apport, le prix
+        vaut 1,25 fois le capital, donc la mainlevée était surestimée d'un quart
+        — au détriment de l'hypothèque dans toute comparaison de garanties.
+
+        Trouvé en traitant `FIS-006` : la source qui chiffre ce taux, la question
+        écrite n° 6820 de la XVIIe législature, énonce son assiette, et elle ne
+        disait pas la même chose que le code. Voir ADR-019.
+      */
+      releaseCostOnEarlySale: applyPct(guaranteedPrincipal, g.mortgageReleasePct.valeur),
     };
   }
   return {
@@ -182,7 +206,6 @@ export function buildCreditPlan(input: CreditPlanInput, p: FiscalParams): Credit
   const guarantee = guaranteeCost(
     input.guarantee,
     totalPrincipal,
-    input.propertyPrice,
     input.marketAssumptions ?? MARKET_2026,
   );
   const upfrontFees = input.arrangementFee + guarantee.cost + (input.brokerageFee ?? 0);

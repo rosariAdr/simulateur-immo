@@ -86,7 +86,7 @@ export interface GuaranteeAssumptions {
   readonly suretyshipRefundPct: HypotheseChiffree;
   /** Inscription hypothécaire, en % du capital garanti. */
   readonly mortgageCostPct: HypotheseChiffree;
-  /** Mainlevée en cas de revente avant terme, en % du prix du bien. */
+  /** Mainlevée en cas de revente avant terme, en % du capital garanti. */
   readonly mortgageReleasePct: HypotheseChiffree;
   /** Frais de nantissement, en % du capital garanti. */
   readonly pledgeCostPct: HypotheseChiffree;
@@ -281,10 +281,10 @@ export const MARKET_2026: MarketAssumptions = {
         "Mainlevée d'hypothèque en cas de revente avant le terme du prêt. La question écrite " +
         "n° 6820 de la XVIIe législature, publiée au Journal officiel avec la réponse du " +
         "gouvernement, chiffre ces frais « entre 0,3 et 0,6 % du montant initial de l'emprunt » ; " +
-        "le chiffre est avancé par le député et la réponse ne le conteste pas. ⚠️ L'assiette " +
-        "annoncée est le CAPITAL EMPRUNTÉ, alors que `credit/plan.ts` applique ce taux au PRIX DU " +
-        "BIEN. L'écart est réel et il n'a pas été corrigé ici : `plan.ts` est gelé, et le corriger " +
-        "demande un ticket à lui.",
+        "le chiffre est avancé par le député et la réponse ne le conteste pas. L'assiette est le " +
+        "capital emprunté, et non le prix du bien : la mainlevée radie une inscription, dont le " +
+        "montant est celui de la créance garantie. Le moteur appliquait ce taux au prix jusqu'au " +
+        "ticket ENG-028, qui l'a corrigé.",
     },
     pledgeCostPct: {
       valeur: 0.3,
