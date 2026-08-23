@@ -254,6 +254,13 @@ Le découpage en versions, le modèle de branches et les portes sont dans
       l'intention déjà écrite — l'état où l'histoire entière est derrière soi — appliquée
       au cas où une lecture ne bascule jamais. L'écran d'ouverture passe d'un écart de
       5 806,68 € à l'année 1 à 16 508,31 € à l'année 30
+- [x] `TST-003` Vérifier ce que l'hébergeur sert réellement. `docs/RELEASES.md` §3
+      exigeait cette étape et la déclarait « non automatisable depuis le dépôt » : c'était
+      vrai de son jugement, pas de ses faits
+      → `tests/deploiement/site-publie.spec.ts` et `playwright.deploiement.mts`,
+      **délibérément hors de `npm run porte`** — une porte qui interroge un tiers rougit
+      quand l'hébergeur tousse. 46 vérifications sur https://simulateur-immo-snowy.vercel.app/,
+      dont la seule dont l'échec soit irréversible : le site n'est pas indexable
 - [ ] `UI-010` Assistant d'éligibilité
 
 ## Portes de vérification

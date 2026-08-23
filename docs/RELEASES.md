@@ -217,9 +217,36 @@ par écrit dans le message de fusion, ou ne se fusionne pas.
    un parcours de bout en bout, de l'accueil au lien partagé. Un critère qu'on coche
    à la main est un critère qu'on coche de mémoire à la version suivante.
 5. **Après l'étiquette, vérifier le déploiement.** La porte s'exécute sur un build
-   local ; elle ne dit rien de ce que l'hébergeur sert réellement. Ouvrir le site
-   déployé et refaire le parcours à la main est la dernière étape, et elle n'est pas
-   automatisable depuis le dépôt.
+   local ; elle ne dit rien de ce que l'hébergeur sert réellement.
+
+   ```bash
+   npm run verif-deploiement
+   ```
+
+   Le site est publié à l'adresse **https://simulateur-immo-snowy.vercel.app/**, que
+   Vercel met à jour à chaque poussée sur `main`. La commande interroge cette
+   adresse ; une préproduction se vérifie en la passant :
+
+   ```bash
+   URL_DEPLOIEMENT=https://exemple.vercel.app npm run verif-deploiement
+   ```
+
+   Ce document a longtemps écrit que cette étape « n'est pas automatisable depuis le
+   dépôt ». C'était vrai de son jugement, pas de ses faits. Quatre choses se
+   vérifient mécaniquement et n'ont aucune raison d'être cochées de mémoire : le
+   site n'est pas indexable, l'avertissement figure sur toute route qui montre un
+   chiffre, les montants affichés sont ceux du dépôt — détecteur de déploiement
+   périmé —, et un lien partagé redonne les mêmes chiffres. Voir
+   `tests/deploiement/site-publie.spec.ts`.
+
+   **Cette suite ne fait pas partie de `npm run porte`, et ne doit pas y entrer.** La
+   porte doit rester hermétique : une porte qui interroge un tiers rougit quand
+   l'hébergeur tousse, et une porte qui rougit pour des raisons étrangères au code
+   finit par être ignorée — ce qui est la seule façon de la perdre.
+
+   **Ce qui reste humain**, et qui l'était vraiment : regarder si l'écran est juste.
+   Aucune de ces vérifications ne dit qu'une courbe est lisible ou qu'une phrase
+   tombe bien.
 6. Consigner dans `docs/TASKS.md` : ce qui sort, ce qui est reporté, et pourquoi.
 
 Un compteur qui a baissé sans qu'un ticket l'explique arrête la version.
