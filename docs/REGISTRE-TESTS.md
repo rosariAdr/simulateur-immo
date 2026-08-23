@@ -27,12 +27,12 @@ ouvertes et remonte un composant en plein test.
 
 ## État courant
 
-Relevé du 23 août 2026 sur `main`, porte passée à froid, après la fusion de `VIZ-003`.
+Relevé du 23 août 2026 sur `main`, porte passée à froid, après la fusion de `ENG-027`.
 
 | Suite | Fichiers | Tests |
 | --- | --- | --- |
-| Unitaires | 18 | 901 |
-| Bout en bout | 14 | 304 (152 × 2 profils), dont 10 ignorés par construction |
+| Unitaires | 19 | 931 |
+| Bout en bout | 14 | 306 (153 × 2 profils), dont 10 ignorés par construction |
 
 **Les 282 unitaires ajoutés depuis le 22 août sont le moteur de la phase 3**, et eux ne
 sont pas de la multiplication : sept fichiers neufs sous `src/core/compare/` et
@@ -40,6 +40,14 @@ sont pas de la multiplication : sept fichiers neufs sous `src/core/compare/` et
 hypothèses de marché — plus les invariants de détention isolés dans leur propre fichier.
 La règle « toute modification du moteur s'accompagne d'un test » a tenu sur les sept
 branches de la vague, sans exception à signaler.
+
+**Un test a trouvé un défaut que personne ne cherchait, et c'est le meilleur argument
+de ce registre.** En écrivant l'assemblage `ENG-027`, un cas de bout en bout a dérivé
+son prix de cession d'une valeur appréciée plutôt que de le saisir en euros ronds.
+L'assiette a donc porté des centimes pour la première fois, et la recherche de tranche
+de la surtaxe a levé : le barème est libellé en euros entiers et laissait une fente de
+99 centimes que douze mois de tests en euros ronds n'avaient pas pu atteindre. Le
+correctif appelle lui-même une vérification — voir `FIS-008`.
 
 **Le bond des unitaires — 217 à 619 — n'est pas une couverture qui triple.** C'est
 `it.each` sur quarante-huit entrées de glossaire là où il y en avait dix-neuf, et six
@@ -75,8 +83,33 @@ d'être écrite à côté de ses chiffres.
   valeur attendue ne vient de notre moteur, et chaque tolérance est une constante
   nommée dont l'écart mesuré est écrit à côté — là où l'accord est exact, l'égalité
   est stricte. C'est `ENG-008`.
-- `src/app/__tests__/design-tokens.test.ts` — 34 vérifications de contraste lues
+- `src/app/__tests__/design-tokens.test.ts` — 37 vérifications de contraste lues
   directement dans `globals.css`, seule source de vérité des couleurs.
+- `src/core/compare/__tests__/` — le moteur de la phase 3, 219 vérifications sur six
+  fichiers. `detention` (33) et ses invariants isolés (16), `portefeuille` (42),
+  `vente` (40), `plus-value` (37) et l'assemblage `cession` (29). Ce que ces fichiers
+  gardent n'est pas surtout de l'arithmétique : ce sont des **idées reçues**. Un loyer
+  nul ne donne pas un croisement immédiat mais aucun croisement ; la surtaxe s'éteint
+  à 22 ans et non à 30, parce qu'elle est assise sur l'assiette fiscale ; un produit
+  de vente négatif est une information et non une erreur ; le régime social du cédant
+  commande le taux des prélèvements, et lui seul. Chaque module rend dans
+  `nonModelise` ce qu'il ne sait pas traiter, et c'est testé aussi.
+- `src/core/assumptions/__tests__/market.test.ts` — 68 vérifications. La frontière
+  loi / marché d'ADR-008, gardée dans les deux sens : `params.ts` ne doit plus porter
+  de fourchette indicative, et chaque hypothèse de marché doit déclarer sa provenance
+  en une phrase montrable, sa fiabilité et un intervalle qui contient sa valeur. Le
+  parcours part de la structure de `MARKET_2026`, si bien qu'un bloc ajouté entre dans
+  la garde du seul fait d'exister — correctif d'un défaut où trois blocs échappaient à
+  toutes les vérifications sans qu'aucun test ne rougisse.
+- `src/core/fiscal/__tests__/params-plus-value.test.ts` — 52 vérifications sur les
+  valeurs de la phase 3 : les **deux** barèmes d'abattement soldent bien à 100 % à 22
+  et 30 ans respectivement, les taux ne décroissent jamais, et les seuils sont ceux du
+  millésime. Une nuance à connaître avant de s'y fier : la garde de contiguïté du
+  barème de surtaxe vérifie que chaque tranche ouvre **un euro** après la fermeture de
+  la précédente. Le barème est donc contigu **en euros entiers**, ce qui est ce que dit
+  le texte — et pas en centimes, ce qui est ce que calcule le moteur. C'est
+  précisément la fente qu'`ENG-027` a rencontrée et que `FIS-008` doit trancher. Le
+  test était juste ; c'est sa lecture rapide qui rassurait à tort.
 - `src/content/__tests__/fiche-credit.test.ts` — 21 vérifications sur les chiffres de
   la fiche `CNT-002`. La première est la plus importante : l'exemple de la fiche est
   comparé à `versEntreeMoteur(DEFAUTS)`, c'est-à-dire au scénario que `/credit` ouvre
@@ -85,7 +118,6 @@ d'être écrite à côté de ses chiffres.
   réglementaire n'est recopiée — seuils d'usure, normes du HCSF, seuils de la loi
   Lemoine sont confrontés un à un à `params.ts` — et qu'aucune tournure prescriptive
   n'entre dans le module de contenu.
-- `src/content/__tests__/glossaire.test.ts` — 65 vérifications sur les entrées
 - `src/content/__tests__/glossaire.test.ts` — 152 vérifications sur les entrées
   d'infobulle : une phrase terminée par champ, longueur plafonnée, aucun terme défini
   deux fois, aucun jeton laissé sans valeur, aucune formule de recommandation. Cinq
@@ -150,6 +182,24 @@ gardes-là ont été cassées exprès, puis rétablies :
   lectures — ses fonds perdus égalent son décaissement. La garde protège contre tout
   recalage **qui change un chiffre à l'écran**, pas contre « tout recalage ». Une garde
   dont on ne sait pas ce qu'elle laisse passer n'est pas une garde vérifiée.
+- **Grandeurs partagées de la cession** — prendre la durée de détention dans l'entrée
+  brute au lieu de la sortie normalisée fait rougir la propriété d'assemblage. Un seul
+  rouge d'abord, et le manque était dans le test : le tirage `fast-check` de l'horizon
+  était entier, donc les deux normalisations y étaient l'identité et la propriété ne
+  pouvait rien voir. Avec un tirage réel, négatif et fractionnaire, elle rougit deux
+  fois. Une garde qui ne rougit qu'une fois là où deux chemins divergent n'a pas encore
+  été comprise.
+- **Frais de cession déductibles** — ajouter l'indemnité de remboursement anticipé aux
+  frais qui viennent en diminution du prix fait rougir quatre tests : la liste de
+  l'annexe III, art. 41 duovicies H, est limitative.
+- **Réserves des deux modules** — les fondre en une seule chaîne fait rougir quatre
+  tests : on ne peut plus dire de quel module vient une réserve.
+- **Tranche de surtaxe** — annuler la recherche par la borne haute fait rougir deux
+  tests, un par fichier.
+- **Une tentative qui n'a rien fait rougir** — recalculer le prix de cession au lieu de
+  le lire rend le même centime, et aucune garde ne distingue une composition d'une
+  duplication tant que la duplication est juste. La règle « rien n'est recalculé » est
+  tenue ici par la relecture, pas par un test, et il faut que ce soit écrit.
 - **Décompte des modules en ligne** — réécrire à la main « Un seul module est en
   ligne : crédit. Les quatre autres… » fait rougir la garde qui confronte la phrase
   aux cartes. Ce défaut-là a réellement vécu sur `main` : la comparaison était en
