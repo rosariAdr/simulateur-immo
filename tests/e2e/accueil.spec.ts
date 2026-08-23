@@ -137,6 +137,16 @@ test("le décompte annoncé est celui des cartes affichées", async ({ page }) =
     ouverts === 1 ? /un seul module est en ligne/i : new RegExp(`${mots[ouverts]} modules sont en ligne`, "i");
 
   expect(texte, "le nombre de modules en ligne n'est pas celui qui est écrit").toMatch(annonceOuverts);
+
+  // Et la phrase commence par une majuscule. Ce test-ci existe parce que la
+  // première version ne l'avait pas : composer une phrase à partir d'un mot
+  // variable — « Un seul… » ou « Deux modules… » — met le premier caractère
+  // sous la responsabilité du code, et la comparaison insensible à la casse
+  // qui protège les noms de modules laisse justement passer celui-là.
+  const debut = texte.split("\n").find((l) => /modules? (est|sont) en ligne/i.test(l)) ?? "";
+  expect(debut.charAt(0), "la phrase du décompte ne commence pas par une majuscule").toBe(
+    debut.charAt(0).toUpperCase(),
+  );
   expect(texte, "le nombre de modules à venir n'est pas celui qui est écrit").toMatch(
     new RegExp(`les ${mots[aVenir]} autres`, "i"),
   );
