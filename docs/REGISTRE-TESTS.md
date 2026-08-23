@@ -37,7 +37,7 @@ Relevé du 23 août 2026 sur `release/v0.3.0`, porte passée à froid, `.next` s
 | --- | --- | --- |
 | Unitaires | 20 | 955 |
 | Bout en bout | 16 | 386 (193 × 2 profils), dont 10 ignorés par construction |
-| Déploiement | 1 | 46 (23 × 2 profils), hors porte — voir plus bas |
+| Déploiement | 1 | 52 (26 × 2 profils), hors porte — voir plus bas |
 
 **Les 282 unitaires ajoutés depuis le 22 août sont le moteur de la phase 3**, et eux ne
 sont pas de la multiplication : sept fichiers neufs sous `src/core/compare/` et
@@ -354,7 +354,7 @@ part parce qu'elle ne pose pas la même question :
 | Bout en bout | le code du dépôt fait-il ce qu'il doit ? | porte de branche |
 | Déploiement | le public voit-il ce code-là ? | après l'étiquette |
 
-`tests/deploiement/site-publie.spec.ts`, **46 vérifications (23 × 2 profils)** contre
+`tests/deploiement/site-publie.spec.ts`, **52 vérifications (26 × 2 profils)** contre
 https://simulateur-immo-snowy.vercel.app/, lancées par `npm run verif-deploiement`.
 Elle est **délibérément hors de `npm run porte`** : une porte qui interroge un tiers
 rougit quand l'hébergeur tousse, et une porte qui rougit sans rapport avec le code finit
@@ -369,7 +369,18 @@ affichés sont ceux du dépôt, et un lien partagé redonne les mêmes chiffres.
 figeant des montants ; il ne peut être éprouvé qu'en le confrontant à un déploiement
 réellement ancien, et nous n'en avons pas gardé. Ce qui a été vérifié par sabotage est
 la garde d'indexabilité — passer `INDEXABLE` à `true` sur un serveur local interrogé par
-cette même suite fait rougir **dix** tests, un par route plus `robots.txt`.
+cette même suite fait rougir **dix** tests, un par route plus `robots.txt` — et la
+présence des routes : retirer `/comparaison/patrimoine` d'un serveur local en fait rougir
+deux, le contrôle de statut et la garde de contenu.
+
+**Un détecteur de déploiement périmé est lui-même périmable, et ça vient d'arriver.**
+Cette suite a été écrite avant `UI-007` ; ses listes de routes ne nommaient donc pas
+`/comparaison/patrimoine`, et elle est restée **verte** au moment d'étiqueter v0.3.0
+**sans avoir regardé une seule fois l'écran que cette version existe pour livrer**. Rien
+ne l'avait signalé, et rien ne pouvait le faire : la seule chose qui l'a fait est
+quelqu'un vérifiant à la main que la route répondait. D'où la règle inscrite dans le
+fichier plutôt qu'espérée — toute route ajoutée au produit rejoint `ROUTES`, et
+`ROUTES_CHIFFREES` si elle montre un chiffre.
 
 ## Annexe — les gardes ajoutées par `FIS-005`
 

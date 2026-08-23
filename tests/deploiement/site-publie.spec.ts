@@ -41,6 +41,7 @@ const ROUTES = [
   "/credit",
   "/credit/comprendre",
   "/comparaison",
+  "/comparaison/patrimoine",
   "/glossaire",
   "/composants",
   "/avertissement",
@@ -50,7 +51,14 @@ const ROUTES = [
 ];
 
 /** Routes portant des chiffres : l'avertissement y est obligatoire. */
-const ROUTES_CHIFFREES = ["/", "/credit", "/credit/comprendre", "/comparaison", "/composants"];
+const ROUTES_CHIFFREES = [
+  "/",
+  "/credit",
+  "/credit/comprendre",
+  "/comparaison",
+  "/comparaison/patrimoine",
+  "/composants",
+];
 
 const ESPACE = "[\\s\\u00a0\\u202f]";
 const eur = (entier: string, decimales = "00") =>
@@ -164,6 +172,47 @@ test("la comparaison ouvre à l'horizon et affiche ses deux croisements", async 
     );
   });
   expect(apres, "un chiffre précède la limite sur le site publié").toBe(true);
+});
+
+test("le niveau approfondi est publié, et sa limite précède ses chiffres", async ({ page }) => {
+  /*
+    Cette route a failli échapper au détecteur — `TST-003`.
+
+    La suite a été écrite avant `UI-007` et ses listes ne nommaient que les routes
+    d'alors. Elle est donc restée **verte** au moment d'étiqueter v0.3.0, sans
+    avoir regardé une seule fois l'écran que cette version existe pour livrer.
+    Un détecteur de déploiement périmé est lui-même périmable, et rien ne l'avait
+    signalé : la seule chose qui l'aurait fait est ce qui vient de se passer,
+    quelqu'un vérifiant à la main que la route répond.
+
+    D'où cette règle, écrite ici plutôt qu'espérée : **toute route ajoutée au
+    produit rejoint `ROUTES` et, si elle montre un chiffre, `ROUTES_CHIFFREES`.**
+    Le même geste en deux endroits qu'exige déjà `UI-014` côté accueil.
+  */
+  await page.goto("/comparaison/patrimoine");
+
+  // Les deux patrimoines sont chiffrés : la route ne fait pas que répondre 200.
+  await expect(page.locator('[data-chiffre="proprietaire"] [data-valeur]')).toBeVisible();
+  await expect(page.locator('[data-chiffre="locataire"] [data-valeur]')).toBeVisible();
+
+  // Et le refus de conclure est publié, pas seulement écrit dans le dépôt.
+  await expect(page.locator("[data-retournement]")).toContainText("ne se calcule pas");
+
+  const apres = await page.evaluate(() => {
+    const limite = document.querySelector("[data-limite]");
+    const chiffres = [...document.querySelectorAll("[data-chiffre]")];
+    if (!limite || chiffres.length === 0) return null;
+    return chiffres.every(
+      (c) => !!(limite.compareDocumentPosition(c) & Node.DOCUMENT_POSITION_FOLLOWING),
+    );
+  });
+  expect(apres, "un chiffre précède la limite sur le site publié").toBe(true);
+
+  // Les deux sorties non modélisées sont annoncées comme absentes, pas comme
+  // prochaines. C'est en production que cette nuance engage.
+  const sorties = page.locator("[data-trois-sorties]");
+  await expect(sorties).toContainText(/n'existe pas dans ce simulateur/i);
+  await expect(sorties).not.toContainText(/à venir|bientôt|prochainement/i);
 });
 
 /* ── 4. Le reste ──────────────────────────────────────────────────────────── */
