@@ -146,7 +146,11 @@ Le découpage en versions, le modèle de branches et les portes sont dans
       exonération de la résidence principale, forfaits de majoration, abattement exceptionnel
       de l'art. 150 VE. Aucun calcul écrit — `ENG-012`, `ENG-014` et `ENG-016` les consomment.
       **Le taux de CSG a changé** : voir l'entrée de journal
-- [ ] `VIZ-003` Courbes de coût mensuel et bandeau d'écart
+- [x] `VIZ-003` Courbes de coût mensuel et bandeau d'écart
+      → `/comparaison`, composant serveur prérendu enveloppant un module client. Deux courbes
+      de cumul, la bande de capital entre les deux tracés du propriétaire, les **deux** années
+      de croisement, et la limite de la spécification énoncée **avant** les chiffres, avec la
+      bascule des deux lectures à l'intérieur. Voir ADR-015
 - [ ] `UI-007` Moment de révélation de l'analyse patrimoniale
 
 ## Phase 4 — Remboursements anticipés
@@ -1704,3 +1708,113 @@ présenter le maximum comme un moment où vendre ne le serait pas.
 
 **Porte** — `PORT_E2E=3132 npm run porte`, verte : typecheck, lint, **824 tests Vitest sur
 17 fichiers**, build, **242 tests Playwright passés et 10 ignorés**.
+### 23 août 2026 — `VIZ-003`, la route `/comparaison` et la limite qui passe devant
+
+**Livré** — `/comparaison`, composant serveur avec ses `metadata`, prérendu statiquement,
+enveloppant un module client sous `Suspense`. Huit fichiers sous
+`src/components/comparaison/`, l'état d'URL dans `src/lib/comparaison.ts`, et un chemin
+depuis `/credit` posé sous la phrase qui dit que ce module-là ne compare pas.
+
+**La décision de fond est une décision de mise en page, et c'est tout le ticket.** La
+spécification n'écrit pas que cette comparaison a des limites : elle écrit qu'elle **est
+faussée**. Une limite posée sous le graphique n'est pas énoncée — le lecteur pressé a déjà
+conclu. Trois règles, détaillées dans ADR-015 :
+
+1. aucun chiffre de comparaison n'apparaît avant la limite, dans l'**ordre du document** —
+   le titre lui-même ne porte aucun montant ;
+2. **la bascule entre les deux lectures vit à l'intérieur du bloc de limite**, et nulle part
+   ailleurs. C'est ce qui rend l'avertissement non contournable : on ne peut pas changer de
+   lecture sans passer par la raison d'être de ce choix. Les deux années de croisement y
+   figurent ensemble — vingt-huit ans les séparent au scénario d'ouverture ;
+3. l'échelle du graphique ne se recale jamais sur la lecture retenue : passer en fonds perdus
+   fait **retomber** les courbes dans le cadre au lieu de les réétaler, et ce qui a disparu
+   se voit.
+
+**Trois couleurs, aucune inventée.** `--interets` pour la courbe du propriétaire — le jeton
+dit « ce que l'utilisateur perd, tout coût », et la courbe comparée est un coût dans les deux
+lectures. `--capital` pour la bande entre ses deux tracés — le jeton dit « ce que
+l'utilisateur possède », ce qui est exactement ce qu'est cette bande et la raison pour
+laquelle elle ne doit pas compter comme une dépense. `--marches` pour le locataire — le jeton
+dit « le scénario financier alternatif », et le locataire est ce scénario ; le même bleu le
+portera au niveau patrimonial, où il détient réellement un portefeuille. Le violet
+`--assurance` n'apparaît pas : aucune série n'isole ici l'assurance, et lui donner une couleur
+de série la ferait passer pour une quatrième courbe. Chaque tracé porte en outre son libellé
+écrit, à hauteur de son dernier point, et le trait de croisement porte le sien.
+
+**Dix-sept paramètres dans l'URL, deux dehors.** Y entrent les cinq du financement — mêmes
+clés courtes que `/credit`, `px` `ap` `tx` `du` `as`, parce qu'elles désignent les mêmes
+grandeurs —, l'horizon, les quatre postes de propriété, les trois de location, et les quatre
+hypothèses de dérive. Chacun déplace une courbe. N'y entrent pas la **lecture retenue** et
+l'**année lue** : les deux séries sont calculées quoi qu'il arrive et les deux croisements
+sont affichés en permanence, donc la bascule ne change aucun chiffre. ADR-005 tranche
+exactement ce cas.
+
+**Une dette contournée plutôt que reproduite.** `src/lib/scenario.ts` déclare ses parseurs
+`nuqs` au premier niveau, ce qui interdit à tout composant serveur de le lire.
+`src/lib/comparaison.ts` ne contient donc que du TypeScript pur — valeurs, bornes, traduction
+vers le moteur — et les parseurs vivent dans `src/components/comparaison/useComparaison.ts`,
+sous `"use client"`. La page serveur lit `DEFAUTS` pour sa description sans rien entraîner
+derrière elle. Conséquence : les cinq paramètres de financement sont **recopiés** depuis le
+scénario de `/credit` au lieu d'être importés. La copie est gardée — un test compare la
+mensualité affichée par les deux modules et rougit si l'une des deux dérive.
+
+**Ce que les hypothèses de marché ne portent pas.** Les quatre champs de dérive — provision
+pour travaux et trois indexations — n'affichent **aucune étiquette de famille**. La taxonomie
+classe les paramètres d'une opération immobilière ; une vitesse d'indexation n'est ni
+négociable, ni contrainte, ni réglementaire : c'est une hypothèse de modélisation. Plutôt
+qu'une quatrième famille — qui affaiblirait une taxonomie dont toute la valeur tient à sa
+constance —, ces champs affichent leur **intervalle observé et leur fiabilité**, lus dans
+`src/core/assumptions/market.ts`. C'est la distinction d'ADR-008 rendue visible.
+
+**Deux réserves d'`ENG-010` portées à l'écran, comme il le demandait.** Les frais d'entrée
+sont à zéro par défaut, et le champ dit à côté que c'est optimiste, en chiffrant ce que
+7 à 8,5 % du prix représenteraient — l'utilisateur peut faire l'expérience : les saisir
+recule le croisement des fonds perdus de la première à la neuvième année. Et le bloc de
+limite dit que le croisement n'est pas le moment où l'achat rapporte davantage, à l'endroit
+exact où la confusion se produit.
+
+**Un fichier partagé modifié, et une seule fonction.** `src/lib/format.ts` reçoit
+`formatMoisReleve` : les hypothèses de marché portent un mois de relevé et non un millésime
+légal, et « 2026-08 » n'est pas une date lisible pour un utilisateur. Deux endroits de
+l'écran l'affichent. La fonction rend la chaîne telle quelle si elle n'a pas la forme
+attendue — mieux vaut montrer un code brut qu'un mois inventé. Elle n'est appelée par aucun
+code existant ; rien d'autre du fichier n'a bougé.
+
+**Tests** — `tests/e2e/comparaison.spec.ts`, 29 tests sur les deux profils, et `/comparaison`
+inscrite dans la liste `ROUTES` de `avertissement.spec.ts`. La garde qui compte est celle des
+proportions : cinq repères mesurés en pixels réels, depuis le bord **intérieur** du cadre —
+la bordure d'un pixel représente plus de dix pour cent de la hauteur du repère de l'année 1,
+et la mesurer avec fausserait le rapport.
+
+**Ce que les gardes cassées ont appris.** Trois cassées puis rétablies. Un plancher de 6 % sur
+les repères : **un** rouge, la garde de proportions, qui relève l'année 1 de 3,7 % à 6 %.
+Déplacer le bloc de limite sous la grille et glisser un « mieux vaut » dans le texte : **trois**
+rouges par profil — l'ordre du document, la lecture sans défilement, et la garde de tournures
+prescriptives. Une échelle assise sur la seule courbe du propriétaire : **deux** rouges.
+
+Une quatrième tentative n'a **rien** fait rougir, et c'est instructif : recaler l'échelle sur
+le maximum des deux séries de la lecture retenue est un changement invisible, parce que le
+locataire est le plus grand des deux dans les deux lectures — ses fonds perdus égalent son
+décaissement. La garde ne protège donc pas contre « tout recalage », mais contre tout recalage
+qui change une valeur affichée. C'est ce qu'elle prétend, et pas davantage.
+
+**Trouvé sans être corrigé.**
+
+- **L'accueil annonce toujours « Acheter ou louer » comme à venir.** `src/app/page.tsx` le
+  liste en carte non cliquable, et `tests/e2e/accueil.spec.ts` vérifie qu'il existe exactement
+  un module en ligne. Le ticket ne demandait qu'un chemin depuis `/credit` ; ouvrir la carte
+  de l'accueil suppose de reprendre cette garde, et c'est un geste à faire délibérément, pas
+  en passant.
+- **Aucune entrée de glossaire propre à ce module.** Les pastilles posées reprennent des
+  termes existants — apport, taux nominal, assurance emprunteur, taxe foncière. « Fonds
+  perdus », « décaissement » et « année de croisement » sont expliqués dans le bloc de limite
+  et nulle part ailleurs ; ils mériteraient une entrée, ce qui relève de `CNT-001`.
+- **La provenance des hypothèses de marché n'est pas affichée**, seulement l'intervalle et la
+  fiabilité. Les textes de `provenance` font deux à quatre phrases chacun et n'entrent pas
+  dans un panneau de saisie ; ils appellent une fiche, pas une infobulle.
+- **Le croisement du décaissement est à un an de l'horizon** sur le scénario d'ouverture —
+  année 29 sur 30. Un pas de plus sur n'importe quel paramètre le fait disparaître, et
+  l'écran affiche alors « aucun avant l'année 30 ». C'est juste, et c'est fragile à lire.
+
+**Porte** — `PORT_E2E=3133 npm run porte`, verte : typecheck, lint, **901 tests Vitest sur
+18 fichiers**, build, **304 tests Playwright passés et 10 ignorés**.
