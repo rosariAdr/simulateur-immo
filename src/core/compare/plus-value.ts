@@ -416,12 +416,24 @@ export function surtaxeSurPlusValue(
   const { thresholdCents, brackets } = params.realEstateCapitalGains.surtax;
   if (baseImpotRevenu <= thresholdCents) return 0;
 
-  const tranche = brackets.find(
-    (b) => baseImpotRevenu >= b.fromCents && (b.toCents === null || baseImpotRevenu <= b.toCents),
-  );
+  // La recherche part de la borne HAUTE, et c'est une correction — `ENG-027`.
+  //
+  // Le tableau de l'art. 1609 nonies G est libellé en euros entiers : sa
+  // première tranche court « de 50 001 à 60 000 € », tandis que le seuil de
+  // déclenchement vise les plus-values « supérieur[es] à 50 000 € ». Entre les
+  // deux subsiste une fente de 99 centimes que le tableau ne couvre pas, parce
+  // que le texte raisonne en euros et pas en centimes. Chercher la tranche par
+  // sa borne basse y échouait et levait, alors que la loi taxe bel et bien.
+  //
+  // Une assiette y tombe dès que les abattements produisent des centimes, ce
+  // qui est le cas ordinaire quand le prix de cession est dérivé d'une valeur
+  // appréciée plutôt que saisi en euros ronds. Les tranches étant ordonnées et
+  // contiguës et l'assiette étant déjà au-dessus du seuil, la première tranche
+  // qu'elle ne dépasse pas est la sienne.
+  const tranche = brackets.find((b) => b.toCents === null || baseImpotRevenu <= b.toCents);
   if (tranche === undefined) {
-    // Le barème de `params.ts` est contigu et sa dernière tranche est non bornée ;
-    // n'arriver ici signalerait un barème mutilé, pas une plus-value exotique.
+    // La dernière tranche de `params.ts` est non bornée ; n'arriver ici
+    // signalerait un barème mutilé, pas une plus-value exotique.
     throw new RangeError(
       `surtaxe : aucune tranche du barème ne couvre une assiette de ${baseImpotRevenu} centimes`,
     );

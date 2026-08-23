@@ -1187,3 +1187,207 @@ dans le texte en font rougir trois, sur chacun des deux profils.
 - **Le bloc de limite ne peut pas beaucoup grossir.** Il doit tenir dans une fenêtre de
   téléphone avec le bandeau d'avertissement au-dessus. Toute phrase ajoutée là devra en
   chasser une autre, et c'est une contrainte utile.
+
+---
+
+## ADR-016 — L'assemblage supprime la saisie plutôt que de la vérifier
+
+**Date** : 23 août 2026 · **Statut** : adoptée · **Tickets** : `ENG-027`
+
+### Contexte
+
+`vente.ts` (`ENG-012`) chiffre un scénario de vente en sept postes et ne sait traiter qu'un
+régime de plus-value : la résidence principale exonérée. Pour le cas imposable, son union
+`RegimePlusValue` réclame un `impotTotal` **déjà calculé**. `plus-value.ts` (`ENG-014`,
+`ENG-016`) sait calculer exactement cet impôt. Les deux modules ont été écrits en parallèle
+et ne se connaissent pas : ADR-014 en avait fait une décision, pour ne pas préempter le
+second en écrivant le premier.
+
+Restait à les brancher, et le branchement n'est pas trivial parce que **quatre grandeurs
+apparaissent des deux côtés** :
+
+| Grandeur | Côté vente | Côté plus-value |
+| --- | --- | --- |
+| Prix de cession | `valeurAppreciee(valeurInitiale, appréciation, horizon)` | `prixDeCession` |
+| Prix d'acquisition | `valeurInitiale` | `prixAcquisition` |
+| Durée de détention | `horizonMois` | `dureeDetentionMois` |
+| Frais de cession | `commissionAgence` et `mainlevee`, deux postes du décompte | `fraisDeCession` |
+
+Un appelant qui compose les deux à la main peut faire diverger chacune des quatre, et rien
+ne l'en avertit : le résultat reste vraisemblable. La quatrième est la plus insidieuse — la
+commission d'agence et la mainlevée d'hypothèque **réduisent l'impôt** (CGI, art. 150 VA,
+III), l'indemnité de remboursement anticipé **ne le réduit pas**, et les trois sortent de la
+même poche le même jour.
+
+Cinquième piège, propre à `plus-value.ts` : ses forfaits de majoration passent par un jeton
+non falsifiable, construit **pour une** situation. Rien n'empêche de l'ouvrir sur un bien
+détenu douze ans et de l'employer dans un calcul portant sur deux ans — le second verrou
+d'ADR-013 refuse alors, mais il refuse après coup.
+
+### Décision
+
+**1. L'entrée ne contient aucune grandeur partagée.** `EntreeCession` porte trois champs :
+
+```
+interface EntreeCession {
+  vente: Omit<EntreeVente, "regimePlusValue">;
+  regime: RegimeDeCession;
+  autresFraisDeCession?: Cents;
+}
+```
+
+Prix de cession, prix d'acquisition, durée de détention, frais de cession et millésime
+fiscal **n'y ont pas de place**. La divergence n'est pas détectée, elle est inécrivable : il
+n'existe aucun champ où en écrire une seconde valeur. C'est la seule forme qui tienne la
+promesse ; toutes les autres se ramènent à vérifier après coup une saisie qu'on aurait pu ne
+pas demander.
+
+Le bloc `vente` est repris par `Omit` et non recopié champ par champ. Recopier aurait rouvert
+la divergence d'un cran : le jour où `EntreeVente` gagne un champ, `Omit` le fait apparaître
+ici sans que personne y pense.
+
+**2. Les grandeurs sont dérivées de la sortie normalisée, pas de l'entrée brute.** La durée
+de détention est `produitDeVente(...).horizonMois`, pas `entree.vente.horizonMois` : le
+premier est entier et positif, le second peut n'être ni l'un ni l'autre. Le prix
+d'acquisition est `ProduitDeVente.valeurInitiale`, plancher à zéro compris. Normaliser deux
+fois de deux façons est la manière dont une égalité par construction se défait.
+
+**3. Deux appels de `produitDeVente`, et aucune formule propre.** Le prix de cession soumis à
+l'impôt est celui que le décompte a arrêté ; les frais déductibles sont les postes
+`commissionAgence` et `mainlevee` du décompte, augmentés des autres frais saisis. Comme la
+sortie du premier module alimente l'entrée du second, qui alimente à son tour le premier, le
+module appelle `produitDeVente` deux fois : une passe à impôt nul dont on ne garde que les
+postes, puis la passe définitive. Rien dans la vente ne dépendant de l'impôt, les deux passes
+ne diffèrent que par `impotPlusValue` — et c'est vérifié par test, sur chaque tirage.
+
+**4. Le mode de majoration remplace le jeton.** L'entrée dit `{ mode: "forfait" }` ou
+`{ mode: "reel", montant }` ; c'est l'assemblage qui appelle `travauxForfaitaires` et
+`fraisAcquisitionForfaitaires` sur **la** situation qu'il vient de dériver. L'appelant ne
+peut pas se tromper de situation puisqu'il n'en fournit aucune, et il n'existe aucun champ où
+glisser un jeton étranger. Le double verrou d'ADR-013 reste en place derrière.
+
+**5. Les réserves remontent étiquetées.** `readonly reserves: readonly Reserve[]`, chaque
+entrée portant `source: "vente" | "plus-value" | "cession"` et son texte **intact**. Un
+`string[]` fusionné aurait perdu la provenance ; une chaîne concaténée aurait perdu les deux.
+La liste n'est jamais vide, comme `nonModelise` dans `plus-value.ts`.
+
+**6. Le cas exonéré entre par la même porte.** `RegimeDeCession` est une union discriminée
+sur `nature`, le même mot que `RegimePlusValue`. En résidence principale, `plusValue`,
+`fraisDeCession` et `situation` valent `null` — et non zéro : un impôt qui n'a pas eu lieu
+d'être calculé ne se lit pas comme un impôt calculé à zéro.
+
+### Formes écartées
+
+**Un objet plat qui reprend les champs des deux entrées, plus une vérification.** La forme la
+plus courte à écrire. Elle demande à l'appelant de saisir deux fois la même chose, puis lève
+si les deux valeurs diffèrent. Elle transforme une impossibilité en une erreur d'exécution,
+c'est-à-dire en un test que quelqu'un devra écrire — alors que le type peut porter la
+contrainte gratuitement.
+
+**Un champ `dureeDetentionMois` optionnel, l'horizon servant de défaut.** Séduisant, parce
+qu'il ouvre le cas du bien acquis avant le début de la projection. Écarté : `horizonMois`
+compte les mois depuis le **déblocage des fonds**, qui est aussi la date d'acquisition, et
+c'est de là que les lignes du plan de financement sont numérotées. Un bien détenu depuis
+trois ans avec un prêt libéré aujourd'hui ferait lire le capital restant dû au mois 36 d'un
+crédit qui n'a pas commencé. Le cas est hors domaine, et il vaut mieux le dire que le servir
+faux. S'il devient nécessaire — pour une revente après location longue durée, par exemple —,
+il demandera de dissocier l'origine du crédit de celle de la détention, ce qui est une
+modification de `vente.ts` et non un champ de plus ici.
+
+**Laisser l'appelant fournir les jetons de forfait.** Écartée pour la raison qui fait exister
+le module : le jeton porte une situation, et une situation fournie de l'extérieur est une
+seconde durée de détention déguisée.
+
+**Un `impot: Cents` rendu à part, à charge pour l'appelant de le retrancher.** C'est
+exactement l'état antérieur, avec une fonction de plus. La sortie rend donc un
+`ProduitDeVente` complet, impôt déjà en place dans ses postes.
+
+### Justification
+
+Le coût d'un champ que le type interdit est nul ; le coût d'une divergence est un impôt
+calculé sur les abattements d'une autre opération, dans un ordre de grandeur qui ne saute pas
+aux yeux. Sur le cas de référence du module, huit années de détention en plus ou en moins
+déplacent l'impôt de plusieurs milliers d'euros sans rien changer d'autre au décompte :
+personne ne le verrait.
+
+Sur le tri des frais de cession, le raisonnement est le même en plus net. Mainlevée et
+indemnité de remboursement anticipé se ressemblent — deux frais de sortie de crédit, du même
+ordre de grandeur, dus le même jour. La première est déductible, la seconde ne l'est pas, et
+la liste de l'art. 41 duovicies H de l'annexe III est limitative. Un assemblage écrit à la
+main range l'une des deux du mauvais côté une fois sur deux ; celui-ci les range une fois
+pour toutes, et rend le détail pour qu'on puisse le contredire.
+
+### Ce qui la garde
+
+`src/core/compare/__tests__/cession.test.ts` :
+
+- **cas A**, de bout en bout et chiffré à la main dans son commentaire : bien à 200 000 €,
+  revendu vingt ans plus tard à 3 % d'appréciation, majorations au forfait. Prix de cession
+  361 222,25 €, frais déduits 18 061,11 €, plus-value brute 98 161,14 €, deux abattements —
+  90 % et 24,75 % —, impôt 14 570,06 €, produit net 328 591,08 € ;
+- **cas B**, sous hypothèque : l'indemnité et la mainlevée valent chacune 1 500 €, la seconde
+  entre dans les frais déductibles et la première non. Le contre-cas sous caution vérifie que
+  la mainlevée en sort ;
+- **cas C** : une assiette de 50 000,10 €, dans la fente du barème de la surtaxe ;
+- **l'écart exact**, sur le cas A puis sous `fast-check` : le produit d'une résidence
+  principale exonérée et celui du même bien imposable diffèrent du montant de l'impôt, et les
+  six autres postes sont identiques membre à membre ;
+- **la propriété du module** : durée de détention, prix d'acquisition et frais déduits
+  coïncident avec le décompte sur chaque tirage, **horizon réel négatif et fractionnaire
+  compris** ; une entrée où l'on force par transtypage un second prix, une seconde durée et
+  de seconds frais rend un résultat strictement identique ;
+- **les réserves** : celles de `plus-value.ts` ressortent une par une, dans l'ordre et mot
+  pour mot ; celle de `vente.ts` sur le délai normal de vente aussi ; aucune cession ne sort
+  sans réserve.
+
+Vérifié à l'adoption, cinq gardes cassées puis rétablies. Prendre la durée de détention dans
+l'entrée brute plutôt que dans la sortie normalisée : **deux** rouges — un seul avant que le
+tirage d'horizon hostile ne soit ajouté, ce qui a été la correction la plus utile de la
+séance. Ajouter l'indemnité de remboursement anticipé aux frais déductibles : **quatre**.
+Rendre la passe 1 au lieu de la passe 2, donc oublier l'impôt dans le décompte : **trois**.
+Fondre les réserves de `plus-value.ts` en une chaîne unique : **quatre**. Revenir sur la
+correction de la surtaxe : **deux**, un dans chaque fichier.
+
+Une sixième tentative n'a **rien** fait rougir : recalculer le prix de cession par
+`valeurAppreciee` au lieu de le lire dans la sortie de la passe 1. C'est attendu — les deux
+rendent le même centime, par construction — et c'est à consigner : la règle « rien n'est
+recalculé » est ici tenue par la relecture, pas par un test. Aucune garde ne distingue une
+composition d'une duplication tant que la duplication est juste ; elle mordrait le jour où
+elle cesserait de l'être, ce qui est tard.
+
+### Un fichier partagé modifié, et pourquoi il fallait le modifier
+
+`src/core/compare/plus-value.ts`, une ligne : `surtaxeSurPlusValue` cherchait sa tranche par
+la borne **basse** du barème. Le seuil de déclenchement vise les plus-values « supérieur[es]
+à 50 000 € » et la première tranche du tableau de l'art. 1609 nonies G ouvre à « 50 001 € » :
+entre les deux subsistent 99 centimes que le tableau ne nomme pas, parce que le texte
+raisonne en euros. Une assiette qui y tombait ne trouvait aucune tranche et levait
+`RangeError`, alors que la loi taxe.
+
+Le défaut était inatteignable tant que les assiettes étaient saisies en euros ronds — ce que
+font tous les cas de `plus-value.test.ts`. Il devient ordinaire dès qu'un prix de cession est
+**dérivé** d'une valeur appréciée, c'est-à-dire dès ce module. La recherche part désormais de
+la borne haute : les tranches étant ordonnées, contiguës et la dernière non bornée, et
+l'assiette étant déjà au-dessus du seuil, la première tranche qu'elle ne dépasse pas est la
+sienne. Le `RangeError` reste, pour le barème mutilé qu'il visait vraiment.
+
+La discontinuité voulue au seuil d'entrée — rien à 50 000 €, environ 500 € juste au-dessus —
+n'est pas touchée : elle est dans le texte, et ADR-013 avait décidé de la constater.
+
+### Conséquences acceptées
+
+- **Un forfait hors champ lève, y compris depuis ce module.** Un appelant qui balaie
+  l'horizon pour tracer une courbe rencontrera `ForfaitHorsChampError` sur les cinq premières
+  années si le forfait travaux est demandé, et c'est juste : il n'y est pas ouvert.
+  `situationDeCession` est exportée pour qu'il puisse le savoir avant d'appeler, sans
+  provoquer l'exception.
+- **Le module chiffre une cession, jamais deux.** Comme `vente.ts`, il ne compare pas deux
+  horizons ni deux régimes. Balayer est le travail de l'appelant, et le maximum de la courbe
+  qu'il tracera n'est pas un moment où vendre.
+- **La commission d'agence est présumée à la charge du vendeur.** Le décompte de vente la
+  retranche toujours de son produit ; elle est donc traitée comme déductible. Le mandat peut
+  en décider autrement, et la réserve le dit.
+- **Les travaux ne circulent pas entre les modules.** Le forfait de 15 % et les travaux réels
+  appartiennent au calcul de la plus-value ; la `provisionTravauxPctAnnuel` de `detention.ts`
+  est une dépense annuelle d'entretien, pas une dépense capitalisable. Les relier serait une
+  erreur fiscale, et le module ne le fait pas.

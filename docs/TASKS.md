@@ -152,6 +152,14 @@ Le découpage en versions, le modèle de branches et les portes sont dans
       de croisement, et la limite de la spécification énoncée **avant** les chiffres, avec la
       bascule des deux lectures à l'intérieur. Voir ADR-015
 - [ ] `UI-007` Moment de révélation de l'analyse patrimoniale
+- [x] `ENG-027` Assemblage de la cession : la vente et la plus-value branchées
+      → `src/core/compare/cession.ts`. Une **seule** description de la cession, et les
+      quatre grandeurs partagées — prix de cession, prix d'acquisition, durée de détention,
+      frais déductibles — sont dérivées, sans champ où en écrire une seconde version. La
+      commission et la mainlevée réduisent l'impôt, l'indemnité de remboursement anticipé
+      non. Les réserves des deux modules remontent étiquetées de leur source. Une ligne
+      corrigée dans `plus-value.ts` : la surtaxe levait sur les 99 centimes que son barème
+      ne nomme pas. Voir ADR-016
 
 ## Phase 4 — Remboursements anticipés
 
@@ -1826,3 +1834,96 @@ qui change une valeur affichée. C'est ce qu'elle prétend, et pas davantage.
 
 **Porte** — `PORT_E2E=3133 npm run porte`, verte : typecheck, lint, **901 tests Vitest sur
 18 fichiers**, build, **304 tests Playwright passés et 10 ignorés**.
+
+### 23 août 2026 — `ENG-027`, l'assemblage qui manquait entre la vente et la plus-value
+
+**Ce qui est livré.** `src/core/compare/cession.ts`, une fonction publique —
+`chiffrerCession(entree, params): CessionChiffree` — et un utilitaire exporté,
+`situationDeCession(entree)`, qui rend la situation du cédant sans lancer le calcul, pour
+que l'interface puisse griser un forfait indisponible au lieu de rattraper une exception.
+
+**La décision de fond : supprimer la saisie plutôt que la vérifier.** Quatre grandeurs
+apparaissaient des deux côtés — le prix de cession, le prix d'acquisition, la durée de
+détention, les frais déductibles — et un appelant qui composait `vente.ts` et
+`plus-value.ts` à la main pouvait faire diverger chacune sans que rien ne l'en avertisse.
+`EntreeCession` n'en porte aucune. Elle porte le bloc de vente repris tel quel par
+`Omit<EntreeVente, "regimePlusValue">`, le régime, et les autres frais de cession. La
+divergence n'est pas détectée : elle est inécrivable. Voir ADR-016.
+
+**Le tri des frais de cession est le vrai apport.** La commission d'agence et la mainlevée
+d'hypothèque viennent en diminution du prix de cession (CGI, art. 150 VA, III) ; l'indemnité
+de remboursement anticipé n'y vient pas — la liste de l'annexe III, art. 41 duovicies H, est
+limitative. Les trois sortent de la même poche le même jour, deux se ressemblent, et le cas
+de référence B les met à 1 500 € chacune pour que l'erreur soit impossible à ne pas voir.
+
+**Deux appels de `produitDeVente`, et aucune formule propre.** La sortie de la vente
+alimente l'entrée de l'impôt, qui alimente à son tour la vente. Le module fait donc une
+passe à impôt nul dont il ne garde que les postes, puis la passe définitive. L'alternative
+— rappeler `valeurAppreciee` et réappliquer le taux de commission ici — réécrivait deux
+calculs et deux arrondis. Un second appel d'une fonction pure ne coûte rien et garantit que
+le prix soumis à l'impôt est exactement celui du décompte.
+
+**Le cas de bout en bout, vérifié à la main.** Bien à 200 000 €, revendu vingt ans plus
+tard, appréciation 3 %, commission 5 %, majorations au forfait. Prix de cession
+361 222,25 € ; frais déduits 18 061,11 € ; plus-value brute 98 161,14 € ; abattements de
+90 % et de 24,75 % — les deux barèmes, aux cadences différentes ; impôt sur le revenu
+1 865,06 €, prélèvements sociaux 12 705,00 €, surtaxe néant ; impôt total **14 570,06 €** ;
+produit net **328 591,08 €**. Le même bien en résidence principale rend 343 161,14 €, soit
+exactement l'impôt d'écart, et rien d'autre ne bouge.
+
+**Un fichier partagé modifié, une ligne.** `plus-value.ts` cherchait la tranche de la
+surtaxe par la borne **basse** de son barème. Le seuil vise les plus-values « supérieur[es]
+à 50 000 € » et la première tranche ouvre à « 50 001 € » : entre les deux, 99 centimes que
+le tableau ne nomme pas, parce que le texte raisonne en euros. Une assiette qui y tombait
+levait `RangeError`. Inatteignable tant que les assiettes sont saisies en euros ronds —
+c'est le cas de tous les tests existants —, le défaut devient ordinaire dès qu'un prix de
+cession est **dérivé** d'une valeur appréciée. Le cas de référence C le montre : 100 000 €
+appréciés de 50,0001 % en un an donnent une assiette de 50 000,10 €, et 500,01 € de surtaxe.
+
+**Ce que les gardes cassées ont appris.** Cinq cassées puis rétablies, sauvegarde par copie
+avant chaque sabotage. Prendre la durée de détention dans l'entrée brute au lieu de la
+sortie normalisée : **un** rouge d'abord, et c'est le résultat le plus utile de la séance —
+le tirage `fast-check` de l'horizon était entier, donc les deux normalisations y étaient
+l'identité et la propriété ne pouvait rien voir. Un tirage d'horizon réel, négatif et
+fractionnaire, a été ajouté ; la garde rougit désormais **deux** fois. Ajouter l'indemnité
+aux frais déductibles : **quatre**. Rendre la passe 1 au lieu de la passe 2 : **trois**.
+Fondre les réserves de `plus-value.ts` en une chaîne : **quatre**. Revenir sur la correction
+de la surtaxe : **deux**, un dans chaque fichier.
+
+Une sixième tentative n'a **rien** fait rougir : recalculer le prix de cession par
+`valeurAppreciee` plutôt que de le lire dans la passe 1. Attendu, et à consigner tel quel —
+les deux rendent le même centime par construction, donc aucune garde ne distingue une
+composition d'une duplication tant que la duplication est juste. La règle « rien n'est
+recalculé » est tenue ici par la relecture, pas par un test.
+
+**Trouvé sans être corrigé.** Trois points.
+
+La fente du barème de la surtaxe a été refermée côté code, mais elle est dans le **texte** :
+l'art. 1609 nonies G raisonne en euros entiers là où le moteur raisonne en centimes. La
+lecture retenue — la première tranche court dès le premier centime au-dessus de 50 000 € —
+est la seule qui taxe sans discontinuité nouvelle, et elle n'a pas été confrontée à la
+doctrine. À verser au lot de vérification de `FIS-007`.
+
+Les travaux ne circulent pas entre les modules, et c'est délibéré. Le ticket les comptait
+parmi les grandeurs partagées ; ils ne le sont pas entre `vente.ts` et `plus-value.ts`. La
+`provisionTravauxPctAnnuel` de `detention.ts` est une dépense annuelle d'entretien, pas une
+dépense capitalisable au sens de l'art. 150 VB, II, 4°. Les brancher l'une sur l'autre
+serait une erreur fiscale ; les rapprocher un jour demandera de distinguer l'entretien de
+l'amélioration, ce qu'aucun des deux modules ne sait faire.
+
+Le bien acquis **avant** le début de la projection reste hors domaine. `horizonMois` compte
+les mois depuis le déblocage des fonds, qui est aussi la date d'acquisition, et c'est de là
+que les lignes du plan de financement sont numérotées. Ouvrir le cas — utile à la revente
+après location longue durée, donc à `ENG-013` — demande de dissocier l'origine du crédit de
+celle de la détention, dans `vente.ts`. Le module dit qu'il ne le fait pas plutôt que de le
+faire faux.
+
+**Une réserve à porter dans l'interface.** Un forfait de majoration hors de son champ
+**lève**, ici comme dans `plus-value.ts` — ADR-013 a tranché contre la retombée silencieuse.
+Un écran qui balaie l'horizon pour tracer une courbe rencontrera le refus sur les cinq
+premières années si le forfait travaux est demandé. `situationDeCession` existe pour qu'il
+le sache avant d'appeler.
+
+**Porte** — `PORT_E2E=3141 npm run porte`, verte : typecheck, lint, **931 tests Vitest sur
+19 fichiers**, build, **306 tests Playwright passés et 10 ignorés**. La copie de travail
+n'avait pas ses dépendances installées ; `npm ci` avant la porte, sans toucher au verrou.
