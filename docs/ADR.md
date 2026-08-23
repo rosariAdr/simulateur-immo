@@ -1713,3 +1713,155 @@ protège de la croyance qui se fige.
 
 `src/core/credit/__tests__/garantie.test.ts` — le rapport du coût de mainlevée au capital
 confronté au taux déclaré, et la garde de type sur le paramètre retiré.
+
+---
+
+## ADR-020 — L'hypothèse qui décide vit dans l'avertissement, et la fourchette entoure le point
+
+**Date** : 23 août 2026 · **Statut** : adoptée · **Tickets** : `UI-007`
+
+### Contexte
+
+ADR-015 avait tranché, pour le niveau simple d'« acheter ou louer », *où* la limite se
+pose sur l'écran : avant les chiffres, avec la commande qui en dépend soudée à
+l'intérieur. Le niveau approfondi pose la même question de mise en page, et la réponse
+n'est pas la même — la recopier aurait été le contresens.
+
+Au niveau simple, tous les nombres sont de l'arithmétique sur des montants saisis par
+l'utilisateur. Le danger est de compter la part de capital comme une dépense, et
+l'avertissement porte là-dessus.
+
+À ce niveau-ci, deux nombres n'ont pas cette nature. Le patrimoine du propriétaire dépend
+de ce que vaudra le bien ; celui du locataire de référence, de ce qu'aura rapporté son
+épargne. **Personne ne connaît ni l'un ni l'autre**, et `src/core/assumptions/market.ts`
+le dit dans son type : `appreciationAnnuellePct` et `rendements` sont des
+`FourchetteObservee`, c'est-à-dire des intervalles **sans valeur centrale**, par refus
+explicite de publier une prévision de marché (`docs/CONTEXT.md` §8). La commission
+d'agence, elle, est une `HypotheseChiffree` : elle a une valeur, les barèmes sont affichés
+en vitrine.
+
+L'écran devait donc trancher trois choses : où poser ces deux hypothèses, sur quoi ouvrir
+puisqu'aucune valeur centrale n'existe, et comment faire voir le retournement sans
+désigner de vainqueur.
+
+### Décision
+
+**Quatre règles, qui ne valent que prises ensemble.**
+
+**1. Les hypothèses sans valeur centrale vivent dans le bloc de limite, et nulle part
+ailleurs.** On ne peut pas déplacer le nombre qui commande le résultat sans passer par la
+phrase qui dit que personne ne le connaît. C'est le mécanisme d'ADR-015 appliqué à ce qui
+mérite ici d'être rendu incontournable. **La ligne de partage est lisible dans le type,
+pas dans le goût de qui dessine** : entre ici ce que `market.ts` refuse de chiffrer, reste
+dans le panneau de saisie ce qu'il chiffre.
+
+**2. Le point d'ouverture est le milieu de l'intervalle, il est calculé dans l'interface,
+et l'écran écrit qu'il n'a aucune autorité.** Il en faut un — un décompte poste par poste
+n'existe pas pour une fourchette. Le poser dans `market.ts` en ferait une valeur centrale
+publiée, exactement ce que ce fichier refuse ; le poser ici et le déclarer arbitraire est
+la seule forme honnête. Le champ qui le porte n'est pas `ChampHypothese` mais
+`ChampFourchette`, qui ajoute cette déclaration et la provenance complète.
+
+**3. La fourchette entoure le point, elle ne le remplace pas — et c'est elle qui fixe
+l'échelle.** Autour de chaque courbe, l'intervalle observé de l'hypothèse qui la gouverne
+est dessiné. Les bornes du cadre viennent de ces fourchettes, qui **ne dépendent d'aucun
+réglage** : déplacer un curseur d'hypothèse fait monter ou descendre une courbe dans un
+cadre immobile, au lieu de la recadrer sur elle-même. C'est l'équivalent de la règle 3
+d'ADR-015 : un cadre qui se réétale à chaque réglage rend toutes les hypothèses également
+spectaculaires, donc n'en apprend aucune.
+
+**4. Le zéro est une position, pas un bord.** Le produit d'une vente peut être négatif —
+ADR-014 l'avait établi côté moteur, et l'écran le dessine **sous** une ligne de zéro
+nommée. Écraser ces années à zéro cacherait le seul chiffre que ce module connaît et
+qu'aucun simulateur n'affiche : vendre tôt laisse une dette.
+
+**Corollaire sur le retournement.** Il ne se produit ni dans un graphique, ni dans une
+phrase : **entre deux lignes posées l'une sous l'autre**, dans la même unité et à la même
+année — « le propriétaire a décaissé tant de plus » et « il lui reste tant de plus ».
+Aucune des deux n'est appelée la bonne, et une troisième ligne confronte l'écart à la
+largeur des deux fourchettes.
+
+### Justification
+
+La règle 1 seule serait une préférence de mise en page. C'est la règle 3 qui la rend
+utile : les fourchettes étant dessinées, déplacer le curseur montre à l'œil que
+l'incertitude déclarée est plus large que l'écart entre les deux options. Sur le scénario
+d'ouverture, l'écart de patrimoine vaut 36 030,77 € quand le patrimoine du propriétaire va
+de 107 569,58 € à 632 988,17 € et celui du locataire de 85 967,61 € à 507 980,12 €. Un
+écran qui ne montrerait que les deux traits laisserait croire l'inverse, et ce serait le
+mensonge le plus coûteux de la page.
+
+La règle 4 est ce qui empêche le graphique de mentir dans l'autre sens. Le seul
+enseignement robuste de ce module — robuste parce qu'il ne dépend presque pas des
+hypothèses — est que vendre dans les premières années coûte cher, et il ne se voit que si
+le zéro flotte.
+
+### Une entorse assumée à `VIZ-003`
+
+`CourbesCout` avait écrit qu'une bande de série se peint en **aplat plein** : « une couleur
+diluée n'est plus le jeton qu'elle prétend être ». La règle valait là-bas parce que la bande
+**était** le capital, la grandeur elle-même dessinée. Les fourchettes de cet écran ne sont
+pas des grandeurs : ce sont les incertitudes qui entourent des grandeurs, et leur donner la
+même intensité qu'à la courbe dirait que les deux ont le même statut. La teinte reste celle
+du jeton, l'intensité dit le statut, et **rien ne repose là-dessus** — les deux fourchettes
+sont nommées dans la légende et leurs quatre bornes sont écrites en euros au-dessus du
+graphique.
+
+Même raisonnement pour la couleur du propriétaire, brique au niveau simple et **verte**
+ici : ce n'est pas la même grandeur. Là-bas on trace ce qu'il dépense, ici ce qu'il possède,
+et les jetons disent exactement cela. La brique sert sur cet écran à ce qu'elle signifie :
+les postes qui se retranchent du produit de la vente.
+
+### Le refus de forfait est anticipé, jamais rattrapé
+
+`chiffrerCession` lève `ForfaitHorsChampError` quand un forfait de majoration est demandé
+hors de son champ — le forfait travaux suppose une détention de **plus** de cinq ans. Un
+écran qui balaie l'horizon depuis l'année 1 rencontre ce refus cinq fois sur trente.
+
+ADR-013 avait tranché contre la retombée silencieuse. L'écran ne rattrape donc **aucune**
+exception : il interroge `situationDeCession` puis `motifExclusionForfaitTravaux` avant
+d'appeler, ne chiffre pas les années fermées, et **écrit le motif du moteur** — article du
+code général des impôts compris. À l'horizon, l'option elle-même est grisée quand la durée
+projetée la ferme, et elle reste **visible** : un utilisateur qui projette à cinq ans doit
+pouvoir apprendre qu'un forfait de 15 % existe et lui est fermé.
+
+### Ce qui la garde
+
+`tests/e2e/patrimoine.spec.ts`, 32 tests sur les deux profils :
+
+- **« les deux hypothèses décisives vivent dans le bloc de limite, et nulle part ailleurs »** ;
+- **« l'échelle ne se recale pas sur l'hypothèse retenue »** — le repère du locataire à
+  l'année 30 vaut 35,988 % du cadre à l'appréciation d'ouverture comme aux deux bornes de
+  l'intervalle, mesuré en pixels, pendant que celui du propriétaire va de 16,996 % à 100 % ;
+- **« les repères des deux courbes sont proportionnels aux montants du moteur »** — six
+  repères confrontés aux montants, sans hauteur plancher ;
+- **« un produit de vente négatif est dessiné sous la ligne de zéro »** — la ligne flotte à
+  2,29 % du bas du cadre et l'année 1 est dessous ;
+- **« le forfait travaux ferme les cinq premières années, et l'écran écrit pourquoi »** ;
+- **« aucune tournure prescriptive n'atteint le lecteur »** — vingt tournures, dont six
+  propres à ce niveau, sur trois adresses.
+
+Vérifié à l'adoption, gardes cassées puis rétablies — sauvegarde par copie de fichier :
+un plancher de 6 % sur les repères fait rougir **4 tests** ; une échelle assise sur les
+seules courbes retenues en fait rougir **6** ; sortir les deux hypothèses du bloc de
+limite, **4** ; une phrase prescriptive glissée dans le retournement, **2** ; le retour de
+« ce niveau n'est pas encore construit » sur `/comparaison`, **2**. Un sabotage n'a rien
+fait rougir du tout, et c'est l'entrée la plus utile : voir le journal de `docs/TASKS.md`.
+
+### Conséquences acceptées
+
+- **L'écran s'ouvre sur un nombre que le simulateur désavoue.** Le milieu d'un intervalle
+  n'est pas une prévision, mais c'est bien un chiffre, et il produit tous les autres. La
+  seule alternative honnête — n'ouvrir sur rien — rendait l'écran inutilisable au premier
+  regard. Le désaveu est donc écrit à côté du curseur, pas dans une note.
+- **Le bloc de limite est plus haut que celui du niveau simple**, puisqu'il porte deux
+  champs au lieu d'une bascule. La contrainte d'ADR-015 tient quand même : c'est la
+  **phrase** qui doit être dans la fenêtre du téléphone, et elle l'est ; les deux champs
+  peuvent demander un défilement.
+- **Six balayages de l'horizon au lieu d'un.** Les deux fourchettes coûtent quatre
+  balayages supplémentaires. Mesuré sous la milliseconde sur trente ans, ce qui laisse le
+  calcul synchrone et sans bouton.
+- **La route est imbriquée sous `/comparaison`**, et l'accueil porte donc **deux liens sur
+  une seule carte**. La garde d'`UI-014` a dû être reprise en conséquence : l'égalité se lit
+  désormais entre routes déclarées et **liens** des cartes ouvertes, non entre routes et
+  cartes. Ce qu'elle protège n'a pas bougé.

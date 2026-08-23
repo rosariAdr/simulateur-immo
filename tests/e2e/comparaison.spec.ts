@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { PRESCRIPTIONS_COMPARAISON, PRESCRIPTIONS_GENERALES } from "./prescriptions";
 
 /**
  * MODULE « ACHETER OU LOUER » — `VIZ-003`, `/comparaison`
@@ -454,33 +455,13 @@ test("la mensualité affichée ici est celle que le module crédit affiche", asy
 /**
  * Les tournures que le produit s'interdit.
  *
- * Les dix premières sont celles de `tests/e2e/fiche-credit.spec.ts` et de
- * `src/content/__tests__/fiche-credit.test.ts` — la règle la plus importante du
- * projet : « dans cette configuration, l'écart est de X », jamais « vous
- * devriez ».
- *
- * Les quatre dernières sont propres à cet écran. Un module qui compare deux
- * options glisse vers le verdict plus vite qu'un texte pédagogique : « à partir
- * de l'année 12, acheter devient rentable » est la phrase que tous les
- * comparateurs écrivent, et elle est fausse deux fois — ce niveau de calcul ne
- * mesure ni l'appréciation du bien, ni les frais de revente, ni le coût
- * d'opportunité de l'apport, et le produit ne désigne pas de gagnant.
+ * La liste vit désormais dans `tests/e2e/prescriptions.ts`, sortie d'ici par
+ * `UI-007` pour que les deux niveaux du module la lisent identique. Une garde
+ * recopiée est une garde qui diverge.
  */
 const PRESCRIPTIONS: readonly RegExp[] = [
-  /\bvous devriez\b/iu,
-  /\bnous (?:vous )?(?:recommandons|conseillons)\b/iu,
-  /\ble meilleur choix\b/iu,
-  /\bil (?:vous )?faut\b/iu,
-  /\bmieux vaut\b/iu,
-  /\bpréférez\b/iu,
-  /\bchoisissez\b/iu,
-  /\bévitez\b/iu,
-  /\bn['’]hésitez pas\b/iu,
-  /\bvous avez (?:tout )?intérêt à\b/iu,
-  /\brentab/iu,
-  /\bgagnant\b/iu,
-  /\bl['’]emporte\b/iu,
-  /\bplus avantageux\b/iu,
+  ...PRESCRIPTIONS_GENERALES,
+  ...PRESCRIPTIONS_COMPARAISON,
 ];
 
 test("aucune tournure prescriptive n'atteint le lecteur", async ({ page }) => {

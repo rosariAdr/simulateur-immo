@@ -161,7 +161,16 @@ Le découpage en versions, le modèle de branches et les portes sont dans
       de cumul, la bande de capital entre les deux tracés du propriétaire, les **deux** années
       de croisement, et la limite de la spécification énoncée **avant** les chiffres, avec la
       bascule des deux lectures à l'intérieur. Voir ADR-015
-- [ ] `UI-007` Moment de révélation de l'analyse patrimoniale
+- [x] `UI-007` Moment de révélation de l'analyse patrimoniale
+      → `/comparaison/patrimoine`, second niveau du même module. Le retournement se produit
+      **entre deux lignes posées l'une sous l'autre** : « le propriétaire a décaissé 16 508,31 €
+      de plus » et « il lui reste 36 030,77 € de plus », même ménage, même horizon, sens
+      contraires. Les **deux hypothèses auxquelles `market.ts` refuse une valeur centrale**
+      vivent dans le bloc de limite et nulle part ailleurs, et leurs fourchettes sont dessinées
+      autour des courbes — plus larges que l'écart entre les deux options. Le zéro flotte : un
+      produit de vente négatif est dessiné dessous. `ForfaitHorsChampError` est anticipé par
+      `situationDeCession`, jamais rattrapé. Les deux sorties locatives sont déclarées absentes
+      en toutes lettres. Voir ADR-020
 - [x] `ENG-027` Assemblage de la cession : la vente et la plus-value branchées
       → `src/core/compare/cession.ts`. Une **seule** description de la cession, et les
       quatre grandeurs partagées — prix de cession, prix d'acquisition, durée de détention,
@@ -2338,3 +2347,168 @@ protection.
 **Porte** — `PORT_E2E=3143 npm run porte`, verte : typecheck, lint, **941 tests Vitest sur
 20 fichiers**, build, **306 tests Playwright passés et 10 ignorés**. La copie de travail
 n'avait pas ses dépendances installées ; `npm ci` avant la porte, sans toucher au verrou.
+
+---
+
+### 23 août 2026 — `UI-007`, le niveau approfondi et l'hypothèse qu'on ne peut pas contourner
+
+**Livré** — `/comparaison/patrimoine`, composant serveur avec ses `metadata`, prérendu
+statiquement, enveloppant un module client sous `Suspense`. Route **imbriquée** et non de
+premier niveau : c'est le second niveau du même module, celui que
+`docs/03-spec-domaine.md` §2 décrit. Sept fichiers sous `src/components/patrimoine/`,
+l'état d'URL dans `src/lib/patrimoine.ts`, et un chemin dans les deux sens qui **conserve
+la chaîne de requête** — les dix-sept clés du niveau simple sont les mêmes des deux côtés,
+et sept s'y ajoutent.
+
+**Le scénario d'ouverture retourne, et c'est le ticket entier.** Sur trente ans, le niveau
+simple compte **16 508,31 € décaissés en plus** par le propriétaire. Le niveau approfondi
+lui laisse **36 030,77 € de plus** : 263 830,08 € de produit net de vente contre
+227 799,31 € de portefeuille. Les deux phrases sont vraies, portent sur le même ménage, et
+penchent en sens contraire. Le retournement se produit donc **entre deux lignes posées
+l'une sous l'autre**, dans la même unité et à la même année — ni dans un graphique, ni
+dans une phrase de synthèse.
+
+**La décision de fond, ADR-020 : les deux hypothèses qui décident vivent dans
+l'avertissement.** ADR-015 avait soudé la bascule des deux lectures au bloc de limite du
+niveau simple. La forme est reprise, la limite ne l'est pas : ici le danger n'est pas de
+mal compter, c'est que **la réponse dépende de deux nombres que personne ne connaît**. La
+ligne de partage se lit dans le type et non dans le goût — entrent dans le bloc les
+hypothèses auxquelles `src/core/assumptions/market.ts` refuse une valeur centrale, les
+`FourchetteObservee` ; la commission d'agence, qui en a une, reste un paramètre de saisie
+comme les autres.
+
+**Le point d'ouverture est le milieu de l'intervalle, et l'écran le désavoue.** Il en faut
+un : aucun décompte poste par poste n'existe pour une fourchette. Le poser dans
+`market.ts` en ferait une valeur centrale publiée — exactement ce que ce fichier refuse.
+Il est donc calculé dans l'interface, et `ChampFourchette` écrit à côté du curseur qu'il
+n'a aucune autorité, avec la provenance complète dans un `<details>`. Appréciation :
+milieu de [−2 % ; 4 %], soit 1,0 %. Rendement : milieu de l'**union** des deux fourchettes
+relevées — capital garanti et actions diversifiées —, soit 4,25 % sur [1,5 % ; 7 %]. Cette
+union évite de choisir pour le lecteur ce que fait son adversaire de son épargne.
+
+**La fourchette entoure le point, et c'est elle qui fixe l'échelle.** Conséquence
+mesurable : déplacer un curseur d'hypothèse ne recadre rien, la courbe monte ou descend
+dans un cadre immobile. Et conséquence de fond, écrite sur l'écran : à l'horizon, l'écart
+entre les deux patrimoines vaut 36 030,77 € quand celui du propriétaire va de 107 569,58 €
+à 632 988,17 € et celui du locataire de 85 967,61 € à 507 980,12 €. **Les deux fourchettes
+se recouvrent presque entièrement** : le choix des hypothèses pèse plus lourd que le choix
+entre acheter et louer, et un graphique qui ne montrerait que les deux traits laisserait
+croire l'inverse.
+
+**Le zéro est une position, pas un bord.** `?ap=0&av=-2&ca=8` : revendre à l'année 1 laisse
+**−14 371,65 €**, c'est-à-dire une somme à apporter pour solder le prêt. La ligne de zéro
+flotte alors à 2,29 % du bas du cadre, elle porte son nom écrit, et les quatre premières
+années pendent dessous. C'est le seul enseignement de ce module qui ne dépende presque pas
+des hypothèses, et il ne se voit que si le zéro flotte.
+
+**`ForfaitHorsChampError` est anticipé, jamais rattrapé.** `cession.ts` le demandait en
+toutes lettres. `motifNonChiffrable` interroge `situationDeCession` puis
+`motifExclusionForfaitTravaux` **avant** d'appeler ; l'année fermée n'est pas chiffrée, et
+le motif du moteur est affiché tel quel, article du CGI compris. Sur
+`?rg=imposable&mt=forfait`, les cinq premières années n'ont ni repère ni décompte, et la
+sixième les a. À l'horizon, l'option elle-même est grisée quand la durée projetée la ferme
+— `Option` de `ListeDeroulante` gagne un champ `desactivee` pour cela — et elle reste
+**visible** : quelqu'un qui projette à cinq ans doit pouvoir apprendre qu'un forfait de
+15 % existe et lui est fermé.
+
+**Les deux sorties locatives sont déclarées absentes, pas grisées.** L'accueil grise ses
+modules à venir, et c'est exact là-bas : le module existera, le lien apparaîtra. Ici
+l'objet n'est pas une page mais un **chiffre**, et une esquisse grisée d'un chiffre absent
+est pire qu'un lien mort. Le bloc « Trois sorties, une seule chiffrée » est donc de la
+prose : chaque sortie est nommée, et ce qu'il faudrait pour la chiffrer est décrit — les
+régimes micro-foncier, réel, micro-BIC et réel meublé pour l'une, le tarif, le taux
+d'occupation et la commission de plateforme pour l'autre. Rien n'est daté, rien n'annonce
+d'échéance, et le décompte se déduit de la liste au lieu de s'écrire.
+
+**Une erreur d'`UI-014` corrigée en passant.** `/comparaison` disait « ce niveau
+n'est pas encore construit ». Il l'est. La phrase est reprise, et une garde la relit
+désormais.
+
+**Deux gestes exigés par `UI-014`, et une garde à reprendre.** La route rejoint `ROUTES`
+d'`avertissement.spec.ts` et `ROUTES_OUVERTES` d'`accueil.spec.ts`, et la carte « acheter
+ou louer » porte un second lien vers le niveau approfondi. Ce second lien a obligé à
+reprendre la garde du décompte : un module peut désormais porter **deux écrans**, donc
+l'égalité ne peut plus se lire entre routes et cartes — elle se lit entre routes déclarées
+et **liens** des cartes ouvertes. Ce qu'elle protège n'a pas bougé.
+
+**Fichiers partagés touchés, et pourquoi.** `ecarter`, l'écartement de deux libellés de
+courbe, sort de `CourbesCout` vers `src/components/charts/ecarter.ts` : le second
+graphique en avait besoin, et une recopie de quinze lignes aurait divergé. Aucun chiffre
+n'a bougé, et la garde « les deux libellés ne se recouvrent jamais » vaut désormais sur
+les deux écrans. `Option` de `ListeDeroulante` gagne `desactivee?`, additif. La liste des
+tournures prescriptives sort de `comparaison.spec.ts` vers `tests/e2e/prescriptions.ts`,
+en trois blocs — général, comparaison, patrimoine — pour que les deux niveaux lisent la
+même. **Aucun fichier de `src/core/` n'a été modifié.**
+
+**Tests** — `tests/e2e/patrimoine.spec.ts`, 32 tests sur les deux profils, soit 64
+exécutions. Six tournures prescriptives propres à ce niveau s'ajoutent aux quatorze
+existantes : `vous aurez / gagnerez / perdrez`, `vaut le coup`, `bon investissement`,
+`bon placement`, `plus riche`, `moment idéal / optimal / opportun / propice`, `au bon
+moment`. Les trois dernières visent le piège que `cession.ts` nomme lui-même : « le
+maximum de cette courbe n'est pas un conseil de vente ».
+
+#### Gardes cassées, puis rétablies
+
+Six sabotages, sauvegarde par copie de fichier — jamais `git checkout --`.
+
+1. **Plancher de 6 % sur les repères du graphique** : **4 rouges**, deux tests sur deux
+   profils — les proportions, et le produit de vente négatif dont le repère remontait
+   au-dessus du zéro. La garde d'échelle, elle, n'a pas bougé : ses repères valent tous
+   plus de 6 %, et un plancher ne les touche pas. Bon à savoir — ces deux gardes ne se
+   remplacent pas.
+2. **Échelle assise sur les seules courbes retenues**, les fourchettes retirées du calcul
+   des bornes : **6 rouges**, trois tests sur deux profils. Les trois gardes de proportion
+   tombent ensemble, ce qui est le comportement attendu : elles mesurent toutes contre la
+   même échelle.
+3. **`try`/`catch` autour de `chiffrerCession` avec retombée silencieuse sur « travaux au
+   réel, zéro »**, posé dans `venteA` — la fonction qui calcule les bornes de la
+   fourchette : **0 rouge, suite complète verte.** Résultat inattendu et instructif : ce
+   `catch` ne peut jamais s'exécuter. `venteA` n'est appelée que pour les années dont la
+   boucle principale a déjà établi qu'elles sont chiffrables, et la seule chose qui varie
+   entre les deux appels est l'appréciation, qui n'entre dans aucun motif d'exclusion. Le
+   pré-contrôle qu'il contient est de la défense en profondeur, pas une protection
+   effective ; **aucun test ne le garde, et il ne peut pas en exister.** Consigné ici
+   plutôt que masqué par un test artificiel qui n'aurait mesuré que lui-même.
+4. **Le même sabotage, posé cette fois dans la boucle de balayage** : **2 rouges**,
+   « le forfait travaux ferme les cinq premières années » sur les deux profils. C'est là
+   qu'est la protection réelle.
+5. **Les deux hypothèses sorties du bloc de limite**, déplacées juste au-dessous :
+   **4 rouges**. Deux attendus — « les deux hypothèses vivent dans le bloc de limite » — et
+   **deux inattendus** : « deux des trois sorties sont annoncées comme non modélisées »,
+   parce que le paragraphe `data-une-sortie` était emporté hors du bloc par la même
+   coupure. Un défaut de mise en page en révèle un autre.
+6. **Une phrase prescriptive dans le retournement** — « le moment optimal pour vendre… et
+   acheter reste un bon placement » : **2 rouges**, la garde des tournures sur les deux
+   profils. Elle attrape deux des six tournures nouvelles.
+7. **Le retour de « ce niveau n'est pas encore construit » sur `/comparaison`** :
+   **2 rouges**. La garde qui relit la phrase du niveau simple fonctionne, ce qui est
+   précisément ce qui manquait à `UI-014`.
+
+Le sabotage n° 3 est le résultat le plus utile de la séance : il dit où la protection
+n'est **pas**.
+
+#### Ce qui reste ouvert
+
+- **Trois grandeurs de la cession sont fixées, pas saisies** : le bien est bâti, le cédant
+  est une personne physique, et il est affilié à la sécurité sociale française. Le moteur
+  sait traiter les autres cas — `ENG-016` a écrit le taux réduit EEE/Suisse — et l'écran
+  ne les propose pas. C'est déclaré dans « ce que ce calcul ne dit pas », et c'est un
+  champ à ouvrir le jour où quelqu'un en aura besoin.
+- **Les frais de cession autres que la commission et la mainlevée ne sont pas saisissables**
+  — diagnostics, honoraires d'architecte, indemnité d'éviction. `EntreeCession` a le champ,
+  l'écran ne l'expose pas. Même raison : un champ de plus pour un montant que peu de gens
+  connaissent, et la réserve le dit.
+- **Le portefeuille du locataire n'a aucune fiscalité de sortie.** Le rendement se saisit
+  net d'impôt, ce qui est la convention de `portefeuille.ts` et la seule tenable tant
+  qu'`ENG-023` n'a pas modélisé les enveloppes. Un utilisateur qui saisit un rendement
+  **brut** surestime le portefeuille sans que rien ne l'en avertisse au-delà d'une phrase.
+  C'est la faiblesse la plus réelle de l'écran.
+- **Le croisement des deux patrimoines bouge énormément.** Il vaut l'année 8 au scénario
+  d'ouverture, l'année 2 à 4 % d'appréciation, et n'existe pas dans plusieurs
+  configurations plausibles. L'écran le dit, et refuse de l'ouvrir comme année de lecture
+  par défaut — il ouvre sur l'horizon projeté, qui est la question posée.
+
+**Porte** — `PORT_E2E=3144 npm run porte`, verte : typecheck, lint, **955 tests Vitest sur
+20 fichiers**, build (quinze routes, toutes statiques), **374 tests Playwright passés et
+10 ignorés**. La copie de travail n'avait pas ses dépendances installées ; `npm ci` avant
+la porte, sans toucher au verrou.

@@ -1,6 +1,7 @@
 "use client";
 
 import type { AnneeDetention, ComparaisonDetention } from "@/core/compare/types";
+import { ecarter } from "@/components/charts/ecarter";
 import type { Cents } from "@/core/money";
 import { formatEuros } from "@/lib/format";
 import { DESCRIPTION_LECTURE, type Lecture } from "@/lib/comparaison";
@@ -388,41 +389,6 @@ export function CourbesCout({ comparaison, lecture, annee, onAnnee }: Props) {
       </p>
     </section>
   );
-}
-
-/**
- * Écarte deux libellés qui se recouvriraient, et rien de plus.
- *
- * ⚠️ Cette fonction déplace du TEXTE, jamais une mesure. Les deux courbes se
- * rejoignent souvent au dernier point — c'est même le cas au voisinage d'un
- * croisement —, et deux libellés superposés y deviennent illisibles tous les
- * deux. Les repères mesurables, eux, ne bougent pas d'un pixel : la garde de
- * proportions les lit, pas les libellés.
- */
-function ecarter(a: number, b: number): readonly [number, number] {
-  /** Écart minimal en % de la hauteur du cadre, pour deux lignes de 10 px. */
-  const MINIMUM = 8;
-  /** Marges dans lesquelles un libellé reste entièrement dans la gouttière. */
-  const PLANCHER = 4;
-  const PLAFOND = 92;
-
-  const serrer = (v: number) => Math.min(Math.max(v, PLANCHER), PLAFOND);
-  // Le serrage vient AVANT l'écartement, et non l'inverse : borner après avoir
-  // écarté ramène les deux libellés sur la même limite, ce qui les superpose de
-  // nouveau — exactement le défaut qu'on cherchait à corriger.
-  let haut = serrer(Math.max(a, b));
-  let bas = serrer(Math.min(a, b));
-
-  if (haut - bas < MINIMUM) {
-    haut = Math.min(haut + (MINIMUM - (haut - bas)) / 2, PLAFOND);
-    bas = haut - MINIMUM;
-    if (bas < PLANCHER) {
-      bas = PLANCHER;
-      haut = bas + MINIMUM;
-    }
-  }
-
-  return a >= b ? [haut, bas] : [bas, haut];
 }
 
 /**

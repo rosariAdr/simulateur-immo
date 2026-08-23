@@ -289,6 +289,35 @@ spécification. Signalé par l'agent qui a écrit le portefeuille du locataire.
 - un forfait de majoration est construit sur la situation dérivée, et sur aucune
   autre : l'appelant n'en fournit pas, donc il ne peut pas se tromper de situation
 
+**Analyse patrimoniale à l'écran** (`UI-007`)
+
+Ces invariants-là ne vivent pas dans le moteur : ils portent sur la **composition** des
+quatre modules précédents, et ils se vérifient dans `tests/e2e/patrimoine.spec.ts`. Ils
+sont écrits ici parce qu'un écran qui compose peut trahir des modules justes.
+
+- le locataire de référence reçoit l'écart de **décaissement**, jamais l'écart de fonds
+  perdus : les deux ménages doivent sortir la même somme du même compte le même mois,
+  faute de quoi on ne compare plus deux patrimoines constitués par le même effort
+- **l'écart de patrimoine et l'écart de décaissement sont deux nombres distincts, et ils
+  peuvent pencher en sens contraire** à la même année et pour le même ménage. C'est le
+  retournement, et l'écran doit afficher les deux ensemble sans désigner le bon
+- l'échelle du graphique est fixée par les **intervalles observés**, qui ne dépendent
+  d'aucun réglage : déplacer une hypothèse déplace une courbe, jamais le cadre. Mesurable
+  en pixels — le repère du locataire ne bouge pas quand l'appréciation du bien change
+- un produit de vente négatif se dessine **sous** une ligne de zéro nommée, jamais écrasé
+  sur le bord du cadre
+- un forfait de majoration hors de son champ n'est **pas rattrapé** : l'année n'est pas
+  chiffrée, et le motif du moteur est affiché tel quel. Un écran qui balaie l'horizon
+  rencontre ce refus sur les cinq premières années dès que le forfait travaux est retenu
+- l'épuisement du portefeuille du locataire est **annoncé à l'année où il se produit** :
+  au-delà, les deux colonnes ne décrivent plus le même effort et leur écart ne se lit plus
+- les hypothèses auxquelles `assumptions/market.ts` refuse une valeur centrale
+  s'affichent avec leur intervalle, leur fiabilité, et la mention que le point d'ouverture
+  est un milieu d'intervalle sans autorité
+- **deux des trois sorties ne sont pas modélisées, et l'écran le dit en toutes lettres** :
+  ni grisées, ni datées, ni annoncées « à venir ». Le décompte se déduit de la liste, il
+  ne s'écrit pas en prose
+
 Cas limites de ce module : horizon nul, loyer nul, prix nul, indexation négative puis
 inférieure à −100 %, versements tous négatifs, portefeuille épuisé, plus-value nulle ou
 négative, durée de détention nulle, vente qui ne couvre pas le capital restant dû.

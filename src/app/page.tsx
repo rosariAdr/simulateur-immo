@@ -157,6 +157,20 @@ interface Module {
   readonly nom: string;
   readonly resume: string;
   readonly lien: string | null;
+  /**
+   * Second niveau du même module, quand il en a un — `UI-007`.
+   *
+   * « Acheter ou louer » est le premier module à en porter deux : la
+   * spécification le décrit ainsi, un niveau simple et un niveau approfondi.
+   * Une seconde carte les aurait présentés comme deux modules et aurait faussé
+   * le décompte annoncé juste au-dessus ; un lien de plus sur la même carte dit
+   * ce qui est : un module, deux écrans.
+   *
+   * Il est **hors** du lien qui enveloppe la carte, et il doit le rester : un
+   * `<a>` dans un `<a>` est du HTML invalide, que les navigateurs réparent
+   * chacun à leur façon.
+   */
+  readonly approfondi?: { readonly lien: string; readonly libelle: string };
 }
 
 const MODULES: readonly Module[] = [
@@ -173,6 +187,10 @@ const MODULES: readonly Module[] = [
     resume:
       "Deux façons de compter le coût d'un achat face à un loyer, et les deux années de croisement qu'elles donnent.",
     lien: "/comparaison",
+    approfondi: {
+      lien: "/comparaison/patrimoine",
+      libelle: "Niveau approfondi : les deux patrimoines à l'horizon →",
+    },
   },
   {
     cle: "anticipes",
@@ -250,12 +268,17 @@ function Modules() {
       <ul className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
         {MODULES.map((module) =>
           module.lien !== null ? (
-            <li key={module.cle} data-module={module.cle} data-etat="en-ligne">
+            <li
+              key={module.cle}
+              data-module={module.cle}
+              data-etat="en-ligne"
+              className="flex h-full flex-col border border-filet bg-panneau"
+            >
               <Link
                 href={module.lien}
-                className="block h-full border border-filet bg-panneau px-4 py-4 transition-colors
+                className="block grow px-4 py-4 transition-colors
                            hover:bg-survol-fond focus-visible:outline focus-visible:outline-2
-                           focus-visible:outline-offset-2 focus-visible:outline-accent"
+                           focus-visible:-outline-offset-2 focus-visible:outline-accent"
               >
                 <div className="flex items-baseline justify-between gap-3">
                   <h3 className="font-titre text-[16px] font-semibold">{module.nom}</h3>
@@ -277,6 +300,24 @@ function Modules() {
                   Ouvrir le module →
                 </span>
               </Link>
+              {/*
+                Le second niveau, hors du lien de la carte — un `<a>` dans un
+                `<a>` est invalide. Il est présenté comme ce qu'il est : un
+                second écran du même module, et non un module de plus. La garde
+                d'accueil compte les LIENS des cartes ouvertes, pas les cartes,
+                et rougit donc si cette route n'est pas déclarée.
+              */}
+              {module.approfondi && (
+                <Link
+                  href={module.approfondi.lien}
+                  className="block border-t border-filet px-4 py-2.5 text-[13px] text-accent
+                             transition-colors hover:bg-survol-fond hover:text-accent-survol
+                             focus-visible:outline focus-visible:outline-2
+                             focus-visible:-outline-offset-2 focus-visible:outline-accent"
+                >
+                  {module.approfondi.libelle}
+                </Link>
+              )}
             </li>
           ) : (
             <li

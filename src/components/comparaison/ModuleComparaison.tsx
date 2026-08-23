@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { formatMoisReleve } from "@/lib/format";
 import type { Lecture } from "@/lib/comparaison";
@@ -54,6 +55,17 @@ export function ModuleComparaison() {
   const [copie, setCopie] = useState(false);
 
   const dernier = comparaison.annees.length;
+
+  /**
+   * La chaîne de requête courante, recopiée telle quelle vers le niveau
+   * approfondi — `UI-007`.
+   *
+   * Lue dans l'adresse plutôt que reconstruite depuis `scenario` : une URL nue
+   * décrit le scénario par défaut, et elle doit rester nue de l'autre côté aussi.
+   * Reconstruire écrirait les dix-sept clés à chaque passage, y compris celles
+   * qui ne s'écartent pas du défaut, et le lien partagé cesserait d'être lisible.
+   */
+  const requete = useSearchParams().toString();
 
   /**
    * L'année ouverte est **la plus tardive des deux années de croisement**, à
@@ -151,9 +163,36 @@ export function ModuleComparaison() {
             <p className="max-w-[92ch] text-[12px] leading-[1.6]">
               Il ignore l&apos;appréciation ou la dépréciation du bien, les frais de revente, la
               fiscalité, et le rendement qu&apos;aurait eu l&apos;apport s&apos;il avait été placé.
-              Ce dernier point n&apos;est pas un détail : le locataire de référence qui place son
-              apport puis la différence chaque mois relève du niveau approfondi, et ce niveau
-              n&apos;est pas encore construit. Sans lui, les fonds perdus flattent la propriété.
+              Ce dernier point n&apos;est pas un détail : sans le coût d&apos;opportunité de
+              l&apos;apport, les fonds perdus flattent la propriété. Le locataire de référence qui
+              place cet apport puis la différence chaque mois relève du niveau approfondi, et ce
+              niveau existe désormais — il est en dessous.
+            </p>
+
+            {/*
+              LE CHEMIN VERS LE NIVEAU APPROFONDI — `UI-007`.
+
+              Posé ici, dans les limites, et non en tête d'écran : c'est ce
+              paragraphe qui vient de nommer ce qui manque, et l'endroit où un
+              manque est nommé est le seul endroit où proposer d'y remédier ne
+              soit pas une réclame. Le lien conserve l'intégralité du scénario,
+              les dix-sept clés étant les mêmes des deux côtés : la chaîne de
+              requête courante est recopiée telle quelle, sans être réencodée.
+              Un lien qui ferait perdre le scénario en changeant de niveau
+              contredirait la promesse centrale du produit.
+            */}
+            <p className="mt-2.5 text-[12px] leading-[1.6]">
+              <Link
+                href={{ pathname: "/comparaison/patrimoine", query: requete }}
+                data-vers-patrimoine
+                className="inline-flex items-center gap-2 border border-accent px-3 py-1.5 text-accent
+                           transition-colors hover:bg-survol-fond hover:text-accent-survol
+                           focus-visible:outline focus-visible:outline-2
+                           focus-visible:outline-offset-2 focus-visible:outline-accent"
+              >
+                Voir les deux patrimoines à l&apos;horizon
+                <span aria-hidden="true">→</span>
+              </Link>
             </p>
             <p className="mt-2 max-w-[92ch] text-[12px] leading-[1.6]">
               Il suppose aussi que rien ne bouge des deux côtés pendant tout l&apos;horizon : ni

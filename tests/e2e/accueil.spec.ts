@@ -92,13 +92,30 @@ test("les modules à venir ne sont ni cliquables ni annoncés comme disponibles"
  * n'est pas le nombre, c'est qu'aucune carte ne mène à un écran qui n'existe pas.
  * Ouvrir un module se fait donc en deux gestes — le champ `lien` dans `page.tsx`,
  * et cette liste — et le second oblige à regarder le premier.
+ *
+ * `UI-007` l'a reprise une seconde fois, et sur le même point de vigilance. Un
+ * module peut désormais porter **deux écrans** : « acheter ou louer » a un
+ * niveau simple et un niveau approfondi, comme la spécification les décrit.
+ * L'égalité ne peut donc plus se lire entre routes et CARTES — elle se lit
+ * entre routes et LIENS des cartes ouvertes. Ce que la garde protège n'a pas
+ * bougé : chaque route annoncée existe, et aucune ne s'annonce sans être ici.
  */
-const ROUTES_OUVERTES = ["/credit", "/comparaison"];
+const ROUTES_OUVERTES = ["/credit", "/comparaison", "/comparaison/patrimoine"];
+
+/** Modules distincts qui portent au moins un écran ouvert. */
+const MODULES_OUVERTS = 2;
 
 test("les modules ouverts sont exactement ceux qui ont une route", async ({ page }) => {
   const enLigne = page.locator('[data-module][data-etat="en-ligne"]');
-  await expect(enLigne).toHaveCount(ROUTES_OUVERTES.length);
+  await expect(enLigne).toHaveCount(MODULES_OUVERTS);
   await expect(enLigne.first()).toHaveAttribute("data-module", "credit");
+
+  // Autant de liens sur les cartes ouvertes que de routes déclarées : une route
+  // ouverte sans lien serait un écran que l'accueil tait, un lien sans route
+  // déclarée serait un écran qu'il invente. Les deux se voient ici.
+  await expect(page.locator('[data-module][data-etat="en-ligne"] a[href]')).toHaveCount(
+    ROUTES_OUVERTES.length,
+  );
 
   // Chaque carte ouverte mène là où elle dit, cliquée et suivie : un href correct
   // vers une route absente passerait une vérification d'attribut.
