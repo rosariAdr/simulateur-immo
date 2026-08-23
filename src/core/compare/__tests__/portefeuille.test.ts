@@ -17,8 +17,8 @@
 
 import { describe, it, expect } from "vitest";
 import fc from "fast-check";
+import { MARKET_2026 } from "../../assumptions/market";
 import {
-  RENDEMENTS_NETS_OBSERVES,
   construirePortefeuille,
   echeanceAuMois,
   tauxMensuelEquivalent,
@@ -593,7 +593,12 @@ describe("le module calcule, il ne conclut pas", () => {
     // Aucune signature n'a de rendement par défaut : l'omettre ne compile pas.
     // Ce qui reste vérifiable à l'exécution, c'est que les fourchettes publiées
     // sont bien des fourchettes, et qu'elles annoncent leur fiabilité.
-    for (const h of Object.values(RENDEMENTS_NETS_OBSERVES)) {
+    //
+    // Elles ont quitté `portefeuille.ts` pour `assumptions/market.ts` avec
+    // `FIS-006` — ADR-008, la loi et le marché ne vivent pas dans le même
+    // fichier. Ce test les suit à leur nouvelle adresse : ce qu'il garde n'est
+    // pas l'emplacement, c'est la forme.
+    for (const h of Object.values(MARKET_2026.rendements)) {
       expect(h.intervalle[0]).toBeLessThan(h.intervalle[1]);
       expect(["observee", "estimee"]).toContain(h.fiabilite);
       expect(h.provenance.length).toBeGreaterThan(40);

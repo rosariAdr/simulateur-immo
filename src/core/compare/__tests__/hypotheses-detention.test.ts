@@ -61,12 +61,33 @@ describe("les quatre hypothèses de détention", () => {
   }
 
   it("ne prétend pas être vérifiée là où elle ne l'est pas", () => {
-    // Les quatre sont des ordres de grandeur, pas des relevés concordants. Les
-    // annoncer « observee » serait un mensonge peu coûteux et très efficace.
-    // Le jour où `FIS-006` en recoupe une, ce test rougit — et c'est voulu :
-    // il faut alors dire ici laquelle, et sur quoi.
+    // Annoncer « observee » sans l'être serait un mensonge peu coûteux et très
+    // efficace. Ce test l'interdit en nommant, une par une, les hypothèses qui
+    // ont le droit de l'être — et pourquoi.
+    //
+    // ── CE TEST A ROUGI LE 23 AOÛT 2026, ET C'ÉTAIT SON TRAVAIL ────────────
+    //
+    // Il exigeait `estimee` pour les quatre, en annonçant qu'il rougirait le
+    // jour où `FIS-006` en recouperait une. C'est arrivé pour deux d'entre
+    // elles, et il a fallu venir écrire ici laquelle et sur quoi :
+    //
+    // • `indexationLoyerPctAnnuel` — l'indice de référence des loyers est
+    //   publié par l'INSEE. 148,37 au deuxième trimestre 2026 sur une base 100
+    //   au quatrième trimestre 1998 : 1,44 % par an. La valeur était à 2,0 %,
+    //   elle est passée à 1,5 %.
+    // • `indexationTaxeFoncierePctAnnuel` — l'Observatoire national des taxes
+    //   foncières, dix-neuvième rapport, octobre 2025, sur données DGFiP :
+    //   +37,3 % entre 2014 et 2024, soit 3,2 % par an. La valeur était à 3,0 %.
+    //
+    // Les deux autres restent estimées, et leur provenance dit désormais
+    // pourquoi la vérification n'a pas abouti.
+    const RECOUPEES = new Set(["indexationLoyerPctAnnuel", "indexationTaxeFoncierePctAnnuel"]);
     for (const [nom, h] of hypotheses) {
-      expect(h.fiabilite, `${nom} : promotion en "observee" à justifier`).toBe("estimee");
+      const attendue = RECOUPEES.has(nom) ? "observee" : "estimee";
+      expect(
+        h.fiabilite,
+        `${nom} : changement de fiabilité à justifier ici, ticket FIS-006`,
+      ).toBe(attendue);
     }
   });
 });

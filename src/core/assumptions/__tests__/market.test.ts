@@ -90,11 +90,17 @@ describe("chaque hypothèse de marché déclare ce qu'elle vaut", () => {
   it("ne laisse aucun bloc hors de portée de cette garde", () => {
     // Si ce compte cesse de correspondre, c'est qu'un bloc a été ajouté ou
     // retiré — et il faut le regarder, pas ajuster le chiffre par réflexe.
+    //
+    // `rendements` est entré le 23 août 2026 avec `FIS-006`, qui l'a rapatrié
+    // de `compare/portefeuille.ts`. Cette liste a rougi à ce moment-là, et
+    // c'était son travail : elle a obligé à venir écrire ici que l'ajout était
+    // voulu, au lieu de le laisser passer.
     expect(blocs.map(([nom]) => nom).sort()).toEqual([
       "acquisition",
       "detention",
       "guarantee",
       "insurance",
+      "rendements",
       "vente",
     ]);
   });
@@ -154,16 +160,131 @@ describe("chaque hypothèse de marché déclare ce qu'elle vaut", () => {
 });
 
 describe("le déplacement ne change aucun chiffre", () => {
-  it("reprend à l'identique les valeurs qui vivaient dans params.ts", () => {
-    // Un refactoring qui corrige au passage est un refactoring qu'on ne peut plus
-    // relire. Ces cinq valeurs sont celles du 22 août 2026, avant déplacement ;
-    // les recouper sur des grilles publiées est un autre travail, et il reste à
-    // faire.
+  /**
+   * ── DEUX DÉPLACEMENTS, DEUX ÂGES ────────────────────────────────────────
+   *
+   * `FIS-005` a sorti cinq coûts de garantie de `fiscal/params.ts` sans les
+   * modifier, et ce bloc gardait leurs valeurs d'avant déplacement. Ce travail
+   * est fait : `FIS-006` a ensuite recoupé ces cinq valeurs sur des documents
+   * publiés et en a corrigé deux, **délibérément et avec leur source dans la
+   * provenance**. La garde de `FIS-005` a donc rougi une dernière fois, pour la
+   * bonne raison, et elle est remplacée ci-dessous par ce qu'elle est devenue :
+   * un ancrage des valeurs recoupées, qui échoue toujours sur une dérive muette.
+   *
+   * `FIS-006` apporte à son tour un déplacement — `RENDEMENTS_NETS_OBSERVES`,
+   * venu de `compare/portefeuille.ts` — et lui applique la discipline que
+   * `FIS-005` s'était appliquée : pas un chiffre ne bouge, et un test le dit.
+   */
+
+  it("garde les cinq coûts de garantie, recoupés le 23 août 2026", () => {
+    // Ces valeurs ne sont plus celles de params.ts : deux ont été corrigées
+    // contre des documents ouverts — deux exemples représentatifs de la Société
+    // Générale pour la caution, la page du Crédit Agricole pour l'hypothèque.
+    // Toute nouvelle correction se justifie de la même façon, dans la
+    // provenance, avant de venir toucher à cette ligne.
     const g = MARKET_2026.guarantee;
-    expect(g.suretyshipCostPct.valeur).toBe(1.25);
+    expect(g.suretyshipCostPct.valeur).toBe(1.35);
     expect(g.suretyshipRefundPct.valeur).toBe(55);
-    expect(g.mortgageCostPct.valeur).toBe(1.5);
+    expect(g.mortgageCostPct.valeur).toBe(1.35);
     expect(g.mortgageReleasePct.valeur).toBe(0.4);
     expect(g.pledgeCostPct.valeur).toBe(0.3);
+  });
+
+  it("reprend à l'identique les rendements qui vivaient dans portefeuille.ts", () => {
+    // Même motif que `FIS-005`, même raison : un remaniement qui corrige au
+    // passage est un remaniement qu'on ne peut plus relire. Ces quatre bornes
+    // sont celles du 22 août 2026, écrites par `ENG-011` dans
+    // `compare/portefeuille.ts`, où un commentaire annonçait déjà qu'elles
+    // étaient au mauvais endroit.
+    const r = MARKET_2026.rendements;
+    expect(r.sansRisque.intervalle).toEqual([1.5, 3]);
+    expect(r.actionsDiversifiees.intervalle).toEqual([4, 7]);
+  });
+
+  it("ne laisse aucune hypothèse de marché derrière elle dans compare/", () => {
+    // La garde qui compte vraiment : le déplacement n'a de sens que si l'ancien
+    // emplacement est vide. Un `export const` resté en place, même inutilisé,
+    // et le prochain lecteur aura deux sources de vérité — dont une périmée.
+    const portefeuilleSrc = readFileSync(
+      join(process.cwd(), "src/core/compare/portefeuille.ts"),
+      "utf8",
+    );
+    expect(portefeuilleSrc).not.toMatch(/export\s+const\s+RENDEMENTS_NETS_OBSERVES/);
+    expect(portefeuilleSrc).not.toMatch(/export\s+interface\s+FourchetteDeRendement/);
+    // Et l'emplacement abandonné dit où c'est parti, sinon la disparition
+    // ressemble à une suppression.
+    expect(portefeuilleSrc).toMatch(/assumptions\/market/);
+    expect(portefeuilleSrc).toMatch(/FIS-006/);
+  });
+});
+
+describe("l'estimation ne se répand pas sans qu'on la voie", () => {
+  /**
+   * ── POURQUOI COMPTER ────────────────────────────────────────────────────
+   *
+   * `estimee` n'est pas interdit, et ne doit pas l'être : il y a des hypothèses
+   * dont aucune source publique ne donne le chiffre, et le dire vaut mieux que
+   * de maquiller. Ce qui serait grave, c'est que ce nombre monte tout seul —
+   * une entrée ajoutée en `estimee` par facilité, une autre repassée en
+   * `estimee` parce que sa source a disparu, et personne ne s'en aperçoit.
+   *
+   * Ce test ne juge donc pas la valeur du compte. Il exige qu'un changement de
+   * compte soit un acte : quelqu'un vient ici, relit `FIS-006`, et écrit
+   * pourquoi.
+   */
+
+  const toutes = Object.values(MARKET_2026)
+    .filter((b): b is Record<string, Hypothese> => typeof b === "object")
+    .flatMap((bloc) => Object.entries(bloc));
+
+  const estimees = toutes.filter(([, h]) => h.fiabilite === "estimee").map(([nom]) => nom);
+
+  it("compte dix hypothèses encore estimées, et pas une de plus", () => {
+    // État au 23 août 2026, après la campagne de recoupement `FIS-006` : dix
+    // entrées sur dix-sept restent estimées, chacune avec, dans sa provenance,
+    // la raison pour laquelle la vérification n'a pas abouti.
+    //
+    // Les noms sont listés et pas seulement dénombrés : une entrée qui passe
+    // `observee` pendant qu'une autre retombe `estimee` laisserait le compte
+    // intact et le tableau faux.
+    expect(
+      estimees.sort(),
+      "le compte d'hypothèses en fiabilité `estimee` a changé — aller relire " +
+        "docs/TASKS.md, ticket FIS-006, et dire dans la provenance ce qui a bougé",
+    ).toEqual([
+      "actionsDiversifiees",
+      "appreciationAnnuellePct",
+      "delegationRatePct",
+      "groupRatePct",
+      "indexationChargesPctAnnuel",
+      "pledgeCostPct",
+      "provisionTravauxPctAnnuel",
+      "sansRisque",
+      "suretyshipRefundPct",
+      "totalFeesOldPct",
+    ]);
+  });
+
+  it("une hypothèse restée estimée dit pourquoi la vérification n'a pas abouti", () => {
+    // La contrepartie de l'autorisation d'estimer. Une provenance qui se
+    // contente d'un « ordre de grandeur » ne dit pas si on a cherché.
+    const aveux =
+      /pas (pu|été)|n'a pas|aucun|non aboutie|nulle part|ne publie|reste (donc )?(un ordre|estim)|notre (extension|décision|fait)/i;
+    for (const [nom, h] of toutes.filter(([, x]) => x.fiabilite === "estimee")) {
+      expect(h.provenance, `${nom} : estimée sans dire pourquoi`).toMatch(aveux);
+    }
+  });
+
+  it("une hypothèse observée nomme le document qu'on a ouvert", () => {
+    // Symétrique du précédent, et c'est celui qui protège contre la fiabilité
+    // flatteuse : `observee` engage à citer, pas seulement à affirmer.
+    for (const [nom, h] of toutes.filter(([, x]) => x.fiabilite === "observee")) {
+      expect(
+        h.provenance,
+        `${nom} : observée sans source nommée`,
+      ).toMatch(
+        /INSEE|Société Générale|Crédit Agricole|Crédit Logement|notaires|Century 21|Journal officiel|Observatoire national des taxes foncières/i,
+      );
+    }
   });
 });
