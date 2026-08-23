@@ -27,11 +27,11 @@ ouvertes et remonte un composant en plein test.
 
 ## État courant
 
-Relevé du 23 août 2026 sur `main`, porte passée à froid, après la fusion de `ENG-027`.
+Relevé du 23 août 2026 sur `main`, porte passée à froid, après la fusion de `FIS-008`.
 
 | Suite | Fichiers | Tests |
 | --- | --- | --- |
-| Unitaires | 19 | 931 |
+| Unitaires | 20 | 955 |
 | Bout en bout | 14 | 306 (153 × 2 profils), dont 10 ignorés par construction |
 
 **Les 282 unitaires ajoutés depuis le 22 août sont le moteur de la phase 3**, et eux ne
@@ -46,8 +46,17 @@ de ce registre.** En écrivant l'assemblage `ENG-027`, un cas de bout en bout a 
 son prix de cession d'une valeur appréciée plutôt que de le saisir en euros ronds.
 L'assiette a donc porté des centimes pour la première fois, et la recherche de tranche
 de la surtaxe a levé : le barème est libellé en euros entiers et laissait une fente de
-99 centimes que douze mois de tests en euros ronds n'avaient pas pu atteindre. Le
-correctif appelle lui-même une vérification — voir `FIS-008`.
+99 centimes que douze mois de tests en euros ronds n'avaient pas pu atteindre.
+
+`FIS-008` a ensuite montré que le correctif d'`ENG-027` taxait où la loi ne taxe pas :
+l'assiette d'un impôt est un nombre entier d'euros — CGI, art. 1649 undecies — de sorte
+qu'une assiette de 50 000,10 € s'arrondit à 50 000 € et n'est pas « supérieure à
+50 000 € ». La surtaxe du cas de référence passe de 500,01 € à zéro. Et la fente n'existe
+pas : une assiette entière tombe toujours dans une tranche.
+
+**Trois pas, dont deux faux, et aucun n'aurait été franchi sans le précédent.** C'est la
+forme que prend le travail réglementaire quand il est fait honnêtement, et ce registre
+ment s'il ne montre que le dernier.
 
 **Le bond des unitaires — 217 à 619 — n'est pas une couverture qui triple.** C'est
 `it.each` sur quarante-huit entrées de glossaire là où il y en avait dix-neuf, et six
@@ -85,16 +94,20 @@ d'être écrite à côté de ses chiffres.
   est stricte. C'est `ENG-008`.
 - `src/app/__tests__/design-tokens.test.ts` — 37 vérifications de contraste lues
   directement dans `globals.css`, seule source de vérité des couleurs.
-- `src/core/compare/__tests__/` — le moteur de la phase 3, 219 vérifications sur six
+- `src/core/compare/__tests__/` — le moteur de la phase 3, 231 vérifications sur six
   fichiers. `detention` (33) et ses invariants isolés (16), `portefeuille` (42),
-  `vente` (40), `plus-value` (37) et l'assemblage `cession` (29). Ce que ces fichiers
+  `vente` (40), `plus-value` (40) et l'assemblage `cession` (30). Ce que ces fichiers
   gardent n'est pas surtout de l'arithmétique : ce sont des **idées reçues**. Un loyer
   nul ne donne pas un croisement immédiat mais aucun croisement ; la surtaxe s'éteint
   à 22 ans et non à 30, parce qu'elle est assise sur l'assiette fiscale ; un produit
   de vente négatif est une information et non une erreur ; le régime social du cédant
   commande le taux des prélèvements, et lui seul. Chaque module rend dans
   `nonModelise` ce qu'il ne sait pas traiter, et c'est testé aussi.
-- `src/core/assumptions/__tests__/market.test.ts` — 68 vérifications. La frontière
+- `src/core/__tests__/money-arrondi-euro.test.ts` — 6 vérifications sur `roundToEuros`,
+  ajouté par `FIS-008` : la fraction de 0,50 € comptée pour 1 et 0,49 € qui ne l'est
+  pas, l'idempotence, la monotonie — arrondir ne peut pas inverser deux montants — et
+  le refus d'un montant hors du domaine entier exact.
+- `src/core/assumptions/__tests__/market.test.ts` — 81 vérifications. La frontière
   loi / marché d'ADR-008, gardée dans les deux sens : `params.ts` ne doit plus porter
   de fourchette indicative, et chaque hypothèse de marché doit déclarer sa provenance
   en une phrase montrable, sa fiabilité et un intervalle qui contient sa valeur. Le
@@ -182,6 +195,28 @@ gardes-là ont été cassées exprès, puis rétablies :
   lectures — ses fonds perdus égalent son décaissement. La garde protège contre tout
   recalage **qui change un chiffre à l'écran**, pas contre « tout recalage ». Une garde
   dont on ne sait pas ce qu'elle laisse passer n'est pas une garde vérifiée.
+- **Assiette de la mainlevée, deuxième version** — la garde d'origine vérifiait la
+  proportionnalité : doubler le capital double le coût. Remplacer l'assiette par
+  `capital × 1,25`, c'est-à-dire refaire exactement l'erreur qu'`ENG-028` corrigeait,
+  la préserve intacte : **945 tests verts sur une assiette fausse**. Une garde de forme
+  ne dit rien du facteur. Elle confronte désormais le montant au taux déclaré dans les
+  hypothèses de marché, ce qui nomme l'assiette au lieu de la supposer — et le même
+  sabotage la fait rougir.
+- **Le prix du bien retiré de `guaranteeCost`** — le réintroduire fait échouer le
+  `typecheck` en cinq points, dont un `@ts-expect-error` devenu inutile. Garde de
+  compilation, pas d'exécution.
+- **Arrondi de l'assiette** — arrondir vers le bas au lieu du plus proche fait rougir
+  six tests sur trois fichiers ; ne plus arrondir la seule assiette sociale en fait
+  rougir sept sur deux, dont « l'assiette sociale reste supérieure ou égale à l'assiette
+  fiscale » : arrondir une seule des deux peut inverser leur ordre.
+- **Deux sabotages sans un seul rouge, et ce sont les entrées les plus utiles du jour.**
+  Falsifier un chiffre **à l'intérieur d'une phrase de provenance** ne fait rougir
+  personne : une provenance est de la prose montrable, pas une donnée vérifiable, et le
+  seul rempart est la relecture. Revenir à la recherche de tranche par la borne haute,
+  arrondi conservé, ne fait rougir personne non plus : une fois l'assiette entière, les
+  deux recherches désignent toujours la même tranche. La borne basse n'est donc pas
+  gardée par un test — elle est rendue suffisante par l'arrondi, qui l'est. Aucun test
+  artificiel n'a été écrit pour masquer l'un ou l'autre.
 - **Grandeurs partagées de la cession** — prendre la durée de détention dans l'entrée
   brute au lieu de la sortie normalisée fait rougir la propriété d'assemblage. Un seul
   rouge d'abord, et le manque était dans le test : le tirage `fast-check` de l'horizon

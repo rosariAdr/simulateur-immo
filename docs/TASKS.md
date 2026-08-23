@@ -2338,3 +2338,57 @@ protection.
 **Porte** — `PORT_E2E=3143 npm run porte`, verte : typecheck, lint, **941 tests Vitest sur
 20 fichiers**, build, **306 tests Playwright passés et 10 ignorés**. La copie de travail
 n'avait pas ses dépendances installées ; `npm ci` avant la porte, sans toucher au verrou.
+
+---
+
+### 23 août 2026 — `ENG-028`, l'assiette de la mainlevée, et la limite de nos gardes
+
+**Le défaut.** `guaranteeCost` asseyait le coût de mainlevée d'une hypothèque sur le
+**prix du bien**. L'assiette est le **capital garanti** : ce qu'on radie n'est pas
+l'immeuble mais une inscription, dont le montant est celui de la créance. Les trois
+postes le confirment — émoluments au forfait (78 € sous 77 090 € de garantie, 150 €
+au-delà), contribution de sécurité immobilière assise sur le montant garanti, débours.
+
+À 20 % d'apport, le prix vaut 1,25 fois le capital : la mainlevée était **surestimée
+d'un quart**, systématiquement au détriment de l'hypothèque — dans l'arbitrage même que
+le module existe pour éclairer, et que l'infobulle du champ « Garantie » décrit.
+
+**Comment il a été trouvé.** Pas par un test. Par `FIS-006` : la source qui chiffre ce
+taux — question écrite n° 6820, XVIIe législature — énonce son assiette en même temps
+que son taux, et l'assiette ne disait pas la même chose que le code. L'agent l'a
+signalé sans le corriger, `plan.ts` étant gelé ; c'était le bon geste.
+
+**Ce que ça apprend, et qui vaut au-delà de ce ticket.** Un test gardait la règle
+fausse. Il figurait au registre parmi les gardes vérifiées par sabotage — il avait donc
+été cassé pour de bon — et son commentaire donnait le motif : « la mainlevée est un acte
+sur l'immeuble ; deux emprunteurs au même capital sur des biens de prix différents ne
+paient pas la même chose ». Convaincant, et faux.
+
+**Casser une garde prouve qu'elle tient à quelque chose. Cela ne prouve pas que ce
+quelque chose est vrai.** L'erreur n'était pas dans le code : elle était dans ce que
+nous croyions du monde, et le test l'avait recopiée fidèlement. Aucune quantité de rouge
+ne l'aurait révélée. C'est une **source** qui l'a démentie. Le sabotage protège d'un code
+qui dérive, la source protège d'une croyance qui se fige ; les deux ne se remplacent pas.
+Voir ADR-019.
+
+**Second enseignement, du sabotage lui-même.** La garde corrigée vérifiait la
+proportionnalité : doubler le capital double le coût. Remplacer l'assiette par
+`capital × 1,25` — refaire exactement l'erreur d'origine — la préserve intacte. **945
+tests verts sur une assiette fausse.** Une garde de forme ne dit rien du facteur. Elle
+confronte désormais le montant au taux déclaré dans `market.ts`, ce qui nomme l'assiette
+au lieu de la supposer.
+
+**Corollaire.** Le prix du bien quitte la signature de `guaranteeCost` : plus aucun des
+trois postes ne s'y adossait. Un paramètre que rien ne lit est une invitation à s'en
+resservir, et c'est très exactement l'erreur qu'on venait de corriger. Une garde de type
+— `@ts-expect-error` sur un quatrième argument — le tient à la compilation ; le
+réintroduire fait échouer le `typecheck` en cinq points.
+
+**Une réserve de `FIS-006` écartée après vérification.** L'agent signalait
+`transferTax.oldStandardPct: 5.81` comme périmé, les notaires publiant 6,31 % depuis la
+hausse de 2025. `params.ts` modélise déjà les trois cas — `oldFullPct: 6.32` pour les
+départements ayant voté la hausse, `oldStandardPct: 5.81` pour les autres,
+`oldReducedPct: 5.09` à taux réduit. Le modèle est complet, il n'y avait rien à corriger.
+
+**Porte** — `npm run porte`, verte : typecheck, lint, **945 tests Vitest sur 19
+fichiers**, build, **306 tests Playwright passés et 10 ignorés**.
