@@ -263,6 +263,25 @@ spécification. Signalé par l'agent qui a écrit le portefeuille du locataire.
   l'exécution : le type seul atteste qu'un forfait a été ouvert pour *une* situation,
   pas que c'est celle du calcul
 
+**Assemblage de la cession** (`ENG-027`)
+
+- le produit d'une résidence principale exonérée et celui du même bien déclaré
+  imposable diffèrent **exactement** du montant de l'impôt : les six autres postes
+  du décompte sont identiques membre à membre, et l'impôt ne rétroagit donc pas sur
+  son assiette
+- une grandeur partagée ne peut pas prendre deux valeurs : la durée de détention
+  **est** l'horizon de la vente, le prix d'acquisition **est** la valeur initiale,
+  les frais de cession déduits **sont** la commission et la mainlevée du décompte.
+  À vérifier sur horizon réel, négatif et fractionnaire compris — c'est la seule
+  entrée où deux normalisations peuvent se séparer
+- la commission d'agence et la mainlevée réduisent l'impôt, l'indemnité de
+  remboursement anticipé ne le réduit pas : la liste de l'art. 41 duovicies H de
+  l'annexe III est limitative
+- les réserves des deux modules assemblés atteignent l'appelant **entières et
+  étiquetées de leur provenance**, ni perdues ni fondues en une chaîne unique
+- un forfait de majoration est construit sur la situation dérivée, et sur aucune
+  autre : l'appelant n'en fournit pas, donc il ne peut pas se tromper de situation
+
 Cas limites de ce module : horizon nul, loyer nul, prix nul, indexation négative puis
 inférieure à −100 %, versements tous négatifs, portefeuille épuisé, plus-value nulle ou
 négative, durée de détention nulle, vente qui ne couvre pas le capital restant dû.

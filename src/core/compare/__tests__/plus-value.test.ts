@@ -250,6 +250,22 @@ describe("cas de référence — surtaxe sur les plus-values élevées", () => {
     expect(surtaxeSurPlusValue(euros(50_001))).toBeGreaterThan(euros(400));
   });
 
+  it("couvre les centimes entre le seuil et la première tranche — `ENG-027`", () => {
+    // Le seuil vise les plus-values « supérieur[es] à 50 000 € » et le tableau
+    // ouvre à « 50 001 € ». Entre les deux, 99 centimes que le barème ne nomme
+    // pas : la recherche par borne basse n'y trouvait aucune tranche et levait
+    // `RangeError`, alors que la loi taxe. Le cas ne se rencontrait pas tant
+    // que les assiettes étaient saisies en euros ronds ; il devient ordinaire
+    // dès qu'un prix de cession est dérivé d'une valeur appréciée.
+    for (let c = 1; c <= 99; c++) {
+      const assiette = euros(50_000) + c;
+      expect(() => surtaxeSurPlusValue(assiette), `assiette 50 000 € + ${c} c`).not.toThrow();
+      // Elle reste dans la tranche à 2 % et donc voisine des 500 € du seuil.
+      expect(surtaxeSurPlusValue(assiette)).toBeGreaterThan(euros(499));
+      expect(surtaxeSurPlusValue(assiette)).toBeLessThan(euros(501));
+    }
+  });
+
   it("ne frappe pas un terrain à bâtir", () => {
     const commun = { prixAcquisition: euros(100_000), prixDeCession: euros(200_000), dureeDetentionMois: 0 };
     const bati = calculerPlusValue(cessionNue({ ...commun, nature: "immeuble-bati" }));
