@@ -146,6 +146,16 @@ Le découpage en versions, le modèle de branches et les portes sont dans
       exonération de la résidence principale, forfaits de majoration, abattement exceptionnel
       de l'art. 150 VE. Aucun calcul écrit — `ENG-012`, `ENG-014` et `ENG-016` les consomment.
       **Le taux de CSG a changé** : voir l'entrée de journal
+- [x] `FIS-008` L'assiette de la plus-value est-elle arrondie à l'euro ?
+      → **Oui**, et pas au titre de l'art. 1657 qui avait ouvert la question : l'art. 1649
+      undecies du CGI, unique article d'un chapitre intitulé « Règles d'arrondissement des
+      bases d'imposition », arrondit « les bases des impositions de toute nature » à l'euro
+      le plus proche, la fraction de 0,50 € comptant pour 1. Les prélèvements sociaux
+      suivent, leur assiette étant celle de l'impôt sur le revenu (CSS, art. L136-7, VI, 1).
+      `roundToEuros` ajoutée à `money.ts` ; la recherche de tranche de la surtaxe revient à
+      la borne basse, qui était juste. La **fente de 99 centimes n'existe pas** : ce
+      n'était pas un trou du barème mais une assiette impossible. Cas de référence C de
+      `cession.test.ts` corrigé — 500,01 € de surtaxe indue, aucune. Voir ADR-018
 - [x] `VIZ-003` Courbes de coût mensuel et bandeau d'écart
       → `/comparaison`, composant serveur prérendu enveloppant un module client. Deux courbes
       de cumul, la bande de capital entre les deux tracés du propriétaire, les **deux** années
@@ -1926,4 +1936,198 @@ le sache avant d'appeler.
 
 **Porte** — `PORT_E2E=3141 npm run porte`, verte : typecheck, lint, **931 tests Vitest sur
 19 fichiers**, build, **306 tests Playwright passés et 10 ignorés**. La copie de travail
+n'avait pas ses dépendances installées ; `npm ci` avant la porte, sans toucher au verrou.
+
+---
+
+### 23 août 2026 — `FIS-008`, l'assiette de la plus-value est un nombre entier d'euros
+
+`ENG-027` avait refermé la « fente de 99 centimes » du barème de la surtaxe en faisant
+chercher la tranche par sa borne **haute**, et laissé la question ouverte : la lecture
+retenue « n'a pas été confrontée à la doctrine ». Elle l'a été. Elle était fausse, et le
+défaut n'était pas dans le barème.
+
+#### Ce que la recherche a établi, source par source
+
+**L'article qui tranche n'est pas celui que le ticket visait.** Le point de départ était
+l'**art. 1657 du CGI**, dont le 1 dispose que « les bases de cotisation des impôts directs
+sont arrondies à l'euro le plus proche ; la fraction d'euro égale à 0,50 est comptée pour
+1 ». Lu sur Légifrance, cet article se révèle mal placé pour l'usage qu'on voulait en faire :
+son fil d'Ariane est *Livre II Recouvrement de l'impôt › Chapitre premier Paiement de l'impôt
+› Section I Impôts directs › **I Rôles et avis d'imposition › 1 Établissement et mise en
+recouvrement des rôles***, et son 2 raisonne « par article de rôle ». Or la plus-value
+immobilière n'est pas mise en recouvrement par voie de rôle : elle est liquidée par le
+notaire sur la 2048-IMM et payée à la formalité. Fonder l'arrondi sur 1657 aurait été
+fragile.
+<https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000051219510>
+
+**L'article qui tranche est l'art. 1649 undecies du CGI** : « Les bases des impositions de
+toute nature sont arrondies à l'euro le plus proche. La fraction d'euro égale à 0,50 est
+comptée pour 1. » Une phrase, un article, et un chapitre entier qui ne contient que lui :
+*Livre premier **Assiette et liquidation de l'impôt** › Troisième partie Dispositions
+communes › Titre premier Assiette et contrôle de l'impôt › **Chapitre VI Règles
+d'arrondissement des bases d'imposition***. « Impositions de toute nature », dans le livre de
+l'assiette, sous ce titre : il n'y a pas de lecture plus directe.
+<https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006069577/LEGISCTA000006147278/>
+
+Cet article n'a pas été trouvé en cherchant l'arrondi de la plus-value — aucune requête sur
+ce terrain ne le rend — mais en cherchant lequel le BOFiP cite quand il arrondit une base.
+**BOI-BIC-BASE-30 § 20** le cite, aux côtés de l'art. 1724 : « Selon l'article 1649 undecies
+du code général des impôts (CGI) et l'article 1724 du CGI, les bases des impositions de
+toute nature sont arrondies à l'euro le plus proche. »
+<https://bofip.impots.gouv.fr/bofip/5709-PGP.html/identifiant=BOI-BIC-BASE-30-20130109>
+
+**Assiette et cotisation sont deux règles distinctes, portées par deux articles.** L'art.
+1649 undecies arrondit la **base**. L'**art. 1724 du CGI** arrondit la **liquidation** : « La
+liquidation de toutes sommes à recevoir, à quelque titre et pour quelque cause que ce soit,
+est arrondie à l'euro le plus proche. […] Il est procédé à cet arrondissement au niveau du
+décompte de chaque impôt ou taxe. » — *Livre II › Chapitre premier › Section V Dispositions
+communes*. La réponse ministérielle à la **question écrite AN n° 26703** (JO 17 novembre
+2020) lit les deux ensemble et confirme le partage des rôles : le calcul se fait « au centime
+près », le reversement « à l'euro le plus proche […] pour chaque déclaration ».
+<https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000006312863> ·
+<https://www.assemblee-nationale.fr/dyn/15/questions/QANR5L15QE26703>
+
+**Les prélèvements sociaux suivent l'impôt sur le revenu, y compris pour l'assiette.** CSS,
+**art. L136-7, VI, 1** : « La contribution portant sur les plus-values mentionnées au 2° du I
+est **assise**, contrôlée et recouvrée selon les mêmes règles et sous les mêmes sûretés,
+privilèges et sanctions que l'impôt sur le revenu. » Le mot « assise » suffit : la règle
+d'arrondi d'assiette qui vaut pour l'impôt sur le revenu vaut pour eux.
+<https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000038836925>
+
+**Le seuil de la surtaxe s'apprécie sur cette assiette-là, après abattements.** La notice
+**2048-IMM-NOT-SD (02-2025)**, page 11, l'écrit noir sur blanc : la taxe « est assise sur les
+plus-values immobilières imposables à l'impôt sur le revenu […] après prise en compte de
+l'abattement pour durée de détention prévu à l'article 150 VC du CGI », et « le seuil de
+50 000 € est donc apprécié après prise en compte de ces abattements ». La ligne 115 du
+formulaire, celle de la taxe, n'est que le report de la ligne 50, « plus-value nette
+imposable globale ». Cela règle la question du ticket sur le seuil et confirme le corollaire
+d'ADR-013.
+<https://www.impots.gouv.fr/sites/default/files/formulaires/2048-imm/2025/2048-imm_5091.pdf>
+
+#### Ce qui n'a pas été trouvé, et qu'il faut dire
+
+- **Aucun texte, aucune doctrine, aucune notice ne dit explicitement que la plus-value
+  immobilière est arrondie.** Le raisonnement est une subsomption : l'art. 1649 undecies vise
+  les « impositions de toute nature », la plus-value en est une, donc. C'est solide, mais ce
+  n'est pas une citation directe.
+- **La notice 2048-IMM-NOT-SD ne contient pas le mot « arrondi »** — vérifié par extraction
+  du texte des douze pages du PDF, pas à l'œil. Le formulaire 2048-IMM-SD non plus, et il
+  n'est pas un formulaire à champs remplissables dont on aurait pu lire le format des cases.
+- **BOI-RFPI-PVI-20-20** (détermination de la plus-value imposable), **BOI-RFPI-PVI-30-20**
+  (modalités d'imposition) et **BOI-RFPI-TPVIE-20** (taxe sur les plus-values élevées) ne
+  disent rien de l'arrondi. Les trois exemples chiffrés de BOI-RFPI-TPVIE-20 § 75 —
+  103 400 € → 2 442 €, 61 000 € par époux → 2 440 € au total, 52 500 € → 675 € — sont en
+  euros ronds et ne tranchent donc pas ; ils confirment en revanche notre lecture du barème
+  et de ses décotes, au centime.
+- **La question « avant ou après les abattements » n'est réglée par aucun texte**, sauf pour
+  le seuil de la surtaxe. La lecture retenue — on arrondit la base nette, celle que le taux
+  frappe, et pas la plus-value brute — s'appuie sur le mot « bases » et sur les lignes 50 et
+  100 du formulaire. L'écart entre les deux lectures est d'au plus 50 centimes d'assiette ; il
+  n'a pas l'ordre de grandeur du sujet.
+
+#### Ce qui a changé dans le code
+
+`roundToEuros` ajoutée à `src/core/money.ts` — fichier gelé, ADR-004 : une fonction de plus,
+aucune fonction retouchée, et sa garde dans `src/core/__tests__/money-arrondi-euro.test.ts`.
+
+`src/core/compare/plus-value.ts` : les deux assiettes sont arrondies à l'euro avant que le
+taux ne s'applique ; `surtaxeSurPlusValue` arrondit son entrée puis retrouve sa tranche par
+la **borne basse**, comme avant `ENG-027`. La correction d'`ENG-027` n'en était pas une :
+elle traitait un symptôme. Sur les entiers, les tranches du barème sont contiguës et
+couvrantes, et une assiette strictement supérieure à 50 000 € vaut au moins 50 001 €. Le
+`RangeError` redevient ce qu'il visait : un barème mutilé.
+
+`AbattementApplique.base` reste **au centime** : `montant + base` vaut toujours exactement la
+plus-value brute. L'arrondi est un fait d'assiette, pas une reprise de la soustraction.
+
+Une réserve de plus dans `nonModelise` : les impositions elles-mêmes restent calculées au
+centime alors que l'art. 1724 les arrondit aussi à l'euro, et que le décompte du notaire
+liquide séparément CSG, CRDS et prélèvement de solidarité (lignes 110 à 112 du formulaire) au
+lieu d'un taux global de 17,2 %. L'écart se compte en centimes ; il est déclaré, pas
+appliqué — l'appliquer demanderait de décomposer le taux global, ce qui est un autre ticket.
+
+#### Les chiffres qui ont bougé
+
+**Cas de référence C** de `cession.test.ts`, plus-value brute de 50 000,10 € à un an de
+détention. Avant : assiette 50 000,10 €, surtaxe **500,01 €**, impôt total 18 600,05 €.
+Après : assiette **50 000,00 €**, qui n'est pas « supérieur à 50 000 € », surtaxe **néant**,
+impôt total **18 100,00 €**. Le simulateur réclamait cinq cents euros d'un impôt qui n'était
+pas dû. Un second cas a été ajouté à côté, à 50 000,60 € : l'assiette monte à 50 001 € — « la
+fraction d'euro égale à 0,50 est comptée pour 1 » — et la surtaxe est pleinement due,
+500,07 €.
+
+**Cas de référence A**, vingt ans de détention : base IR 9 816,11 € → 9 816 €, base PS
+73 866,26 € → 73 866 €. Impôt total 14 570,06 € → **14 569,99 €**, produit net 328 591,08 €
+→ **328 591,15 €**. Sept centimes : l'arrondi d'assiette ne déplace rien loin du seuil, et
+c'est bien pour cela qu'il fallait aller voir près du seuil.
+
+#### Le saut de coefficient aux neuf frontières, mesuré plutôt que redouté
+
+Le ticket soupçonnait la correction d'`ENG-027` de faire « sauter le coefficient de lissage de
+la tranche précédente » à chaque frontière interne. Mesuré, le saut est minuscule, et c'est
+arithmétique : la décote vaut `coefficient × (borne haute − assiette)`, donc elle tend vers
+zéro quand l'assiette approche la borne haute. Sur une assiette de « frontière + 0,50 € » :
+
+| Frontière | `ENG-027` (borne haute) | Tranche précédente | Écart | `FIS-008` |
+|---:|---:|---:|---:|---:|
+| 60 000 | 1 200,01 | 1 200,04 | 0,03 | 1 200,02 |
+| 100 000 | 2 000,07 | 2 000,01 | −0,06 | 2 000,13 |
+| 110 000 | 3 300,02 | 3 300,07 | 0,05 | 3 300,03 |
+| 150 000 | 4 500,10 | 4 500,02 | −0,08 | 4 500,19 |
+| 160 000 | 6 400,02 | 6 400,10 | 0,08 | 6 400,04 |
+| 200 000 | 8 000,13 | 8 000,02 | −0,11 | 8 000,25 |
+| 210 000 | 10 500,03 | 10 500,13 | 0,10 | 10 500,05 |
+| 250 000 | 12 500,16 | 12 500,03 | −0,13 | 12 500,31 |
+| 260 000 | 15 600,03 | 15 600,16 | 0,13 | 15 600,06 |
+
+Trois à treize centimes. **À 60 000,50 €, `ENG-027` rendait 1 200,01 € ; la tranche
+précédente aurait rendu 1 200,04 € ; la lecture retenue rend 1 200,02 €, soit 2 % de
+60 001 €.** Le résultat d'`ENG-027` était donc parfaitement défendable à cet endroit — le
+saut de coefficient n'était pas son défaut. Son défaut était de cinq cents euros, et il était
+au seuil d'entrée.
+
+La seule vraie discontinuité du dispositif reste celle du seuil — 0 € puis 500,07 € —, elle
+est dans le texte, et ADR-013 avait décidé de la constater. Avec l'arrondi, elle se produit
+désormais entre 50 000,49 € et 50 000,50 € de plus-value brute, c'est-à-dire entre deux
+assiettes distantes d'un euro.
+
+#### Gardes cassées, puis rétablies
+
+Trois sabotages, sauvegarde par copie de fichier — jamais `git checkout --`.
+
+1. **Arrondir vers le bas au lieu de `half-up`** (`roundToEuros` par défaut en mode `down`) :
+   **6 rouges** dans trois fichiers. Un dans `money-arrondi-euro.test.ts` (« la fraction de
+   0,50 € est comptée pour 1 »), quatre dans `plus-value.test.ts` — les 99 centimes du seuil,
+   les neuf frontières, le voisinage du seuil sur le calcul complet, et l'invariant des deux
+   assiettes entières, qui tombe sur son second membre : l'écart à la base exacte dépasse le
+   demi-euro dès qu'on tronque. Un dans `cession.test.ts`, le nouveau cas à 50 000,60 €.
+   C'est la moitié de la règle de droit, et la moitié qui décide.
+2. **Revenir à la recherche par la borne haute**, l'arrondi restant en place : **0 rouge**,
+   suite complète. Résultat attendu et instructif — une fois l'assiette entière, les deux
+   recherches désignent la même tranche, toujours. La borne basse n'est donc pas gardée par
+   un test : elle est rendue suffisante par l'arrondi, qui l'est. Consigné ici plutôt que
+   masqué par un test artificiel qui n'aurait mesuré que lui-même.
+3. **Ne plus arrondir la base des prélèvements sociaux**, l'assiette fiscale restant
+   arrondie : **7 rouges** dans deux fichiers. Quatre dans `cession.test.ts` — tout le cas A
+   et l'écart exact entre régime exonéré et régime imposable —, trois dans
+   `plus-value.test.ts`, dont **« l'assiette sociale reste supérieure ou égale à l'assiette
+   fiscale »** : un arrondi appliqué à une seule des deux assiettes peut inverser leur ordre.
+   La garde tient les deux, pas une.
+
+Le sabotage n° 2 est le résultat le plus utile de la séance : il dit où est réellement la
+protection.
+
+#### Ce qui reste ouvert
+
+- L'arrondi **de la liquidation** (art. 1724) n'est pas appliqué, et la décomposition
+  CSG / CRDS / prélèvement de solidarité que fait le formulaire non plus. Déclaré dans
+  `nonModelise`, écart de quelques centimes. À reprendre avec `ENG-013` ou dans un ticket
+  fiscal dédié, puisque cela touche la structure de `params.ts`.
+- Le point « avant ou après les abattements » n'a pas de source directe. Si une doctrine
+  contraire apparaît, elle déplacera l'assiette d'au plus 50 centimes — jamais l'existence
+  d'un impôt.
+
+**Porte** — `PORT_E2E=3143 npm run porte`, verte : typecheck, lint, **941 tests Vitest sur
+20 fichiers**, build, **306 tests Playwright passés et 10 ignorés**. La copie de travail
 n'avait pas ses dépendances installées ; `npm ci` avant la porte, sans toucher au verrou.
