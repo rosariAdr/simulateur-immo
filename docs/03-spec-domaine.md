@@ -213,3 +213,56 @@ Précaution : les hypothèses de rendement et de volatilité sont saisies par l'
 - pour un taux nul, la mensualité vaut exactement le capital divisé par la durée
 
 Cas limites à couvrir explicitement : taux nul, durée d'un mois, apport supérieur au coût total, différé égal ou supérieur à la durée, remboursement supérieur au capital restant dû, revenus nuls.
+
+### Module 2 — acheter ou louer
+
+Cette liste ne s'arrêtait qu'au crédit et aux remboursements anticipés. Les quatre
+modules de la phase 3 ont été écrits avec leurs invariants, mais ceux-ci ne vivaient
+que dans les fichiers de tests et dans les ADR — introuvables pour qui lit la
+spécification. Signalé par l'agent qui a écrit le portefeuille du locataire.
+
+**Coûts de détention** (`ENG-010`)
+
+- les fonds perdus sont toujours inférieurs ou égaux au décaissement, et leur écart
+  vaut exactement la part de capital de l'échéance
+- les deux côtés s'indexent : n'indexer que le loyer déplace l'année de croisement
+  dans un sens et un seul
+- un loyer nul ne rend **pas** un croisement immédiat mais **aucun** croisement : un
+  locataire gratuit est imbattable tant que le propriétaire dépense quoi que ce soit
+
+**Portefeuille du locataire** (`ENG-011`)
+
+- capital versé + gains = valeur, **au centime**, à chaque échéance
+- à rendement nul, la valeur égale le capital versé et les gains sont nuls
+- la valeur ne descend jamais sous zéro : un retrait qui dépasse le solde est tronqué
+  et le manque est rendu explicite, jamais dissous en dette implicite
+- le rendement mensuel est l'équivalent actuariel et non le taux annuel divisé par
+  douze — la convention proportionnelle surestime de 2,08 % le capital final sur
+  300 mois, précisément dans le sens qui flatte les marchés face à la pierre
+
+**Vente à l'horizon** (`ENG-012`)
+
+- le produit net est exactement la somme algébrique de ses postes
+- **il peut être négatif**, et c'est une information, pas une erreur
+- la résidence principale occupée n'est jamais imposée, quelle que soit la durée de
+  détention
+
+**Plus-value hors résidence principale** (`ENG-014`, `ENG-016`)
+
+- **deux abattements, deux assiettes**, jamais une « plus-value imposable » unique :
+  l'exonération est totale à 22 ans pour l'impôt sur le revenu, à 30 ans pour les
+  prélèvements sociaux
+- l'assiette sociale est donc supérieure ou égale à l'assiette fiscale, et strictement
+  supérieure entre la 6ᵉ et la 29ᵉ année
+- la surtaxe est assise sur l'assiette de l'**impôt sur le revenu** : elle s'éteint à
+  22 ans, pas à 30
+- son barème comporte des décotes : vérifier sa **continuité** autour de chaque seuil,
+  pas seulement la valeur de ses paliers
+- le taux réduit EEE/Suisse n'est jamais plus coûteux que le taux plein
+- un forfait de majoration hors de son champ est **refusé**, et le refus est vérifié à
+  l'exécution : le type seul atteste qu'un forfait a été ouvert pour *une* situation,
+  pas que c'est celle du calcul
+
+Cas limites de ce module : horizon nul, loyer nul, prix nul, indexation négative puis
+inférieure à −100 %, versements tous négatifs, portefeuille épuisé, plus-value nulle ou
+négative, durée de détention nulle, vente qui ne couvre pas le capital restant dû.
