@@ -83,12 +83,33 @@ test("les modules à venir ne sont ni cliquables ni annoncés comme disponibles"
   }
 });
 
-test("le seul module ouvert est le crédit", async ({ page }) => {
-  const enLigne = page.locator('[data-module][data-etat="en-ligne"]');
-  await expect(enLigne).toHaveCount(1);
-  await expect(enLigne).toHaveAttribute("data-module", "credit");
+/**
+ * Les routes que l'accueil a le droit d'annoncer.
+ *
+ * La garde d'origine tenait en une ligne — « le seul module ouvert est le crédit » —
+ * et c'était le bon test tant qu'il n'y en avait qu'un. Elle a dû être reprise
+ * délibérément à l'ouverture de la comparaison (`UI-014`) : ce qu'elle protège
+ * n'est pas le nombre, c'est qu'aucune carte ne mène à un écran qui n'existe pas.
+ * Ouvrir un module se fait donc en deux gestes — le champ `lien` dans `page.tsx`,
+ * et cette liste — et le second oblige à regarder le premier.
+ */
+const ROUTES_OUVERTES = ["/credit", "/comparaison"];
 
-  // Toute la page ne mène qu'à /credit : pas de route inventée par optimisme.
+test("les modules ouverts sont exactement ceux qui ont une route", async ({ page }) => {
+  const enLigne = page.locator('[data-module][data-etat="en-ligne"]');
+  await expect(enLigne).toHaveCount(ROUTES_OUVERTES.length);
+  await expect(enLigne.first()).toHaveAttribute("data-module", "credit");
+
+  // Chaque carte ouverte mène là où elle dit, cliquée et suivie : un href correct
+  // vers une route absente passerait une vérification d'attribut.
+  // Restreint aux cartes : `/credit` est aussi la cible de l'accroche du haut de
+  // page, et compter tous les liens du `main` confondrait les deux chemins.
+  for (const route of ROUTES_OUVERTES) {
+    const carte = page.locator(`[data-module][data-etat="en-ligne"] a[href="${route}"]`);
+    await expect(carte, `aucune carte ne mène à ${route}`).toHaveCount(1);
+  }
+
+  // Et la page ne mène nulle part ailleurs : pas de route inventée par optimisme.
   //
   // Le bandeau d'avertissement est exclu du décompte : il appartient à la mise en
   // page, pas à l'accueil, il figure sur toutes les routes, et son lien vers
@@ -99,7 +120,33 @@ test("le seul module ouvert est le crédit", async ({ page }) => {
   );
   expect(cibles.length, "aucun lien dans le contenu de l'accueil").toBeGreaterThan(0);
   for (const cible of cibles) {
-    expect(cible, `lien inattendu vers ${cible}`).toBe("/credit");
+    expect(ROUTES_OUVERTES, `lien inattendu vers ${cible}`).toContain(cible);
+  }
+});
+
+test("le décompte annoncé est celui des cartes affichées", async ({ page }) => {
+  // La phrase d'introduction a été fausse pendant le temps qu'a duré l'oubli de
+  // `UI-014` : elle annonçait un module en ligne alors que la comparaison existait.
+  // Aucun test ne relisait cette phrase — celui-ci la confronte aux cartes.
+  const ouverts = await page.locator('[data-module][data-etat="en-ligne"]').count();
+  const aVenir = await page.locator('[data-module][data-etat="a-venir"]').count();
+  const mots = ["aucun", "un", "deux", "trois", "quatre", "cinq"];
+
+  const texte = await page.locator("section", { hasText: "Ce qui est en ligne" }).first().innerText();
+  const annonceOuverts =
+    ouverts === 1 ? /un seul module est en ligne/i : new RegExp(`${mots[ouverts]} modules sont en ligne`, "i");
+
+  expect(texte, "le nombre de modules en ligne n'est pas celui qui est écrit").toMatch(annonceOuverts);
+  expect(texte, "le nombre de modules à venir n'est pas celui qui est écrit").toMatch(
+    new RegExp(`les ${mots[aVenir]} autres`, "i"),
+  );
+
+  // Et chaque module ouvert est nommé dans la phrase, pas seulement compté.
+  const noms = await page.locator('[data-module][data-etat="en-ligne"] h3').allInnerTexts();
+  for (const nom of noms) {
+    expect(texte.toLowerCase(), `${nom} est en ligne mais la phrase ne le nomme pas`).toContain(
+      nom.toLowerCase(),
+    );
   }
 });
 

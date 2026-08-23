@@ -6,8 +6,8 @@ export const metadata: Metadata = {
   title: "Simulateur d'acquisition immobilière — calculer et comprendre",
   description:
     "Calcule une acquisition immobilière et explique chaque paramètre : ce qui se négocie, " +
-    "ce qui dépend de votre projet, ce que la réglementation impose. Le module crédit est en ligne. " +
-    "Gratuit, sans compte, sans collecte de données.",
+    "ce qui dépend de votre projet, ce que la réglementation impose. Les modules crédit et " +
+    "« acheter ou louer » sont en ligne. Gratuit, sans compte, sans collecte de données.",
 };
 
 /**
@@ -21,9 +21,11 @@ export const metadata: Metadata = {
  * Composant serveur, prérendu statique : elle ne lit ni l'URL ni le navigateur,
  * et n'a donc aucune raison de retomber en rendu dynamique.
  *
- * Elle dit aussi ce qui n'existe pas. Quatre des six modules sont annoncés et
+ * Elle dit aussi ce qui n'existe pas. La plupart des modules sont annoncés et
  * non livrés ; les présenter comme cliquables serait la première promesse tenue
- * de travers d'un produit dont l'argument est l'honnêteté du calcul.
+ * de travers d'un produit dont l'argument est l'honnêteté du calcul. Le compte
+ * exact ne s'écrit nulle part en prose — il se déduit de `MODULES`, voir
+ * `UI-014` et la garde « le décompte annoncé est celui des cartes affichées ».
  */
 export default function PageAccueil() {
   return (
@@ -169,8 +171,8 @@ const MODULES: readonly Module[] = [
     cle: "comparaison",
     nom: "Acheter ou louer",
     resume:
-      "Comparaison des coûts, puis l'année à partir de laquelle revendre cesse d'être perdant.",
-    lien: null,
+      "Deux façons de compter le coût d'un achat face à un loyer, et les deux années de croisement qu'elles donnent.",
+    lien: "/comparaison",
   },
   {
     cle: "anticipes",
@@ -195,8 +197,25 @@ const MODULES: readonly Module[] = [
   },
 ];
 
+/** Deux, trois, quatre… écrits en toutes lettres tant que la liste tient en une main. */
+const EN_LETTRES = ["aucun", "un", "deux", "trois", "quatre", "cinq"] as const;
+
+function nombreEcrit(n: number): string {
+  return EN_LETTRES[n] ?? String(n);
+}
+
 function Modules() {
-  const enLigne = MODULES.filter((m) => m.lien !== null).length;
+  /*
+    Le décompte et les noms se DÉDUISENT de la liste — `UI-014`.
+
+    Ils étaient écrits à la main : « Un seul module est en ligne : le crédit. Les
+    quatre autres… ». Ouvrir la comparaison rendait donc la phrase fausse sans
+    qu'aucun test ne la voie, parce qu'aucun test ne relit une phrase. Le seul
+    endroit où l'état d'un module s'écrit est désormais son champ `lien`.
+  */
+  const ouverts = MODULES.filter((m) => m.lien !== null);
+  const aVenir = MODULES.filter((m) => m.lien === null);
+  const noms = ouverts.map((m) => m.nom.toLowerCase());
 
   return (
     <section className="border-b border-filet py-10 lg:py-12">
@@ -204,9 +223,12 @@ function Modules() {
         Ce qui est en ligne, et ce qui ne l&apos;est pas
       </h2>
       <p className="mt-3 max-w-[80ch] text-[14px] leading-[1.6]">
-        {enLigne === 1 ? "Un seul module est en ligne" : `${enLigne} modules sont en ligne`} : le
-        crédit. Les quatre autres sont écrits dans le plan et n&apos;existent pas encore. Ils sont
-        listés ici pour dire où va le produit, pas pour laisser croire qu&apos;ils répondraient.
+        {ouverts.length === 1
+          ? `Un seul module est en ligne : ${noms[0]}.`
+          : `${nombreEcrit(ouverts.length)} modules sont en ligne : ${noms.slice(0, -1).join(", ")} et ${noms.at(-1)}.`}{" "}
+        Les {nombreEcrit(aVenir.length)} autres sont écrits dans le plan et n&apos;existent pas
+        encore. Ils sont listés ici pour dire où va le produit, pas pour laisser croire
+        qu&apos;ils répondraient.
       </p>
 
       <ul className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -228,8 +250,15 @@ function Modules() {
                 <p className="mt-2 text-[13px] leading-[1.55] text-encre-secondaire">
                   {module.resume}
                 </p>
+                {/*
+                  Le libellé ne nomme plus le crédit. Toute la carte est le lien, et
+                  son nom accessible commence par le titre du module : « Crédit …
+                  Ouvrir le module → » se lit entier au lecteur d'écran. Nommer un
+                  module ici obligeait à le renommer à chaque ouverture, et c'est
+                  exactement l'oubli que `UI-014` a eu à réparer.
+                */}
                 <span className="mt-3 inline-block text-[13px] text-accent">
-                  Ouvrir le module crédit →
+                  Ouvrir le module →
                 </span>
               </Link>
             </li>

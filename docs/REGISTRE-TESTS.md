@@ -27,12 +27,19 @@ ouvertes et remonte un composant en plein test.
 
 ## État courant
 
-Relevé du 22 août 2026 sur `main`, porte passée à froid.
+Relevé du 23 août 2026 sur `main`, porte passée à froid, après la fusion de `VIZ-003`.
 
 | Suite | Fichiers | Tests |
 | --- | --- | --- |
-| Unitaires | 11 | 619 |
-| Bout en bout | 13 | 252 (126 × 2 profils), dont 10 ignorés par construction |
+| Unitaires | 18 | 901 |
+| Bout en bout | 14 | 304 (152 × 2 profils), dont 10 ignorés par construction |
+
+**Les 282 unitaires ajoutés depuis le 22 août sont le moteur de la phase 3**, et eux ne
+sont pas de la multiplication : sept fichiers neufs sous `src/core/compare/` et
+`src/core/assumptions/`, un par module — détention, portefeuille, vente, plus-value,
+hypothèses de marché — plus les invariants de détention isolés dans leur propre fichier.
+La règle « toute modification du moteur s'accompagne d'un test » a tenu sur les sept
+branches de la vague, sans exception à signaler.
 
 **Le bond des unitaires — 217 à 619 — n'est pas une couverture qui triple.** C'est
 `it.each` sur quarante-huit entrées de glossaire là où il y en avait dix-neuf, et six
@@ -105,6 +112,7 @@ d'être écrite à côté de ses chiffres.
 | `legal.spec.ts` | 14 | Les trois textes s'affichent datés, sont atteignables depuis le simulateur, et **l'identité de l'hébergeur figure sur le site** — c'est la contrepartie de l'anonymat de l'éditeur, pas une politesse |
 | `infobulles.spec.ts` | 9 | Un appui du doigt ouvre la bulle **et l'y laisse**. Aucune bulle ne fait défiler la page, sur les deux profils. Aucune n'affiche un jeton resté sans valeur, et celle de la durée cite les plafonds du millésime |
 | `fiche-credit.spec.ts` | 14 | La fiche `/credit/comprendre` nomme les trois familles en toutes lettres et chaque section porte son étiquette **écrite**, jamais un simple trait coloré. Le chemin avec `/credit` est parcouru dans les deux sens, cliqué et suivi. **La mensualité annoncée par la fiche est celle que le module affiche** — la promesse « reproduisez-le » est exécutée, pas cochée. Et **aucune tournure prescriptive n'atteint le lecteur**, sur le document entier |
+| `comparaison.spec.ts` | 29 | La route `/comparaison`. **La limite précède tous les chiffres dans l'ordre du document** — position DOM comparée, et non apparence — et **la bascule des deux lectures vit à l'intérieur du bloc qui la porte**, ce qui rend l'avertissement non contournable. L'échelle du graphique ne se recale pas sur la lecture retenue : le capital retiré se voit. Les repères sont mesurés en pixels contre les cumuls du moteur, sans hauteur plancher. Aucune tournure prescriptive sur le document entier, quatorze motifs relevés |
 | `glossaire.spec.ts` | 10 | La page rend ses quarante-huit termes, index compris, sans jeton laissé sans valeur et sans famille portée par la seule couleur. Surtout : le lien d'une bulle est **atteignable pour de vrai** — au clavier par tabulation, à la souris en traversant le vide entre la pastille et la bulle, au doigt par deux appuis. Et **aucun lien de bulle ne tombe dans le vide** : tous les liens de `/credit` et `/composants` sont relevés, puis confrontés aux ancres réelles de `/glossaire` |
 
 ### Gardes vérifiées par sabotage
@@ -129,6 +137,28 @@ gardes-là ont été cassées exprès, puis rétablies :
 - **Identité de l'hébergeur** — retirer l'adresse de Vercel des mentions légales fait échouer la garde qui la cherche : sans elle, l'anonymat de l'éditeur n'a plus de fondement.
 - **Assiette de la mainlevée** — asseoir le coût de mainlevée sur le capital emprunté
   au lieu du prix du bien fait échouer le test de garantie correspondant.
+- **Proportions des courbes de comparaison** — poser un plancher de 6 % sur les repères
+  fait rougir la mesure au pixel : l'année 1 passerait de 3,705 % à 6 %.
+- **Échelle de la comparaison** — asseoir l'échelle sur la seule courbe du propriétaire
+  fait rougir deux gardes, les proportions et « l'échelle ne se recale pas ».
+- **Ordre du document** — déplacer le bloc de limite sous la grille, en y glissant un
+  « mieux vaut », fait rougir trois gardes par profil : l'ordre, la lecture sans
+  défilement, et les tournures prescriptives.
+- **Une quatrième tentative qui n'a rien fait rougir, et c'est le renseignement.**
+  Recaler l'échelle sur le maximum des deux séries de la lecture retenue ne change
+  aucune valeur affichée, parce que le locataire est le plus grand dans les deux
+  lectures — ses fonds perdus égalent son décaissement. La garde protège contre tout
+  recalage **qui change un chiffre à l'écran**, pas contre « tout recalage ». Une garde
+  dont on ne sait pas ce qu'elle laisse passer n'est pas une garde vérifiée.
+- **Décompte des modules en ligne** — réécrire à la main « Un seul module est en
+  ligne : crédit. Les quatre autres… » fait rougir la garde qui confronte la phrase
+  aux cartes. Ce défaut-là a réellement vécu sur `main` : la comparaison était en
+  ligne et l'accueil l'annonçait à venir.
+- **Cartes ouvertes et routes réelles** — refermer la carte de la comparaison fait
+  rougir « les modules ouverts sont exactement ceux qui ont une route ». À noter :
+  la garde du décompte, elle, reste **verte** dans ce cas, et c'est juste — la phrase
+  redevient cohérente avec une liste appauvrie. Les deux gardes ne disent pas la même
+  chose, et il faut les deux.
 - **Modules à venir non cliquables** — envelopper le titre d'un module à venir dans
   un lien fait rougir `accueil.spec.ts` : « le module comparaison est cliquable ».
 - **Familles nommées en toutes lettres sur l'accueil** — vider le titre d'une carte
