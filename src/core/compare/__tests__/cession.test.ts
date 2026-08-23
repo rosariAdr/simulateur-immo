@@ -138,19 +138,24 @@ describe("cas A — bien locatif revendu au bout de vingt ans, majorations au fo
    *     abattement  24,75 % × 98 161,14 = 24 294,88215  →   24 294,88
    *     base PS     98 161,14 − 24 294,88               =   73 866,26
    *
+   * ── L'ARRONDI DES ASSIETTES (CGI, art. 1649 undecies) — `FIS-008` ───────
+   *   base IR   9 816,11  → 9 816,00        (0,11 € : on descend)
+   *   base PS  73 866,26  → 73 866,00       (0,26 € : on descend)
+   *   Les abattements, eux, restent au centime : ils ne sont pas des assiettes.
+   *
    * ── LES TROIS IMPOSITIONS ───────────────────────────────────────────────
-   *   impôt sur le revenu   19 %   ×  9 816,11 =  1 865,0609    →  1 865,06
-   *   prélèvements sociaux  17,2 % × 73 866,26 = 12 704,99672   → 12 705,00
-   *   surtaxe               base IR 9 816,11 ≤ 50 000           →      0,00
+   *   impôt sur le revenu   19 %   ×  9 816,00 =  1 865,04       →  1 865,04
+   *   prélèvements sociaux  17,2 % × 73 866,00 = 12 704,952      → 12 704,95
+   *   surtaxe               base IR 9 816 ≤ 50 000               →      0,00
    *   ───────────────────────────────────────────────────────────────────────
-   *   impôt total                                                  14 570,06
+   *   impôt total                                                  14 569,99
    *
    * ── LE DÉCOMPTE ─────────────────────────────────────────────────────────
    *   prix de cession                                             361 222,25
    *   − commission d'agence                                      − 18 061,11
-   *   − impôt de plus-value                                      − 14 570,06
+   *   − impôt de plus-value                                      − 14 569,99
    *   ───────────────────────────────────────────────────────────────────────
-   *   produit net                                                 328 591,08
+   *   produit net                                                 328 591,15
    */
   const vente: Omit<EntreeVente, "regimePlusValue"> = {
     horizonMois: 240,
@@ -192,22 +197,26 @@ describe("cas A — bien locatif revendu au bout de vingt ans, majorations au fo
     expect(r.plusValue?.abattementImpotRevenu.anneesDetention).toBe(20);
     expect(r.plusValue?.abattementImpotRevenu.tauxPct).toBe(90);
     expect(r.plusValue?.abattementImpotRevenu.montant).toBe(euros(88_345.03));
-    expect(r.plusValue?.baseImpotRevenu).toBe(euros(9_816.11));
+    // La décomposition de l'abattement reste au centime…
+    expect(r.plusValue?.abattementImpotRevenu.base).toBe(euros(9_816.11));
+    // …et l'assiette, elle, est entière — `FIS-008`.
+    expect(r.plusValue?.baseImpotRevenu).toBe(euros(9_816));
 
     expect(r.plusValue?.abattementPrelevementsSociaux.tauxPct).toBe(24.75);
     expect(r.plusValue?.abattementPrelevementsSociaux.montant).toBe(euros(24_294.88));
-    expect(r.plusValue?.basePrelevementsSociaux).toBe(euros(73_866.26));
+    expect(r.plusValue?.abattementPrelevementsSociaux.base).toBe(euros(73_866.26));
+    expect(r.plusValue?.basePrelevementsSociaux).toBe(euros(73_866));
   });
 
   it("chiffre l'impôt et le porte dans le décompte de vente", () => {
     const r = chiffrerCession(entree, P);
-    expect(r.plusValue?.impotRevenu).toBe(euros(1_865.06));
-    expect(r.plusValue?.prelevementsSociaux).toBe(euros(12_705));
+    expect(r.plusValue?.impotRevenu).toBe(euros(1_865.04));
+    expect(r.plusValue?.prelevementsSociaux).toBe(euros(12_704.95));
     expect(r.plusValue?.surtaxe).toBe(0);
-    expect(r.plusValue?.total).toBe(euros(14_570.06));
+    expect(r.plusValue?.total).toBe(euros(14_569.99));
 
-    expect(r.produitDeVente.postes.impotPlusValue).toBe(euros(14_570.06));
-    expect(r.produitDeVente.produitNet).toBe(euros(328_591.08));
+    expect(r.produitDeVente.postes.impotPlusValue).toBe(euros(14_569.99));
+    expect(r.produitDeVente.produitNet).toBe(euros(328_591.15));
   });
 
   it("trace d'où vient le montant retranché", () => {
@@ -221,13 +230,13 @@ describe("cas A — bien locatif revendu au bout de vingt ans, majorations au fo
 
   it("le même bien en résidence principale ne diffère QUE de l'impôt", () => {
     // L'invariant du ticket, sur le cas de référence : 343 161,14 contre
-    // 328 591,08, soit exactement les 14 570,06 € d'impôt.
+    // 328 591,15, soit exactement les 14 569,99 € d'impôt.
     const exonere = chiffrerCession({ vente, regime: { nature: "residence-principale" } }, P);
     const impose = chiffrerCession(entree, P);
 
     expect(exonere.produitDeVente.produitNet).toBe(euros(343_161.14));
     expect(exonere.produitDeVente.produitNet - impose.produitDeVente.produitNet).toBe(
-      euros(14_570.06),
+      euros(14_569.99),
     );
     expect(exonere.plusValue).toBeNull();
     expect(exonere.fraisDeCession).toBeNull();
@@ -335,16 +344,20 @@ describe("cas B — vente anticipée sous hypothèque, l'indemnité n'est pas d�
   });
 });
 
-describe("cas C — l'assiette tombe dans la fente du barème de la surtaxe", () => {
+describe("cas C — l'assiette au voisinage du seuil de la surtaxe", () => {
   /*
-   * Le cas qui a imposé la seule modification d'un fichier partagé — voir le
-   * message de commit et ADR-016.
+   * Le cas qui a fait tomber la « fente du barème » — voir ADR-018.
    *
-   * Le seuil de la surtaxe vise les plus-values « supérieur[es] à 50 000 € » et
-   * la première tranche du tableau ouvre à « 50 001 € ». Entre les deux, 99
-   * centimes que le barème ne nomme pas. Une assiette saisie en euros ronds n'y
-   * tombe jamais ; une assiette DÉRIVÉE d'une valeur appréciée y tombe, et
-   * c'est exactement ce que cet assemblage fabrique.
+   * `ENG-027` avait lu ici une assiette de 50 000,10 €, constaté qu'aucune
+   * tranche du tableau ne la couvrait — le seuil vise les plus-values
+   * « supérieur[es] à 50 000 € » et la première tranche ouvre à « 50 001 € » —
+   * et fait chercher la tranche par sa borne haute pour ne plus lever. La
+   * surtaxe valait alors 500,01 €, et le total 18 600,05 €.
+   *
+   * `FIS-008` a repris la question par l'amont : une assiette d'imposition
+   * n'existe pas au centime. « Les bases des impositions de toute nature sont
+   * arrondies à l'euro le plus proche » (CGI, art. 1649 undecies). Les 99
+   * centimes n'étaient pas une fente du barème, mais une assiette impossible.
    *
    *   valeur initiale                                             100 000,00
    *   prix de cession   100 000 × 1,500001                      = 150 000,10
@@ -352,12 +365,14 @@ describe("cas C — l'assiette tombe dans la fente du barème de la surtaxe", ()
    *   plus-value brute  150 000,10 − 100 000,00                 =  50 000,10
    *   une année révolue : aucun abattement.
    *
-   *   impôt sur le revenu   19 %   × 50 000,10 =  9 500,019     →   9 500,02
-   *   prélèvements sociaux  17,2 % × 50 000,10 =  8 600,0172    →   8 600,02
-   *   surtaxe  2 % × 50 000,10 − (60 000 − 50 000,10)/20
-   *          = 1 000,002 − 499,995 = 500,007                    →     500,01
+   *   assiette arrondie  50 000,10 → 50 000,00
+   *   50 000 n'est PAS « supérieur à 50 000 » : aucune surtaxe.
+   *
+   *   impôt sur le revenu   19 %   × 50 000 =  9 500,00         →   9 500,00
+   *   prélèvements sociaux  17,2 % × 50 000 =  8 600,00         →   8 600,00
+   *   surtaxe                                                   →       0,00
    *   ───────────────────────────────────────────────────────────────────────
-   *   impôt total                                                  18 600,05
+   *   impôt total                                                  18 100,00
    */
   const entree: EntreeCession = {
     vente: {
@@ -369,13 +384,32 @@ describe("cas C — l'assiette tombe dans la fente du barème de la surtaxe", ()
     regime: imposable(),
   };
 
-  it("ne lève pas, et taxe", () => {
+  it("ne lève pas, et l'assiette arrondie passe sous le seuil", () => {
     const r = chiffrerCession(entree, P);
-    expect(r.plusValue?.baseImpotRevenu).toBe(euros(50_000.1));
-    expect(r.plusValue?.impotRevenu).toBe(euros(9_500.02));
-    expect(r.plusValue?.prelevementsSociaux).toBe(euros(8_600.02));
-    expect(r.plusValue?.surtaxe).toBe(euros(500.01));
-    expect(r.plusValue?.total).toBe(euros(18_600.05));
+    expect(r.plusValue?.assiette.plusValueBrute).toBe(euros(50_000.1));
+    expect(r.plusValue?.baseImpotRevenu).toBe(euros(50_000));
+    expect(r.plusValue?.impotRevenu).toBe(euros(9_500));
+    expect(r.plusValue?.prelevementsSociaux).toBe(euros(8_600));
+    expect(r.plusValue?.surtaxe).toBe(0);
+    expect(r.plusValue?.total).toBe(euros(18_100));
+  });
+
+  it("cinquante centimes de plus, et la surtaxe est due — la marche est brutale", () => {
+    // 100 000 × 1,5000060 = 150 000,60 → plus-value brute 50 000,60, arrondie
+    // à 50 001 € : « la fraction d'euro égale à 0,50 est comptée pour 1 ».
+    // La discontinuité du seuil, elle, reste dans le texte : 0 € puis 500,07 €
+    // pour un euro d'assiette de plus. On la constate, on ne la corrige pas.
+    const r = chiffrerCession(
+      {
+        ...entree,
+        vente: { ...entree.vente, appreciationAnnuellePct: 50.0006 },
+      },
+      P,
+    );
+    expect(r.plusValue?.assiette.plusValueBrute).toBe(euros(50_000.6));
+    expect(r.plusValue?.baseImpotRevenu).toBe(euros(50_001));
+    // 2 % × 50 001 − (60 000 − 50 001)/20 = 1 000,02 − 499,95 = 500,07
+    expect(r.plusValue?.surtaxe).toBe(euros(500.07));
   });
 });
 

@@ -254,10 +254,17 @@ spécification. Signalé par l'agent qui a écrit le portefeuille du locataire.
   prélèvements sociaux
 - l'assiette sociale est donc supérieure ou égale à l'assiette fiscale, et strictement
   supérieure entre la 6ᵉ et la 29ᵉ année
+- **les deux assiettes sont des nombres entiers d'euros**, arrondis après abattement
+  (CGI, art. 1649 undecies ; CSS, art. L136-7, VI, 1 pour les prélèvements sociaux).
+  La décomposition de l'abattement, elle, reste au centime : `montant + base` vaut
+  toujours la plus-value brute. Voir ADR-018
 - la surtaxe est assise sur l'assiette de l'**impôt sur le revenu** : elle s'éteint à
-  22 ans, pas à 30
+  22 ans, pas à 30, et son seuil de 50 000 € s'apprécie sur l'assiette **arrondie**,
+  après abattement
 - son barème comporte des décotes : vérifier sa **continuité** autour de chaque seuil,
-  pas seulement la valeur de ses paliers
+  pas seulement la valeur de ses paliers. Les frontières du barème n'ont pas de « fente » :
+  libellé en euros entiers, il couvre toutes les assiettes possibles, puisqu'une assiette
+  est entière
 - le taux réduit EEE/Suisse n'est jamais plus coûteux que le taux plein
 - un forfait de majoration hors de son champ est **refusé**, et le refus est vérifié à
   l'exécution : le type seul atteste qu'un forfait a été ouvert pour *une* situation,

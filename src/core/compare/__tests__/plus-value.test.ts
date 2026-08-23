@@ -21,7 +21,7 @@
 
 import { describe, it, expect } from "vitest";
 import fc from "fast-check";
-import { euros } from "../../money";
+import { euros, roundToEuros } from "../../money";
 import { PARAMS_2026 } from "../../fiscal/params";
 import {
   ForfaitHorsChampError,
@@ -250,19 +250,89 @@ describe("cas de référence — surtaxe sur les plus-values élevées", () => {
     expect(surtaxeSurPlusValue(euros(50_001))).toBeGreaterThan(euros(400));
   });
 
-  it("couvre les centimes entre le seuil et la première tranche — `ENG-027`", () => {
+  it("les 99 centimes du seuil ne sont pas une fente du barème — `FIS-008`", () => {
     // Le seuil vise les plus-values « supérieur[es] à 50 000 € » et le tableau
-    // ouvre à « 50 001 € ». Entre les deux, 99 centimes que le barème ne nomme
-    // pas : la recherche par borne basse n'y trouvait aucune tranche et levait
-    // `RangeError`, alors que la loi taxe. Le cas ne se rencontrait pas tant
-    // que les assiettes étaient saisies en euros ronds ; il devient ordinaire
-    // dès qu'un prix de cession est dérivé d'une valeur appréciée.
+    // ouvre à « 50 001 € ». `ENG-027` y avait vu 99 centimes que le barème ne
+    // nomme pas, et cherché la tranche par sa borne haute pour ne plus lever.
+    //
+    // La lecture retenue est autre : une assiette d'imposition est entière
+    // (CGI, art. 1649 undecies), donc AUCUNE de ces 99 valeurs n'est une
+    // assiette. Chacune s'arrondit — sous 0,50 € vers 50 000 €, qui n'est pas
+    // « supérieur à 50 000 » et ne doit rien ; à partir de 0,50 € vers
+    // 50 001 €, première tranche, et la surtaxe est pleinement due.
     for (let c = 1; c <= 99; c++) {
       const assiette = euros(50_000) + c;
       expect(() => surtaxeSurPlusValue(assiette), `assiette 50 000 € + ${c} c`).not.toThrow();
-      // Elle reste dans la tranche à 2 % et donc voisine des 500 € du seuil.
-      expect(surtaxeSurPlusValue(assiette)).toBeGreaterThan(euros(499));
-      expect(surtaxeSurPlusValue(assiette)).toBeLessThan(euros(501));
+      if (c < 50) {
+        expect(surtaxeSurPlusValue(assiette), `50 000 € + ${c} c`).toBe(0);
+      } else {
+        expect(surtaxeSurPlusValue(assiette), `50 000 € + ${c} c`).toBe(euros(500.07));
+      }
+    }
+  });
+
+  it("aucune frontière interne ne se traverse deux fois, centimes compris — `FIS-008`", () => {
+    // Neuf frontières internes, et la même question à chacune : 60 000,50 €,
+    // 100 000,50 €, etc. La borne haute de `ENG-027` les rangeait dans la
+    // tranche SUIVANTE et leur faisait sauter le coefficient de lissage de la
+    // précédente. Avec l'arrondi, la question ne se pose plus : 60 000,50 €
+    // vaut 60 001 €, une valeur que le tableau nomme.
+    //
+    // Le test compare la surtaxe des centimes à celle de l'euro sur lequel ils
+    // s'arrondissent : les deux doivent être IDENTIQUES, au centime.
+    const frontieres = [60_000, 100_000, 110_000, 150_000, 160_000, 200_000, 210_000, 250_000, 260_000];
+    for (const bas of frontieres) {
+      for (const c of [1, 25, 49, 50, 51, 75, 99]) {
+        const assiette = euros(bas) + c;
+        const arrondi = euros(c < 50 ? bas : bas + 1);
+        expect(surtaxeSurPlusValue(assiette), `${bas} € + ${c} c`).toBe(
+          surtaxeSurPlusValue(arrondi),
+        );
+      }
+      // Et la continuité tient toujours de part et d'autre de la frontière.
+      expect(
+        Math.abs(surtaxeSurPlusValue(euros(bas + 1)) - surtaxeSurPlusValue(euros(bas))),
+        `saut à ${bas} €`,
+      ).toBeLessThan(euros(1));
+    }
+  });
+
+  it("le voisinage du seuil se lit sur le calcul complet, pas seulement sur le barème", () => {
+    // Une plus-value brute de 50 000 € et quelques centimes, détenue moins de
+    // six ans : aucun abattement, donc l'assiette est la brute arrondie. C'est
+    // le cas que `chiffrerCession` fabrique dès qu'un prix de cession est
+    // dérivé d'une valeur appréciée, et il décide l'existence d'un impôt de
+    // 500 €.
+    const surtaxeDe = (centimesEnPlus: number) =>
+      calculerPlusValue(
+        cessionNue({
+          prixAcquisition: euros(100_000),
+          prixDeCession: euros(150_000) + centimesEnPlus,
+          dureeDetentionMois: 12,
+        }),
+      );
+
+    // 50 000,10 € → 50 000 €, qui n'est pas « supérieur à 50 000 € ».
+    expect(surtaxeDe(10).baseImpotRevenu).toBe(euros(50_000));
+    expect(surtaxeDe(10).surtaxe).toBe(0);
+    expect(surtaxeDe(10).total).toBe(euros(18_100));
+
+    // 50 000,50 € → 50 001 €, et la surtaxe est due tout entière.
+    expect(surtaxeDe(50).baseImpotRevenu).toBe(euros(50_001));
+    expect(surtaxeDe(50).surtaxe).toBe(euros(500.07));
+
+    // Un euro plus bas, rien ne peut être dû quels que soient les centimes.
+    for (const c of [0, 1, 49, 50, 99]) {
+      expect(
+        calculerPlusValue(
+          cessionNue({
+            prixAcquisition: euros(100_000),
+            prixDeCession: euros(149_999) + c,
+            dureeDetentionMois: 12,
+          }),
+        ).surtaxe,
+        `49 999 € + ${c} c`,
+      ).toBe(0);
     }
   });
 
@@ -542,6 +612,28 @@ describe("invariants", () => {
     );
   });
 
+  it("les deux assiettes sont toujours des euros entiers — `FIS-008`", () => {
+    // « Les bases des impositions de toute nature sont arrondies à l'euro le
+    // plus proche » (CGI, art. 1649 undecies). Aucune entrée, si tordue
+    // soit-elle, ne doit produire une assiette portant des centimes.
+    fc.assert(
+      fc.property(entreeQuelconque, (entree) => {
+        const r = calculerPlusValue(entree);
+        expect(r.baseImpotRevenu % euros(1)).toBe(0);
+        expect(r.basePrelevementsSociaux % euros(1)).toBe(0);
+        // Et l'écart avec la base exacte ne dépasse jamais un demi-euro : on
+        // arrondit, on ne recalcule pas.
+        expect(Math.abs(r.baseImpotRevenu - r.abattementImpotRevenu.base)).toBeLessThanOrEqual(
+          euros(0.5),
+        );
+        expect(
+          Math.abs(r.basePrelevementsSociaux - r.abattementPrelevementsSociaux.base),
+        ).toBeLessThanOrEqual(euros(0.5));
+      }),
+      { numRuns: 400 },
+    );
+  });
+
   it("l'assiette sociale reste supérieure ou égale à l'assiette fiscale, toujours", () => {
     // L'abattement social est plus lent à toute durée, donc l'assiette sociale est
     // plus large. Ce test rougit le jour où un seul barème sert aux deux.
@@ -641,7 +733,12 @@ describe("invariants", () => {
         (a, b) => {
           const [bas, haut] = a <= b ? [a, b] : [b, a];
           expect(surtaxeSurPlusValue(bas)).toBeLessThanOrEqual(surtaxeSurPlusValue(haut));
-          expect(surtaxeSurPlusValue(haut)).toBeLessThanOrEqual(Math.ceil(0.06 * haut));
+          // Le plafond se mesure sur l'assiette ARRONDIE, seule assiette qui
+          // existe : un tirage à 260 000,50 € est taxé sur 260 001 €, et 6 %
+          // de 260 001 dépasse 6 % de 260 000,50 de trois centimes.
+          expect(surtaxeSurPlusValue(haut)).toBeLessThanOrEqual(
+            Math.ceil(0.06 * roundToEuros(haut)),
+          );
         },
       ),
       { numRuns: 500 },

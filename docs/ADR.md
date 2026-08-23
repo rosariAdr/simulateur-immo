@@ -1357,6 +1357,12 @@ elle cesserait de l'être, ce qui est tard.
 
 ### Un fichier partagé modifié, et pourquoi il fallait le modifier
 
+> **Révisé par ADR-018.** Ce qui suit décrit fidèlement l'état du 23 août 2026 au matin.
+> La correction décrite ici a été défaite le jour même : la « fente de 99 centimes » n'était
+> pas un trou du barème mais une assiette impossible, les bases d'imposition étant arrondies
+> à l'euro (CGI, art. 1649 undecies). La recherche par la borne basse est rétablie, et les
+> chiffres du cas C ci-dessus ont changé. Le reste d'ADR-016 tient.
+
 `src/core/compare/plus-value.ts`, une ligne : `surtaxeSurPlusValue` cherchait sa tranche par
 la borne **basse** du barème. Le seuil de déclenchement vise les plus-values « supérieur[es]
 à 50 000 € » et la première tranche du tableau de l'art. 1609 nonies G ouvre à « 50 001 € » :
@@ -1486,6 +1492,160 @@ le dire ici parce que c'est le prix de la règle.
   à l'intérieur d'une phrase de provenance ne fait rougir personne — vérifié par
   sabotage. La provenance est de la prose montrable, pas une donnée vérifiable ; le
   seul rempart est la relecture humaine.
+
+---
+
+## ADR-018 — L'assiette d'un impôt est un nombre entier d'euros
+
+**Date** : 23 août 2026 · **Statut** : adoptée · **Tickets** : `FIS-008` · **Révise** : ADR-016
+
+### Contexte
+
+`ENG-027` avait buté sur un `RangeError`. Le barème de la surtaxe sur les plus-values élevées
+(CGI, art. 1609 nonies G) est libellé en euros entiers : le seuil de déclenchement vise les
+plus-values « supérieur[es] à 50 000 € », la première tranche court « de 50 001 à 60 000 € ».
+Entre les deux, 99 centimes que le tableau ne nomme pas — et la même fente à chacune de ses
+neuf frontières internes. Une assiette de 50 000,10 €, telle que l'assemblage en fabrique dès
+que le prix de cession est **dérivé** d'une valeur appréciée, n'y trouvait aucune tranche.
+
+La correction retenue faisait chercher la tranche par sa borne **haute**. Elle supprimait la
+levée. Elle produisait aussi, sur le cas de référence C, **500,01 € de surtaxe sur une
+assiette de 50 000,10 €** — et l'entrée de journal de la séance reconnaissait que cette
+lecture « n'a pas été confrontée à la doctrine ».
+
+La question posée était donc : le droit fiscal connaît-il des assiettes au centime ?
+
+### Ce que la recherche a établi
+
+**Non.** CGI, **art. 1649 undecies** : « Les bases des impositions de toute nature sont
+arrondies à l'euro le plus proche. La fraction d'euro égale à 0,50 est comptée pour 1. » Un
+article d'une phrase, seul dans un chapitre intitulé « Règles d'arrondissement des bases
+d'imposition », placé dans le **livre premier, « Assiette et liquidation de l'impôt »**. Le
+BOFiP le cite comme la règle générale d'arrondi des bases (BOI-BIC-BASE-30 § 20).
+
+Ce n'est **pas** l'art. 1657, par lequel la question était arrivée. Celui-ci arrondit lui
+aussi « les bases de cotisation des impôts directs », mais il siège sous la sous-section
+« Rôles et avis d'imposition › Établissement et mise en recouvrement des rôles », et son 2
+raisonne « par article de rôle ». La plus-value immobilière n'est pas mise en recouvrement
+par voie de rôle : elle est liquidée par le notaire et payée à la formalité. Fonder la règle
+sur 1657 aurait été fragile ; l'art. 1649 undecies ne pose pas ce problème.
+
+**L'assiette et la cotisation relèvent de deux règles distinctes.** L'art. 1649 undecies
+arrondit la base ; l'**art. 1724** arrondit « la liquidation de toutes sommes à recevoir »,
+« au niveau du décompte de chaque impôt ou taxe ». La réponse ministérielle à la question
+écrite AN n° 26703 (JO 17 novembre 2020) lit les deux ensemble et confirme le partage : on
+calcule au centime, on verse à l'euro.
+
+**Les prélèvements sociaux suivent.** CSS, art. L136-7, VI, 1 : la contribution sur les
+plus-values immobilières est « **assise**, contrôlée et recouvrée selon les mêmes règles […]
+que l'impôt sur le revenu ». Le mot « assise » emporte la règle d'arrondi d'assiette.
+
+**Le seuil de la surtaxe s'apprécie après abattements.** La notice 2048-IMM-NOT-SD (02-2025)
+l'écrit : la taxe est assise sur la plus-value imposable à l'impôt sur le revenu « après
+prise en compte de l'abattement pour durée de détention prévu à l'article 150 VC », et « le
+seuil de 50 000 € est donc apprécié après prise en compte de ces abattements ». La ligne 115
+du formulaire, celle de la taxe, est le report de la ligne 50, la plus-value nette imposable.
+Cela confirme le corollaire d'ADR-013 : la surtaxe est assise sur l'assiette de l'impôt sur
+le revenu.
+
+### Décision
+
+**1. Les deux assiettes sont arrondies à l'euro, après abattement.** `baseImpotRevenu` et
+`basePrelevementsSociaux` sont des multiples de 100 centimes. L'arrondi porte sur la base
+nette — celle que le taux frappe et que porte la déclaration — et non sur la plus-value
+brute.
+
+**2. `AbattementApplique.base` reste au centime.** L'invariant `montant + base ===
+plusValueBrute` est conservé. L'arrondi est un fait d'assiette, pas une reprise de la
+soustraction : mélanger les deux rendrait impossible de vérifier un abattement à la main.
+
+**3. La recherche de tranche de la surtaxe repart de la borne basse.** Elle était juste. Sur
+les entiers, les tranches du barème sont contiguës et couvrantes, et une assiette
+strictement supérieure à 50 000 € vaut au moins 50 001 €. Le `RangeError` redevient ce qu'il
+visait : un barème mutilé, jamais une plus-value exotique. La fonction arrondit son entrée
+elle-même, parce qu'elle est exportée et qu'aucune signature ne peut promettre un multiple
+de 100 ; l'opération est idempotente.
+
+**4. `roundToEuros` est ajoutée à `money.ts`, fichier gelé.** C'est de l'arithmétique
+monétaire, pas une valeur réglementaire : aucun seuil, aucun taux, aucun millésime, rien qui
+change avec une loi de finances. Une fonction ajoutée, aucune fonction retouchée, et sa
+garde dans `src/core/__tests__/money-arrondi-euro.test.ts` — ADR-004 demande une raison
+explicite et un test, les deux sont là.
+
+**5. Ce qui reste non modélisé est déclaré.** Les impositions elles-mêmes restent calculées
+au centime alors que l'art. 1724 les arrondit à l'euro, et que le décompte du notaire liquide
+séparément CSG, CRDS et prélèvement de solidarité au lieu d'un taux global de 17,2 %. Une
+réserve de plus dans `nonModelise`. L'appliquer demanderait de décomposer le taux global,
+c'est-à-dire de modifier `params.ts` et la sortie du module : un autre ticket, et un écart de
+quelques centimes.
+
+### Justification
+
+Le défaut d'`ENG-027` n'était pas le saut de coefficient de lissage que l'on pouvait
+craindre aux neuf frontières internes. Mesuré, ce saut vaut **entre 3 et 13 centimes** : la
+décote vaut `coefficient × (borne haute − assiette)` et tend vers zéro quand l'assiette
+approche la borne haute. À 60 000,50 €, la borne haute rendait 1 200,01 € là où la tranche
+précédente aurait rendu 1 200,04 €.
+
+Le vrai défaut était ailleurs, et il était de cinq cents euros : la lecture par la borne
+haute **taxait une assiette qui ne devait rien**. C'est le sens de l'erreur qui rend la
+correction non facultative — un simulateur qui surestime un impôt de 500 € sur un seuil est
+aussi faux qu'un simulateur qui le sous-estime, et il est faux dans le sens qui décourage.
+
+L'arrondi, lui, ne déplace presque rien loin du seuil : sur le cas de référence A, sept
+centimes sur un impôt de 14 570 €. Il déplace tout au voisinage du seuil, et c'est
+exactement là qu'un simulateur doit être juste, parce que c'est là que l'utilisateur se
+demande s'il franchit une marche.
+
+### Ce qui la garde
+
+- `src/core/__tests__/money-arrondi-euro.test.ts` — la fraction de 0,50 € comptée pour 1 et
+  0,49 € qui ne l'est pas, la sortie toujours multiple de 100, l'idempotence dont la surtaxe
+  dépend, la monotonie sans laquelle la surtaxe cesserait de croître.
+- `src/core/compare/__tests__/plus-value.test.ts` — les 99 centimes du seuil, valeur par
+  valeur : rien sous 50 centimes, 500,07 € au-delà. Les neuf frontières internes, sept
+  positions de centimes chacune, la surtaxe des centimes devant être **identique** à celle de
+  l'euro sur lequel ils s'arrondissent. Le voisinage du seuil sur le calcul complet et pas
+  seulement sur le barème. Sous `fast-check`, les deux assiettes toujours entières et jamais
+  à plus d'un demi-euro de la base exacte.
+- `src/core/compare/__tests__/cession.test.ts` — cas C réécrit : 50 000,10 € ne doit rien,
+  50 000,60 € doit 500,07 €.
+
+Vérifié à l'adoption, trois gardes cassées puis rétablies. Arrondir vers le bas au lieu de
+`half-up` : **6 rouges** dans trois fichiers. Cesser d'arrondir la seule assiette sociale :
+**7 rouges** dans deux fichiers, dont l'invariant « l'assiette sociale reste supérieure ou
+égale à l'assiette fiscale », qu'un arrondi appliqué à une seule des deux peut inverser.
+
+Le troisième sabotage n'a **rien** fait rougir, et c'est le résultat le plus utile : revenir
+à la recherche par la borne haute, l'arrondi restant en place, laisse la suite entièrement
+verte. Une fois l'assiette entière, les deux recherches désignent toujours la même tranche.
+La borne basse n'est donc pas gardée par un test — elle est rendue suffisante par l'arrondi,
+qui l'est. Écrire un test pour la borne basse seule reviendrait à mesurer le test lui-même.
+
+### Ce qui n'a pas été établi
+
+- **Aucun texte, aucune doctrine, aucune notice ne dit explicitement que la plus-value
+  immobilière est arrondie.** Le raisonnement est une subsomption : l'art. 1649 undecies vise
+  les « impositions de toute nature », la plus-value en est une. Solide, mais indirect.
+- **BOI-RFPI-PVI-20-20, BOI-RFPI-PVI-30-20 et BOI-RFPI-TPVIE-20 ne disent rien de l'arrondi**,
+  et la notice 2048-IMM-NOT-SD ne contient pas le mot. Les trois exemples chiffrés de
+  BOI-RFPI-TPVIE-20 § 75 sont en euros ronds et ne tranchent donc pas ; ils confirment en
+  revanche notre lecture du barème et de ses décotes, au centime.
+- **« Avant ou après les abattements » n'est réglé par aucun texte**, sauf pour le seuil de la
+  surtaxe. Le choix d'arrondir la base nette s'appuie sur le mot « bases » et sur les lignes
+  50 et 100 du formulaire. L'autre lecture déplacerait l'assiette d'au plus 50 centimes.
+
+### Conséquences acceptées
+
+- **La marche du seuil se lit maintenant sur un euro d'assiette et non sur un centime.** Un
+  vendeur dont la plus-value nette vaut 50 000,50 € doit 500,07 € de plus qu'un vendeur à
+  50 000,49 €. La discontinuité est dans le texte — ADR-013 avait décidé de la constater —
+  mais elle se produit désormais à un endroit net, et l'interface devra la nommer.
+- **`baseImpotRevenu` ne vaut plus `abattementImpotRevenu.base`.** Deux champs voisins qui
+  diffèrent de quelques centimes : c'est un piège de lecture, et la seule parade est le
+  commentaire des deux champs, qui dit lequel est l'assiette.
+- **L'impôt reste calculé au centime.** Le décompte réel du notaire arrondira chaque
+  imposition à l'euro. L'écart est déclaré dans `nonModelise` et il n'est pas corrigé ici.
 
 ---
 

@@ -143,6 +143,33 @@ export function applyPct(amount: Cents, pct: number, mode: RoundingMode = "half-
   return roundCents((amount * pct) / 100, mode);
 }
 
+/**
+ * Arrondit un montant à l'EURO entier. Le résultat reste en centimes, donc
+ * multiple de 100 — `roundToEuros(euros(50_000.1))` vaut 5 000 000, pas 50 000.
+ *
+ * Ajoutée par `FIS-008`. Ce n'est pas une commodité d'affichage : le droit
+ * fiscal français exige des assiettes entières. « Les bases des impositions de
+ * toute nature sont arrondies à l'euro le plus proche. La fraction d'euro égale
+ * à 0,50 est comptée pour 1 » — CGI, art. 1649 undecies, seul article d'un
+ * chapitre intitulé « Règles d'arrondissement des bases d'imposition ».
+ * Le mode `half-up` par défaut est exactement la règle du texte.
+ *
+ * La fonction est ici et non dans un module fiscal parce qu'elle est de
+ * l'arithmétique monétaire, pas une valeur réglementaire : aucun seuil, aucun
+ * taux, aucun millésime. Le renvoi à l'article dit d'où vient le besoin, pas
+ * une donnée à maintenir.
+ *
+ * Sur un montant négatif, `half-up` s'écarte de zéro comme partout ailleurs
+ * dans ce fichier — une assiette négative n'a pas de sens fiscal, et l'appelant
+ * a déjà planché la sienne à zéro.
+ *
+ * @see https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006069577/LEGISCTA000006147278/
+ */
+export function roundToEuros(amount: Cents, mode: RoundingMode = "half-up"): Cents {
+  assertSafe(amount, "roundToEuros");
+  return roundCents(amount / 100, mode) * 100;
+}
+
 /** Taux mensuel proportionnel. Le TAEG emploie une méthode d'équivalence distincte (voir apr.ts). */
 export const monthlyRate = (annualPct: PercentPerYear): number => annualPct / 100 / 12;
 

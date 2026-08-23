@@ -17,6 +17,10 @@
  *   SURTAXE                 sur l'assiette de l'impôt sur le revenu, au-delà
  *                           d'un seuil, hors terrains à bâtir.
  *
+ * Les deux assiettes sont ARRONDIES À L'EURO avant que le taux ne s'applique
+ * (CGI, art. 1649 undecies). Ce n'est pas un détail de présentation : c'est ce
+ * qui décide si la surtaxe est due au voisinage de son seuil. Voir `FIS-008`.
+ *
  * ═══ LE PIÈGE CENTRAL : DEUX ABATTEMENTS, DEUX ASSIETTES ═══
  *
  * Les deux barèmes n'ont ni la même cadence ni la même durée d'exonération. Le
@@ -48,7 +52,7 @@
  * désigne un optimum.
  */
 
-import { type Cents, applyPct, assertSafe, roundCents } from "../money";
+import { type Cents, applyPct, assertSafe, roundCents, roundToEuros } from "../money";
 import { PARAMS_2026, type FiscalParams, type HoldingPeriodAllowance } from "../fiscal/params";
 
 /* ── Description de l'opération ───────────────────────────────────────────── */
@@ -302,7 +306,14 @@ export interface AbattementApplique {
   /** Abattement cumulé, en pourcentage, plafonné à 100. */
   readonly tauxPct: number;
   readonly montant: Cents;
-  /** `plusValueBrute − montant`. Jamais négatif. */
+  /**
+   * `plusValueBrute − montant`, AU CENTIME. Jamais négatif.
+   *
+   * Ce n'est pas l'assiette de l'impôt : celle-ci est arrondie à l'euro et vit
+   * dans `baseImpotRevenu` / `basePrelevementsSociaux`. Ce champ garde la
+   * décomposition exacte, pour que `montant + base` vaille toujours la
+   * plus-value brute.
+   */
   readonly base: Cents;
   readonly exonerationTotale: boolean;
   /** Durée au terme de laquelle CE barème atteint 100 %. */
@@ -322,9 +333,13 @@ export interface ImpositionPlusValue {
   /** Barème de l'art. L136-7 du CSS — 30 ans. Cadence et durée DIFFÉRENTES. */
   readonly abattementPrelevementsSociaux: AbattementApplique;
 
-  /** Assiette de l'impôt sur le revenu. Aussi celle de la surtaxe. */
+  /**
+   * Assiette de l'impôt sur le revenu, ARRONDIE À L'EURO (CGI, art. 1649
+   * undecies). Aussi celle de la surtaxe. Elle vaut donc
+   * `abattementImpotRevenu.base` arrondi, et non ce champ tel quel.
+   */
   readonly baseImpotRevenu: Cents;
-  /** Assiette des prélèvements sociaux. Distincte de la précédente. */
+  /** Assiette des prélèvements sociaux, arrondie de même. Distincte de la précédente. */
   readonly basePrelevementsSociaux: Cents;
 
   readonly impotRevenu: Cents;
@@ -407,30 +422,49 @@ export function tauxPrelevementsSociauxPct(
  * ⚠️ Le barème reste discontinu à son SEUIL D'ENTRÉE : rien à 50 000 €, environ
  * 500 € à 50 001 €. La décote de la première tranche vaut 1/20 là où la
  * continuité aurait demandé 1/10. C'est dans le texte, pas dans notre lecture :
- * on le constate et on ne le corrige pas.
+ * on le constate et on ne le corrige pas. C'est aussi la SEULE discontinuité du
+ * barème — voir ci-dessous pourquoi les frontières internes n'en portent pas.
+ *
+ * L'assiette est arrondie à l'euro à l'entrée, et cet arrondi n'est pas un
+ * confort de calcul : voir `FIS-008` et le commentaire du corps de la fonction.
  */
 export function surtaxeSurPlusValue(
-  baseImpotRevenu: Cents,
+  baseImpotRevenuBrute: Cents,
   params: FiscalParams = PARAMS_2026,
 ): Cents {
   const { thresholdCents, brackets } = params.realEstateCapitalGains.surtax;
+
+  // ── L'ASSIETTE EST ENTIÈRE, DONC LA FENTE N'EXISTE PAS — `FIS-008` ────────
+  //
+  // Le tableau de l'art. 1609 nonies G est libellé en euros entiers : le seuil
+  // de déclenchement vise les plus-values « supérieur[es] à 50 000 € » et la
+  // première tranche court « de 50 001 à 60 000 € ». Entre les deux, 99
+  // centimes que le tableau ne nomme pas — et la même fente à chacune des neuf
+  // frontières internes. `ENG-027` avait tenté de les couvrir en cherchant la
+  // tranche par sa borne HAUTE, après qu'une assiette de 50 000,10 € eut levé
+  // un `RangeError`.
+  //
+  // C'était traiter le symptôme. Une assiette d'imposition ne porte pas de
+  // centimes : « Les bases des impositions de toute nature sont arrondies à
+  // l'euro le plus proche. La fraction d'euro égale à 0,50 est comptée pour 1 »
+  // (CGI, art. 1649 undecies, unique article du chapitre « Règles
+  // d'arrondissement des bases d'imposition »). Les 99 centimes ne sont pas une
+  // fente du barème : ils sont une assiette qui n'existe pas.
+  //
+  // L'arrondi est refait ici alors que `calculerPlusValue` l'a déjà fait, parce
+  // que la fonction est exportée et qu'aucune signature ne peut promettre un
+  // multiple de 100. L'opération est idempotente, la refaire ne coûte rien.
+  const baseImpotRevenu = roundToEuros(baseImpotRevenuBrute);
   if (baseImpotRevenu <= thresholdCents) return 0;
 
-  // La recherche part de la borne HAUTE, et c'est une correction — `ENG-027`.
-  //
-  // Le tableau de l'art. 1609 nonies G est libellé en euros entiers : sa
-  // première tranche court « de 50 001 à 60 000 € », tandis que le seuil de
-  // déclenchement vise les plus-values « supérieur[es] à 50 000 € ». Entre les
-  // deux subsiste une fente de 99 centimes que le tableau ne couvre pas, parce
-  // que le texte raisonne en euros et pas en centimes. Chercher la tranche par
-  // sa borne basse y échouait et levait, alors que la loi taxe bel et bien.
-  //
-  // Une assiette y tombe dès que les abattements produisent des centimes, ce
-  // qui est le cas ordinaire quand le prix de cession est dérivé d'une valeur
-  // appréciée plutôt que saisi en euros ronds. Les tranches étant ordonnées et
-  // contiguës et l'assiette étant déjà au-dessus du seuil, la première tranche
-  // qu'elle ne dépasse pas est la sienne.
-  const tranche = brackets.find((b) => b.toCents === null || baseImpotRevenu <= b.toCents);
+  // La recherche repart donc de la borne BASSE, comme avant `ENG-027`, et elle
+  // était juste : sur les entiers, les tranches sont contiguës et couvrantes,
+  // et une assiette entière strictement supérieure à 50 000 € vaut au moins
+  // 50 001 €. Le `RangeError` ci-dessous redevient inatteignable autrement que
+  // par un barème mutilé.
+  const tranche = brackets.find(
+    (b) => baseImpotRevenu >= b.fromCents && (b.toCents === null || baseImpotRevenu <= b.toCents),
+  );
   if (tranche === undefined) {
     // La dernière tranche de `params.ts` est non bornée ; n'arriver ici
     // signalerait un barème mutilé, pas une plus-value exotique.
@@ -508,8 +542,25 @@ export function calculerPlusValue(entree: EntreePlusValue): ImpositionPlusValue 
     imposable,
   );
 
-  const baseImpotRevenu = abattementImpotRevenu.base;
-  const basePrelevementsSociaux = abattementPrelevementsSociaux.base;
+  // ── LES DEUX ASSIETTES SONT ENTIÈRES — `FIS-008` ──────────────────────────
+  //
+  // « Les bases des impositions de toute nature sont arrondies à l'euro le plus
+  // proche. La fraction d'euro égale à 0,50 est comptée pour 1 » (CGI, art. 1649
+  // undecies). Les prélèvements sociaux ne font pas exception : la contribution
+  // sur les plus-values immobilières est « assise […] selon les mêmes règles
+  // […] que l'impôt sur le revenu » (CSS, art. L136-7, VI, 1).
+  //
+  // L'arrondi porte sur la base NETTE, après abattement, et non sur la
+  // plus-value brute : c'est la base nette que le taux frappe, c'est elle que
+  // porte la déclaration 2048-IMM (lignes 50 et 100), et c'est sur elle que
+  // s'apprécie le seuil de 50 000 € de la surtaxe — la ligne 115 du formulaire
+  // n'est que le report de la ligne 50.
+  //
+  // La décomposition de l'abattement, elle, reste au centime : `montant + base`
+  // vaut toujours exactement la plus-value brute dans `AbattementApplique`.
+  // L'arrondi est un fait d'assiette, pas une reprise de la soustraction.
+  const baseImpotRevenu = roundToEuros(abattementImpotRevenu.base);
+  const basePrelevementsSociaux = roundToEuros(abattementPrelevementsSociaux.base);
 
   const impotRevenuPct = pv.incomeTaxRatePct;
   const prelevementsSociauxPct = tauxPrelevementsSociauxPct(entree.regimeSocial, params);
@@ -628,6 +679,8 @@ export const HORS_MODELE = {
     "La surtaxe sur les plus-values élevées n'est pas due sur un terrain à bâtir. Elle n'est donc pas comptée ici.",
   fraisReels:
     "Les frais et travaux réels sont repris tels qu'ils sont saisis. Ce module ne vérifie ni leur nature déductible, ni l'existence des justificatifs, que l'administration peut exiger.",
+  arrondiDeLiquidation:
+    "Les assiettes sont arrondies à l'euro, comme le veut la loi, mais les impositions elles-mêmes restent calculées au centime. Le décompte du notaire les arrondit aussi à l'euro et liquide séparément la CSG, la CRDS et le prélèvement de solidarité au lieu d'un taux global : l'écart avec le montant affiché ici se compte en centimes.",
 } as const;
 
 function pointsHorsModele(
@@ -642,6 +695,7 @@ function pointsHorsModele(
     HORS_MODELE.amortissementsLmnp,
     HORS_MODELE.majorationsDiverses,
     HORS_MODELE.fraisReels,
+    HORS_MODELE.arrondiDeLiquidation,
   ];
   if (entree.regimeSocial === "affilie-eee-suisse") {
     points.push(HORS_MODELE.nonResidents, HORS_MODELE.affiliationVerifiee);
