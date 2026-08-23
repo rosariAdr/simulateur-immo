@@ -18,6 +18,10 @@ Les compteurs se relèvent avec `npm run porte`, à froid, sur la branche
 | --- | --- | --- |
 | Unitaires | `npm run test` | Le moteur calcule juste, et les jetons de design tiennent leurs contrastes |
 | Bout en bout | `npm run e2e` | Le site fait ce qu'il promet, sur deux profils : bureau 1280×900 et Pixel 7 |
+| Déploiement | `npm run verif-deploiement` | Le public voit bien ce code-là. **Hors porte**, après l'étiquette |
+
+Les deux premières entrent dans `npm run porte`, la troisième non — et ce n'est pas un
+oubli. Voir plus bas, « Ce que ce relevé ne couvre pas ».
 
 Les tests de bout en bout tournent sur un **build de production**, jamais sur le
 serveur de développement — celui-ci diffuse ses rechargements à chaud aux pages
@@ -27,12 +31,14 @@ ouvertes et remonte un composant en plein test.
 
 ## État courant
 
-Relevé du 23 août 2026 sur `main`, porte passée à froid, après la fusion de `FIS-008`.
+Relevé du 23 août 2026 sur `main`, porte passée à froid, après la fusion de la
+vérification de déploiement.
 
 | Suite | Fichiers | Tests |
 | --- | --- | --- |
 | Unitaires | 20 | 955 |
-| Bout en bout | 14 | 306 (153 × 2 profils), dont 10 ignorés par construction |
+| Bout en bout | 14 | 312 (156 × 2 profils), dont 10 ignorés par construction |
+| Déploiement | 1 | 46 (23 × 2 profils), hors porte — voir plus bas |
 
 **Les 282 unitaires ajoutés depuis le 22 août sont le moteur de la phase 3**, et eux ne
 sont pas de la multiplication : sept fichiers neufs sous `src/core/compare/` et
@@ -157,7 +163,7 @@ d'être écrite à côté de ses chiffres.
 | `legal.spec.ts` | 14 | Les trois textes s'affichent datés, sont atteignables depuis le simulateur, et **l'identité de l'hébergeur figure sur le site** — c'est la contrepartie de l'anonymat de l'éditeur, pas une politesse |
 | `infobulles.spec.ts` | 9 | Un appui du doigt ouvre la bulle **et l'y laisse**. Aucune bulle ne fait défiler la page, sur les deux profils. Aucune n'affiche un jeton resté sans valeur, et celle de la durée cite les plafonds du millésime |
 | `fiche-credit.spec.ts` | 14 | La fiche `/credit/comprendre` nomme les trois familles en toutes lettres et chaque section porte son étiquette **écrite**, jamais un simple trait coloré. Le chemin avec `/credit` est parcouru dans les deux sens, cliqué et suivi. **La mensualité annoncée par la fiche est celle que le module affiche** — la promesse « reproduisez-le » est exécutée, pas cochée. Et **aucune tournure prescriptive n'atteint le lecteur**, sur le document entier |
-| `comparaison.spec.ts` | 29 | La route `/comparaison`. **La limite précède tous les chiffres dans l'ordre du document** — position DOM comparée, et non apparence — et **la bascule des deux lectures vit à l'intérieur du bloc qui la porte**, ce qui rend l'avertissement non contournable. L'échelle du graphique ne se recale pas sur la lecture retenue : le capital retiré se voit. Les repères sont mesurés en pixels contre les cumuls du moteur, sans hauteur plancher. Aucune tournure prescriptive sur le document entier, quatorze motifs relevés |
+| `comparaison.spec.ts` | 32 | La route `/comparaison`. **La limite précède tous les chiffres dans l'ordre du document** — position DOM comparée, et non apparence — et **la bascule des deux lectures vit à l'intérieur du bloc qui la porte**, ce qui rend l'avertissement non contournable. L'échelle du graphique ne se recale pas sur la lecture retenue : le capital retiré se voit. Les repères sont mesurés en pixels contre les cumuls du moteur, sans hauteur plancher. Aucune tournure prescriptive sur le document entier, quatorze motifs relevés. S'y ajoutent, hors `VIZ-003` : la robustesse des **dix-sept** paramètres d'URL — six valeurs hostiles chacun, dont une qui faisait disparaître la page entière quand le plafonnement était retiré — et le parcours du curseur d'année au clavier, bornes comprises |
 | `glossaire.spec.ts` | 10 | La page rend ses quarante-huit termes, index compris, sans jeton laissé sans valeur et sans famille portée par la seule couleur. Surtout : le lien d'une bulle est **atteignable pour de vrai** — au clavier par tabulation, à la souris en traversant le vide entre la pastille et la bulle, au doigt par deux appuis. Et **aucun lien de bulle ne tombe dans le vide** : tous les liens de `/credit` et `/composants` sont relevés, puis confrontés aux ancres réelles de `/glossaire` |
 
 ### Gardes vérifiées par sabotage
@@ -195,6 +201,21 @@ gardes-là ont été cassées exprès, puis rétablies :
   lectures — ses fonds perdus égalent son décaissement. La garde protège contre tout
   recalage **qui change un chiffre à l'écran**, pas contre « tout recalage ». Une garde
   dont on ne sait pas ce qu'elle laisse passer n'est pas une garde vérifiée.
+- **Indexabilité du site publié** — passer `INDEXABLE` à `true` fait rougir **dix**
+  tests de la suite de déploiement, un par route plus `robots.txt`. Éprouvé en pointant
+  cette suite sur un serveur local, faute de pouvoir modifier la production.
+- **Robustesse des dix-sept paramètres d'URL de `/comparaison`** — retirer le
+  plafonnement fait rougir la garde sur `tx=1e400`, et de la pire façon : **la page
+  entière disparaît**, avertissement compris. C'est exactement le cas que le test
+  nomme, et il est atteignable par une adresse que n'importe qui peut écrire.
+- **La moitié de ce plafonnement n'est pas atteignable par l'URL, et c'est écrit.**
+  Retirer le seul `Number.isFinite` ne fait rougir personne : les parseurs `nuqs`
+  rejettent avant lui tout ce qui n'est pas un nombre, et retombent sur le défaut. Le
+  garde-fou reste juste — il protège un appelant programmatique — mais aucun test ne le
+  prouve, et prétendre le contraire serait plus grave que le trou.
+- **Curseur d'année au clavier** — poser un `preventDefault` sur l'événement clavier du
+  curseur fait rougir la garde. Un `input[type=range]` est nativement accessible, mais
+  « nativement » n'est pas « vérifié » : le sabotage ne change rien à l'apparence.
 - **Assiette de la mainlevée, deuxième version** — la garde d'origine vérifiait la
   proportionnalité : doubler le capital double le coût. Remplacer l'assiette par
   `capital × 1,25`, c'est-à-dire refaire exactement l'erreur qu'`ENG-028` corrigeait,
@@ -312,8 +333,31 @@ gardes-là ont été cassées exprès, puis rétablies :
 | v0.1.0 | 22 août 2026 | 214 | 164 (82 × 2 profils) | Porte passée à froid, `.next` supprimé. Critère de sortie **exécuté** et non coché : `parcours-v0-1.spec.ts` va de l'accueil au lien partagé, sur les deux profils |
 
 **Ce que ce relevé ne couvre pas.** La porte s'exécute sur un build local. Elle ne dit
-rien de ce que l'hébergeur sert réellement : la vérification du déploiement est une
-étape distincte, postérieure à l'étiquette, et elle se fait à la main.
+rien de ce que l'hébergeur sert réellement, et c'est **une troisième suite**, comptée à
+part parce qu'elle ne pose pas la même question :
+
+| Suite | Question | Quand |
+| --- | --- | --- |
+| Unitaires | le moteur calcule-t-il juste ? | porte de branche |
+| Bout en bout | le code du dépôt fait-il ce qu'il doit ? | porte de branche |
+| Déploiement | le public voit-il ce code-là ? | après l'étiquette |
+
+`tests/deploiement/site-publie.spec.ts`, **46 vérifications (23 × 2 profils)** contre
+https://simulateur-immo-snowy.vercel.app/, lancées par `npm run verif-deploiement`.
+Elle est **délibérément hors de `npm run porte`** : une porte qui interroge un tiers
+rougit quand l'hébergeur tousse, et une porte qui rougit sans rapport avec le code finit
+ignorée. Voir `docs/RELEASES.md` §3.
+
+Ce qu'elle garde, par ordre d'importance : le site n'est **pas indexable** — seul échec
+irréversible du lot, un moteur qui a indexé des pages non relues ne les oublie pas sur
+demande —, l'avertissement figure sur toute route qui montre un chiffre, les montants
+affichés sont ceux du dépôt, et un lien partagé redonne les mêmes chiffres.
+
+**Sa limite, et elle est réelle.** Le détecteur de déploiement périmé fonctionne en
+figeant des montants ; il ne peut être éprouvé qu'en le confrontant à un déploiement
+réellement ancien, et nous n'en avons pas gardé. Ce qui a été vérifié par sabotage est
+la garde d'indexabilité — passer `INDEXABLE` à `true` sur un serveur local interrogé par
+cette même suite fait rougir **dix** tests, un par route plus `robots.txt`.
 
 ## Annexe — les gardes ajoutées par `FIS-005`
 

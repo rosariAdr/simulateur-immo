@@ -596,3 +596,74 @@ test("le tableau large défile dans son cadre, pas dans la page", async ({ page 
  * détail ici : la route affiche des chiffres, elle a donc rejoint la liste
  * `ROUTES` de `avertissement.spec.ts`, dont c'est le contrat déclaré.
  */
+
+/* ── Robustesse de l'adresse, et parcours au clavier ──────────────────────── */
+
+test("aucun des dix-sept paramètres d'URL ne fait dérailler le calcul", async ({ page }) => {
+  /*
+    Le module crédit avait cette garde depuis `UI-002` ; la comparaison ne l'avait
+    pas, et elle porte **dix-sept** paramètres au lieu de huit. C'est le seul
+    endroit du produit où une chaîne arbitraire entre dans le moteur : l'adresse
+    est publique, elle se partage, elle se tronque en la recopiant, et un
+    correspondant bien intentionné peut en modifier un chiffre à la main.
+
+    Chaque clé reçoit tour à tour une valeur illisible, une valeur négative et une
+    valeur démesurée. Aucune ne doit produire de `NaN`, de cadre vide, ni de page
+    blanche — le pire des trois, parce qu'il emporte l'avertissement avec lui.
+  */
+  const CLES = "px ap tx du as hz tf cc ah pt fe ly cl al il it ic".split(" ");
+  const VALEURS = ["abc", "-9999", "999999999", "", "1e400", "NaN"];
+
+  for (const cle of CLES) {
+    for (const valeur of VALEURS) {
+      await page.goto(`/comparaison?${cle}=${encodeURIComponent(valeur)}`);
+
+      // La page s'est rendue : le module est sous `Suspense`, et une exception au
+      // rendu laisserait la frontière vide sans que rien d'autre ne le signale.
+      await expect(page.locator("[data-limite]"), `${cle}=${valeur} : page vide`).toBeVisible();
+
+      for (const chiffreCle of ["proprietaire", "locataire", "capital"]) {
+        const texte = await chiffre(page, chiffreCle).textContent();
+        expect(texte, `${cle}=${valeur} : ${chiffreCle} vide`).toBeTruthy();
+        expect(texte, `${cle}=${valeur} : ${chiffreCle} = ${texte}`).not.toContain("NaN");
+        expect(texte, `${cle}=${valeur} : ${chiffreCle} = ${texte}`).not.toContain("Infinity");
+      }
+
+      // L'avertissement survit : c'est l'exigence de `LEG-002`, et une adresse
+      // trafiquée ne doit pas être le moyen de s'en débarrasser.
+      await expect(page.locator("[data-avertissement]")).toBeVisible();
+    }
+  }
+});
+
+test("le curseur d'année se parcourt au clavier", async ({ page }) => {
+  // Le ruban d'amortissement a cette garde depuis `VIZ-001`. Le curseur d'année
+  // de la comparaison est un `input[type=range]`, donc nativement accessible —
+  // mais « nativement » n'est pas « vérifié » : un `preventDefault` posé sur le
+  // conteneur, ou un `onChange` qui ignore l'événement clavier, casserait le
+  // parcours sans rien changer à l'apparence.
+  await page.goto("/comparaison");
+
+  const curseur = page.locator("[data-curseur-annee]");
+  await expect(curseur).toBeVisible();
+
+  // L'écran ouvre à l'horizon, faute de croisement dans les deux lectures
+  // (`UI-015`). On recule donc, puis on avance.
+  await expect(page.locator("[data-ecart]")).toContainText("Écart à l'année 30");
+
+  await curseur.focus();
+  await page.keyboard.press("ArrowLeft");
+  await expect(page.locator("[data-ecart]")).toContainText("Écart à l'année 29");
+
+  await page.keyboard.press("ArrowRight");
+  await expect(page.locator("[data-ecart]")).toContainText("Écart à l'année 30");
+
+  // Et il ne sort pas de ses bornes : à l'horizon, une flèche de plus ne fait
+  // rien — surtout pas pointer une année qui n'existe pas dans la série.
+  await page.keyboard.press("ArrowRight");
+  await expect(page.locator("[data-ecart]")).toContainText("Écart à l'année 30");
+
+  // La valeur lue à voix haute suit le curseur, et elle est écrite : un curseur
+  // dont seule la position change n'annonce rien à qui ne le voit pas.
+  await expect(curseur).toHaveAttribute("aria-valuetext", /Année 30 sur 30/);
+});

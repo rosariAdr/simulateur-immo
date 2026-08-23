@@ -1,6 +1,13 @@
 # Récapitulatif du projet
 
-État au 19 août 2026.
+État au 23 août 2026.
+
+**Le site est publié** : https://simulateur-immo-snowy.vercel.app/ — Vercel le met à jour
+à chaque poussée sur `main`. Il est **volontairement non indexable** (`noindex`, plus un
+`robots.txt` qui interdit tout) tant que `LEG-001` et `LEG-002` n'ont pas été relus par un
+juriste : il fonctionne et se partage par lien, il n'apparaît simplement pas dans les
+moteurs. L'interrupteur est unique, `INDEXABLE` dans `src/lib/site.ts`, et une suite
+distincte vérifie sur le site publié qu'il tient — `npm run verif-deploiement`.
 
 ---
 
