@@ -202,6 +202,14 @@ Le découpage en versions, le modèle de branches et les portes sont dans
       `docs/CONTEXT.md` §2 range le choix de la garantie parmi les **négociables**.
       L'erreur dans le pire sens : elle disait à quelqu'un qu'il n'a pas la main sur ce
       qu'il peut négocier. Découvert en traitant `FIS-005`, corrigé et gardé par un test
+- [x] `UI-014` **La comparaison était en ligne et l'accueil l'annonçait « à venir »** —
+      trouvé par l'agent qui venait de livrer `VIZ-003`. Le module était atteignable
+      depuis `/credit` mais pas depuis la page qui inventorie ce qui existe : le seul
+      écran dont c'est le travail de dire l'état du produit était le seul à l'ignorer
+      → la carte est ouverte, et le décompte comme les noms se déduisent désormais de
+      `MODULES`. La phrase « Un seul module est en ligne : le crédit. Les quatre
+      autres… » était écrite à la main et aucun test ne relisait une phrase. Deux
+      gardes, cassées toutes les deux
 - [ ] `UI-010` Assistant d'éligibilité
 
 ## Portes de vérification
