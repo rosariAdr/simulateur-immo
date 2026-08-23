@@ -31,13 +31,12 @@ ouvertes et remonte un composant en plein test.
 
 ## État courant
 
-Relevé du 23 août 2026 sur `main`, porte passée à froid, après la fusion de la
-vérification de déploiement.
+Relevé du 23 août 2026 sur `release/v0.3.0`, porte passée à froid, `.next` supprimé.
 
 | Suite | Fichiers | Tests |
 | --- | --- | --- |
 | Unitaires | 20 | 955 |
-| Bout en bout | 14 | 312 (156 × 2 profils), dont 10 ignorés par construction |
+| Bout en bout | 16 | 386 (193 × 2 profils), dont 10 ignorés par construction |
 | Déploiement | 1 | 46 (23 × 2 profils), hors porte — voir plus bas |
 
 **Les 282 unitaires ajoutés depuis le 22 août sont le moteur de la phase 3**, et eux ne
@@ -163,6 +162,8 @@ d'être écrite à côté de ses chiffres.
 | `legal.spec.ts` | 14 | Les trois textes s'affichent datés, sont atteignables depuis le simulateur, et **l'identité de l'hébergeur figure sur le site** — c'est la contrepartie de l'anonymat de l'éditeur, pas une politesse |
 | `infobulles.spec.ts` | 9 | Un appui du doigt ouvre la bulle **et l'y laisse**. Aucune bulle ne fait défiler la page, sur les deux profils. Aucune n'affiche un jeton resté sans valeur, et celle de la durée cite les plafonds du millésime |
 | `fiche-credit.spec.ts` | 14 | La fiche `/credit/comprendre` nomme les trois familles en toutes lettres et chaque section porte son étiquette **écrite**, jamais un simple trait coloré. Le chemin avec `/credit` est parcouru dans les deux sens, cliqué et suivi. **La mensualité annoncée par la fiche est celle que le module affiche** — la promesse « reproduisez-le » est exécutée, pas cochée. Et **aucune tournure prescriptive n'atteint le lecteur**, sur le document entier |
+| `parcours-v0-3.spec.ts` | 3 | Le critère de sortie de v0.3.0, **exécuté**. Sa phrase se découpe en quatre exigences — le site répond, il montre les hypothèses qui portent la réponse, il laisse les changer, et il dit en quoi sa réponse est fausse. La quatrième est la seule qu'un paragraphe non lu pourrait satisfaire « sur le papier » : elle est donc vérifiée par la **position dans le document**, aux deux niveaux |
+| `patrimoine.spec.ts` | 32 | La route `/comparaison/patrimoine`, le niveau approfondi. Le retournement entre les deux lectures, l'incertitude chiffrée et non seulement annoncée, les deux hypothèses sans valeur centrale enfermées dans le bloc de limite, et les deux sorties non modélisées nommées comme **absentes** et non comme prochaines |
 | `comparaison.spec.ts` | 32 | La route `/comparaison`. **La limite précède tous les chiffres dans l'ordre du document** — position DOM comparée, et non apparence — et **la bascule des deux lectures vit à l'intérieur du bloc qui la porte**, ce qui rend l'avertissement non contournable. L'échelle du graphique ne se recale pas sur la lecture retenue : le capital retiré se voit. Les repères sont mesurés en pixels contre les cumuls du moteur, sans hauteur plancher. Aucune tournure prescriptive sur le document entier, quatorze motifs relevés. S'y ajoutent, hors `VIZ-003` : la robustesse des **dix-sept** paramètres d'URL — six valeurs hostiles chacun, dont une qui faisait disparaître la page entière quand le plafonnement était retiré — et le parcours du curseur d'année au clavier, bornes comprises |
 | `glossaire.spec.ts` | 10 | La page rend ses quarante-huit termes, index compris, sans jeton laissé sans valeur et sans famille portée par la seule couleur. Surtout : le lien d'une bulle est **atteignable pour de vrai** — au clavier par tabulation, à la souris en traversant le vide entre la pastille et la bulle, au doigt par deux appuis. Et **aucun lien de bulle ne tombe dans le vide** : tous les liens de `/credit` et `/composants` sont relevés, puis confrontés aux ancres réelles de `/glossaire` |
 
@@ -201,6 +202,16 @@ gardes-là ont été cassées exprès, puis rétablies :
   lectures — ses fonds perdus égalent son décaissement. La garde protège contre tout
   recalage **qui change un chiffre à l'écran**, pas contre « tout recalage ». Une garde
   dont on ne sait pas ce qu'elle laisse passer n'est pas une garde vérifiée.
+- **Le critère de sortie de v0.3.0 lui-même** — descendre le bloc de limite du niveau
+  approfondi sous la grille fait rougir « un chiffre du niveau approfondi précède sa
+  limite » ; remplacer « n'existe pas dans ce simulateur » par « sera disponible
+  prochainement » fait rougir la garde des deux sorties absentes. Un critère de sortie
+  qu'on n'a pas vu échouer ne prouve rien de la version qu'il libère.
+- **Un détour instructif en le cassant.** La première tentative a modifié le composant
+  `TroisSorties.tsx` et n'a rien fait rougir — parce que la phrase vit dans
+  `src/lib/patrimoine.ts`, pas dans le composant qui l'affiche. Le sabotage ne portait
+  sur rien. Un sabotage qui ne change pas ce qu'on croit qu'il change ne vérifie rien,
+  et il faut regarder ce qu'on a réellement modifié avant de conclure au vert.
 - **Indexabilité du site publié** — passer `INDEXABLE` à `true` fait rougir **dix**
   tests de la suite de déploiement, un par route plus `robots.txt`. Éprouvé en pointant
   cette suite sur un serveur local, faute de pouvoir modifier la production.
@@ -328,6 +339,7 @@ gardes-là ont été cassées exprès, puis rétablies :
 
 | Version | Date | Unitaires | Bout en bout | Notes |
 | --- | --- | --- | --- | --- |
+| v0.3.0 | 23 août 2026 | 955 | 386 (193 × 2 profils) | « Acheter ou louer », ses deux niveaux. Le moteur de la phase 3 en sept fichiers, `/comparaison` et `/comparaison/patrimoine`. Critère de sortie exécuté par `parcours-v0-3.spec.ts`, cassé sur ses deux moitiés. **Trois défauts de calcul trouvés en chemin** — assiette de la mainlevée, fente du barème de surtaxe, assiette non arrondie — dont aucun n'avait été trouvé par un test |
 | v0.2.0 | 22 août 2026 | 619 | 252 (126 × 2 profils) | Mobile, glossaire, fiche, cas de référence externes, séparation loi/marché. Critère de sortie exécuté au pouce par `parcours-v0-2.spec.ts` |
 | v0.1.1 | 22 août 2026 | 217 | 172 (86 × 2 profils) | Correctif UI-012. Deux gardes pour un seul défaut : ce que la feuille déclare, et ce que le navigateur calcule |
 | v0.1.0 | 22 août 2026 | 214 | 164 (82 × 2 profils) | Porte passée à froid, `.next` supprimé. Critère de sortie **exécuté** et non coché : `parcours-v0-1.spec.ts` va de l'accueil au lien partagé, sur les deux profils |

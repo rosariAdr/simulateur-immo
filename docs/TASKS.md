@@ -2582,3 +2582,63 @@ n'est **pas**.
 20 fichiers**, build (quinze routes, toutes statiques), **374 tests Playwright passés et
 10 ignorés**. La copie de travail n'avait pas ses dépendances installées ; `npm ci` avant
 la porte, sans toucher au verrou.
+
+---
+
+### 23 août 2026 — v0.3.0, « Acheter ou louer »
+
+**Ce qui sort.** Les deux niveaux du module, et le moteur qui les porte.
+
+| Ticket | Objet |
+| --- | --- |
+| `FIS-007` | Valeurs fiscales de la phase 3, sourcées et datées |
+| `ENG-010` | Coûts de détention et flux comparés, deux lectures |
+| `ENG-011` | Portefeuille du locataire de référence |
+| `ENG-012` | Scénario de vente, exonération de la résidence principale |
+| `ENG-014` · `ENG-016` | Plus-value hors résidence principale, prélèvements sociaux et résidence fiscale |
+| `ENG-027` | Assemblage de la cession — la vente branchée sur la plus-value |
+| `VIZ-003` | `/comparaison`, courbes de coût et bandeau d'écart |
+| `UI-007` | `/comparaison/patrimoine`, le moment de révélation |
+| `TST-030` | Porte de version, critère de sortie exécuté |
+
+**Arrivés en cours de route**, et aucun n'était prévu : `FIS-006` le recoupement des
+dix-sept hypothèses de marché, `FIS-008` l'arrondi des assiettes d'imposition, `ENG-028`
+l'assiette de la mainlevée, `UI-014` la carte d'accueil restée « à venir », `UI-015`
+l'année d'ouverture, `TST-003` la vérification du site publié.
+
+**Critère de sortie** — exécuté par `tests/e2e/parcours-v0-3.spec.ts`, et cassé sur ses
+deux moitiés avant d'être déclaré. Un inconnu part de l'accueil, atteint le niveau
+simple, y lit que la comparaison **est faussée** avant tout chiffre, passe au niveau
+approfondi, y trouve les deux hypothèses qui gouvernent la réponse enfermées dans le bloc
+de limite, en déplace une, voit la réponse bouger, et partage l'adresse obtenue.
+
+**Ce qui est reporté, et pourquoi.**
+
+- `ENG-013` régimes fiscaux locatifs et `ENG-015` location courte durée partent en
+  v0.3.1. Ils décrivent ce qu'on fait *après* avoir acheté, pas le choix d'acheter — une
+  autre question, posée par quelqu'un d'autre. Et c'est le terrain le plus incertain du
+  module : `docs/03-spec-domaine.md` §2 signale lui-même que les abattements des régimes
+  micro, meublés de tourisme compris, ont changé récemment. L'écran les nomme comme
+  **absentes**, pas comme prochaines, et une garde le vérifie.
+- La relecture juridique de `LEG-001` et `LEG-002` reste à faire ; le site demeure
+  `noindex`, et la suite de déploiement le vérifie sur la production à chaque étiquette.
+- Les réserves ouvertes par `UI-007` : le rendement saisi brut par erreur ne déclenche
+  rien — la faiblesse la plus réelle de l'écran, et elle attend `ENG-023` —, trois
+  grandeurs de la cession sont fixées plutôt que saisies alors qu'`ENG-016` sait les
+  traiter, et les autres frais de cession ne sont pas exposés.
+
+**Ce que cette version aura appris, et qui vaut mieux que ses écrans.** Trois défauts de
+calcul ont été trouvés, et **aucun ne l'a été par un test**. L'assiette de la mainlevée
+était fausse et un test gardait fidèlement la règle fausse, sabotage à l'appui. La fente
+de 99 centimes du barème de surtaxe a été rencontrée par accident, parce qu'un cas dérivait
+son prix d'une valeur appréciée au lieu de le saisir en euros ronds. Et le correctif de
+cette fente taxait où la loi ne taxe pas, jusqu'à ce qu'un article — CGI, art. 1649
+undecies — soit trouvé par un détour, dans une doctrine sur les bénéfices industriels et
+commerciaux, aucune requête directe ne le rendant.
+
+Ce que les sabotages protègent, c'est un code qui dérive. Ce qui protège d'une croyance
+qui se fige, ce sont des sources qui énoncent leur assiette. Voir ADR-019.
+
+**Porte de version** — `rm -rf .next` puis `npm run porte`, à froid : typecheck, lint,
+**955 tests Vitest sur 20 fichiers**, build, **386 tests Playwright passés et 10 ignorés**.
+Puis `npm run verif-deploiement` sur https://simulateur-immo-snowy.vercel.app/.

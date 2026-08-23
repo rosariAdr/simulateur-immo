@@ -67,11 +67,19 @@ il apparaît.
 
 ### v0.3.0 — « Acheter ou louer »
 
+**Sortie le 23 août 2026.**
+
 `FIS-007` valeurs fiscales de la phase 3 · `ENG-010` coûts de détention et flux
 comparés · `ENG-011` portefeuille du locataire de référence · `ENG-012` scénario de
 vente et exonération de la résidence principale · `ENG-014` plus-value hors résidence
-principale · `ENG-016` prélèvements sociaux et résidence fiscale · `VIZ-003` courbes
-et bandeau d'écart · `UI-007` moment de révélation · `TST-030` porte de version.
+principale · `ENG-016` prélèvements sociaux et résidence fiscale · `ENG-027` assemblage
+de la cession · `VIZ-003` courbes et bandeau d'écart · `UI-007` moment de révélation ·
+`TST-030` porte de version.
+
+**Arrivés en cours de route**, aucun prévu, tous découverts en traitant les précédents :
+`FIS-006` recoupement des dix-sept hypothèses de marché · `FIS-008` arrondi des assiettes
+d'imposition · `ENG-028` assiette de la mainlevée · `UI-014` carte d'accueil restée
+« à venir » · `UI-015` année d'ouverture · `TST-003` vérification du site publié.
 
 **Le découpage en deux vagues, et pourquoi.** Quatre des tickets moteur attendent des
 valeurs que `params.ts` ne porte pas : prélèvements sociaux, barèmes d'abattement pour
