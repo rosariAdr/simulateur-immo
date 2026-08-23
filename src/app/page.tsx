@@ -204,6 +204,20 @@ function nombreEcrit(n: number): string {
   return EN_LETTRES[n] ?? String(n);
 }
 
+/**
+ * Majuscule initiale d'une phrase composée.
+ *
+ * Le décompte ouvre une phrase, et « deux modules sont en ligne » y est arrivé
+ * en minuscule le jour où le texte a cessé d'être écrit à la main : la variante
+ * à un module commençait par « Un », la variante générale par le mot du nombre.
+ * La garde du décompte ne l'a pas vu — elle comparait sans tenir compte de la
+ * casse, ce qui était le bon choix pour les noms de modules et le mauvais pour
+ * le premier caractère.
+ */
+function capitale(phrase: string): string {
+  return phrase.charAt(0).toUpperCase() + phrase.slice(1);
+}
+
 function Modules() {
   /*
     Le décompte et les noms se DÉDUISENT de la liste — `UI-014`.
@@ -225,7 +239,9 @@ function Modules() {
       <p className="mt-3 max-w-[80ch] text-[14px] leading-[1.6]">
         {ouverts.length === 1
           ? `Un seul module est en ligne : ${noms[0]}.`
-          : `${nombreEcrit(ouverts.length)} modules sont en ligne : ${noms.slice(0, -1).join(", ")} et ${noms.at(-1)}.`}{" "}
+          : capitale(
+              `${nombreEcrit(ouverts.length)} modules sont en ligne : ${noms.slice(0, -1).join(", ")} et ${noms.at(-1)}.`,
+            )}{" "}
         Les {nombreEcrit(aVenir.length)} autres sont écrits dans le plan et n&apos;existent pas
         encore. Ils sont listés ici pour dire où va le produit, pas pour laisser croire
         qu&apos;ils répondraient.
