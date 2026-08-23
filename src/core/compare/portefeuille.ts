@@ -55,10 +55,11 @@
  * ── 2. LE RENDEMENT EST UNE HYPOTHÈSE, PAS UNE DONNÉE ───────────────────────
  *
  * Il entre en paramètre, obligatoire, sans valeur par défaut. **Aucune fonction
- * de ce fichier ne suppose un rendement.** Les ordres de grandeur publiés plus
- * bas (`RENDEMENTS_NETS_OBSERVES`) sont des données exportées, jamais lues par
- * le calcul : l'interface les propose, l'utilisateur les remplace, le moteur ne
- * les connaît pas. `docs/CONTEXT.md` §8 : « pas de prévision de marché ».
+ * de ce fichier ne suppose un rendement.** Les ordres de grandeur proposés à
+ * l'utilisateur vivent depuis `FIS-006` dans `MARKET_2026.rendements`
+ * (`src/core/assumptions/market.ts`) : ce fichier ne les importe même pas.
+ * L'interface les propose, l'utilisateur les remplace, le moteur ne les connaît
+ * pas. `docs/CONTEXT.md` §8 : « pas de prévision de marché ».
  *
  * ── 3. LE RENDEMENT ENTRE **NET D'IMPÔT** ══════════════════════════════════
  *
@@ -84,55 +85,24 @@ import {
   roundCents,
 } from "../money";
 
-/* ── Hypothèses de rendement ──────────────────────────────────────────────── */
-
-/**
- * ⚠️ EMPLACEMENT PROVISOIRE.
+/*
+ * ── Où sont passées les fourchettes de rendement ────────────────────────────
  *
- * Ces fourchettes relèvent de `src/core/assumptions/market.ts` (ADR-008 : la loi
- * et le marché ne vivent pas dans le même fichier). Elles sont déclarées ici
- * parce que ce fichier était pris par un autre chantier au moment d'écrire
- * `ENG-011`. **À déplacer**, sans les modifier, dès que les deux branches sont
- * réunies. Le type ci-dessous reproduit volontairement la forme de
- * `FourchetteObservee` pour que le déplacement soit mécanique.
- */
-export interface FourchetteDeRendement {
-  /** Bornes observées, en pourcentage annuel net d'impôt, bornes comprises. */
-  readonly intervalle: readonly [number, number];
-  /** `observee` : relevé sur des séries publiées. `estimee` : ordre de grandeur. */
-  readonly fiabilite: "observee" | "estimee";
-  /** D'où vient le chiffre, en une phrase lisible par un non-technicien. */
-  readonly provenance: string;
-}
-
-/**
- * Ordres de grandeur proposés à l'utilisateur, **jamais employés par le calcul**.
+ * `RENDEMENTS_NETS_OBSERVES` et son type `FourchetteDeRendement` vivaient ici,
+ * avec un commentaire disant qu'ils étaient au mauvais endroit : ce sont des
+ * hypothèses de marché, et ADR-008 leur assigne `src/core/assumptions/market.ts`.
+ * `FIS-006` a fait le déplacement. Ils s'appellent désormais
+ * `MARKET_2026.rendements`, de type `FourchetteObservee`, dont
+ * `FourchetteDeRendement` reproduisait déjà la forme exactement.
  *
- * Il n'y a pas de valeur centrale, et c'en est le sujet : donner une valeur
- * unique reviendrait à publier une prévision. L'interface montre l'intervalle,
- * l'utilisateur choisit son point, et le résultat porte l'hypothèse retenue.
+ * **Aucun chiffre n'a bougé au passage**, et un test le garde —
+ * `src/core/assumptions/__tests__/market.test.ts`, « le déplacement ne change
+ * aucun chiffre ».
+ *
+ * Ce fichier n'importe pas la constante déplacée, et ce n'est pas un oubli :
+ * aucune fonction ici n'a jamais lu un rendement par défaut, et l'import
+ * l'inviterait.
  */
-export const RENDEMENTS_NETS_OBSERVES: Readonly<Record<string, FourchetteDeRendement>> = {
-  /** Support à capital garanti, type fonds en euros. */
-  sansRisque: {
-    intervalle: [1.5, 3],
-    fiabilite: "estimee",
-    provenance:
-      "Ordre de grandeur pour un support à capital garanti, net des prélèvements. " +
-      "Non recoupé sur des sources primaires : à confronter aux rendements publiés " +
-      "par les assureurs, voir le ticket de recoupement des hypothèses de marché.",
-  },
-  /** Portefeuille d'actions diversifié, détenu longtemps. */
-  actionsDiversifiees: {
-    intervalle: [4, 7],
-    fiabilite: "estimee",
-    provenance:
-      "Ordre de grandeur communément retenu pour un portefeuille d'actions " +
-      "diversifié détenu sur longue période, net d'impôt et de frais. Cette " +
-      "fourchette est une espérance : elle ne dit rien de la dispersion, que seule " +
-      "une simulation de trajectoires rend visible (phase 5).",
-  },
-};
 
 /* ── Conversion du rendement annuel en rendement mensuel ──────────────────── */
 

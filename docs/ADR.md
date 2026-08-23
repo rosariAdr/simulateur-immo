@@ -1187,3 +1187,97 @@ dans le texte en font rougir trois, sur chacun des deux profils.
 - **Le bloc de limite ne peut pas beaucoup grossir.** Il doit tenir dans une fenêtre de
   téléphone avec le bandeau d'avertissement au-dessus. Toute phrase ajoutée là devra en
   chasser une autre, et c'est une contrainte utile.
+---
+
+## ADR-017 — `observee` se mérite sur un document ouvert, et l'estimation se compte
+
+**Date** : 23 août 2026 · **Statut** : adoptée · **Tickets** : `FIS-006`
+
+### Contexte
+
+ADR-008 a créé `src/core/assumptions/market.ts` et donné à chaque hypothèse trois
+attributs : un intervalle, une **fiabilité** — `observee` ou `estimee` — et une
+provenance. Il a laissé ses cinq entrées en `estimee`, en écrivant que « c'est un
+aveu, pas un objectif ». Les tickets suivants en ont ajouté dix, toutes `estimee` elles
+aussi : l'aveu s'était mis à grossir tout seul.
+
+`FIS-006` devait solder cet aveu. En s'y mettant, une question s'est posée que
+personne n'avait eu à trancher : **qu'est-ce qui autorise à écrire `observee` ?**
+
+Elle n'est pas théorique. La fiabilité est affichée à l'utilisateur, à côté du
+chiffre. C'est une promesse. Et elle est la seule ligne du fichier qu'on peut
+améliorer d'un mot, sans rien vérifier, en se disant qu'après tout on a bien lu
+quelque chose quelque part. Le type `Fiabilite` ne défendait rien : `"observee"`
+compile aussi facilement que `"estimee"`.
+
+Trois lectures étaient possibles, et elles ne donnent pas les mêmes entrées.
+
+1. **Le chiffre central est lu.** Large : une `FourchetteObservee` n'a pas de
+   chiffre central, la règle ne dirait rien d'elle.
+2. **Toutes les bornes sont lues.** Stricte : presque aucun intervalle n'est publié
+   tel quel. Une grille d'agence donne un barème dégressif, pas un « de 3 à 8 % ».
+   Cette lecture aurait laissé quinze entrées sur dix-sept en `estimee`, ce qui
+   revient à ne rien dire.
+3. **Ce qui sert au calcul est lu.** La valeur centrale quand il y en a une, les
+   deux bornes quand c'est tout ce que l'entrée porte.
+
+### Décision
+
+**La troisième lecture, et elle est écrite en tête du fichier.**
+
+Une entrée passe `observee` quand le chiffre **dont le moteur se sert** a été lu dans
+un document public et citable, et que la provenance **nomme ce document**. Les bornes
+d'une `HypotheseChiffree` restent une extension de notre fait — elles disent jusqu'où
+on a vu varier les offres — et la provenance doit dire laquelle des deux situations
+elle décrit.
+
+Deux corollaires, qui sont la vraie substance de la décision.
+
+**Une entrée `estimee` doit dire pourquoi la vérification n'a pas abouti.** « Ordre de
+grandeur » n'est pas une provenance : cela ne dit pas si on a cherché. « Aucune grille
+publique n'a pu être trouvée : les assureurs qui pratiquent le nantissement en
+décrivent le mécanisme sans jamais chiffrer l'acte » en est une.
+
+**Le nombre d'entrées `estimee` est gardé par un test qui échoue quand il change**,
+et qui liste les noms plutôt que de compter — une promotion compensée par une
+rétrogradation laisserait le compte intact et le tableau faux. Le test n'interdit pas
+d'estimer : il exige qu'un changement de fiabilité soit un acte délibéré, pas une
+dérive.
+
+### Justification
+
+- **Ce qui est affiché à l'utilisateur est ce qui est vérifié.** La fiabilité qualifie
+  le chiffre qui produit le résultat, pas la prose autour.
+- **La lecture stricte se serait retournée contre elle-même.** Une règle qu'aucune
+  entrée ne peut satisfaire n'est pas exigeante, elle est inerte : au bout d'un
+  ticket, plus personne ne regarde le champ.
+- **Le compte rend l'estimation visible.** C'est le seul mécanisme qui empêche
+  l'imprécision de se répandre par ajouts successifs, chacun raisonnable isolément.
+
+### Ce que la décision n'a pas permis de faire
+
+Trois entrées ont été laissées `estimee` alors qu'un chiffre les approche, et il faut
+le dire ici parce que c'est le prix de la règle.
+
+- **La restitution de la caution.** Crédit Logement publie « environ 70 % », mais du
+  seul fonds mutuel ; notre champ est un pourcentage du coût total, et le partage
+  entre commission et fonds n'est publié nulle part.
+- **L'appréciation du bien.** L'INSEE publie la variation de l'indice Notaires-INSEE
+  d'une année sur l'autre : de −5,5 % à +10,0 % entre 2011 et 2026. Notre intervalle
+  `[−2 ; +4]` est délibérément plus resserré, parce qu'il décrit un taux **tenu sur
+  tout un horizon** et non la secousse d'une année. Ce resserrement est notre
+  décision ; aucune source ne le publie.
+- **Les rendements de portefeuille.** Les séries publiées sont **brutes** de fiscalité,
+  nos fourchettes sont **nettes**. La conversion dépend de l'enveloppe, qui est le
+  ticket `ENG-023`.
+
+### Conséquences acceptées
+
+- **Le fichier est plus long.** Une provenance qui dit ce qu'on n'a pas trouvé fait
+  deux fois la taille d'une qui ne le dit pas. C'est le coût de l'honnêteté déclarée,
+  et l'interface ne montre de toute façon pas encore ces textes.
+- **Le compte devra être touché à chaque campagne.** C'est le but.
+- **Aucun test ne relit une provenance contre sa source.** Falsifier un chiffre cité
+  à l'intérieur d'une phrase de provenance ne fait rougir personne — vérifié par
+  sabotage. La provenance est de la prose montrable, pas une donnée vérifiable ; le
+  seul rempart est la relecture humaine.

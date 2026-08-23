@@ -25,8 +25,13 @@ test("le scénario par défaut affiche les chiffres du moteur", async ({ page })
   await page.goto("/credit");
 
   await expect(indicateur(page, "mensualite")).toHaveText(eur("1 061", "39"));
-  await expect(indicateur(page, "cout")).toHaveText(eur("77 884", "62"));
-  await expect(indicateur(page, "taeg")).toHaveText("3,96 %");
+  // `FIS-006` : +180 €. Le coût de la caution passe de 1,25 à 1,35 % du capital
+  // garanti, soit 0,10 point sur 180 000 € empruntés. Recoupé sur deux exemples
+  // représentatifs de la Société Générale, qui chiffrent le poste à 1,375 % puis
+  // 1,33 %. Le moteur n'a pas bougé, la donnée si.
+  await expect(indicateur(page, "cout")).toHaveText(eur("78 064", "62"));
+  // Le TAEG suit la garantie, parce qu'il l'intègre : 3,96 → 3,97 %.
+  await expect(indicateur(page, "taeg")).toHaveText("3,97 %");
   await expect(indicateur(page, "effort")).toHaveText("27,96 %");
   await expect(indicateur(page, "assurance")).toHaveText(eur("10 800"));
 });
@@ -118,8 +123,14 @@ test("un scénario partagé par URL redonne exactement les mêmes chiffres", asy
   await page.goto(partage);
 
   await expect(indicateur(page, "mensualite")).toHaveText(eur("2 312", "79"));
-  await expect(indicateur(page, "cout")).toHaveText(eur("281 636", "97"));
-  await expect(indicateur(page, "taeg")).toHaveText("4,69 %");
+  // `FIS-006` : −630 €. Ce scénario est garanti par une hypothèque, dont le coût
+  // descend de 1,5 à 1,35 % — 0,15 point sur 420 000 € — après lecture de la page
+  // du Crédit Agricole, qui chiffre l'inscription à « 1,2 % à 1,5 % du montant du
+  // prêt ». Les deux corrections de garantie jouent en sens inverse : la caution
+  // monte, l'hypothèque descend.
+  await expect(indicateur(page, "cout")).toHaveText(eur("281 006", "97"));
+  // Et dans l'autre sens ici, la garantie étant une hypothèque : 4,69 → 4,67 %.
+  await expect(indicateur(page, "taeg")).toHaveText("4,67 %");
   await expect(indicateur(page, "assurance")).toHaveText(eur("35 700"));
 });
 

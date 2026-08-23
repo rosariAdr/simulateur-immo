@@ -135,10 +135,17 @@ test("les deux années de croisement sont affichées ensemble, et elles diffère
 }) => {
   await page.goto(DEUX_CROISEMENTS);
 
-  // Loyer 1 150 €, frais d'entrée 16 400 € : le décaissement croise à l'année 22,
-  // les fonds perdus à l'année 4. Dix-huit ans d'écart pour un seul et même
+  // Loyer 1 150 €, frais d'entrée 16 400 € : le décaissement croise à l'année 23,
+  // les fonds perdus à l'année 4. Dix-neuf ans d'écart pour un seul et même
   // ménage — c'est cet écart que le module existe pour montrer.
-  await expect(croisement(page, "decaissement")).toHaveAttribute("data-valeur", "22");
+  //
+  // `FIS-006` a déplacé le premier croisement de l'année 22 à l'année 23, en
+  // ramenant l'indexation du loyer de 2,0 à 1,5 % — l'INSEE mesure 1,44 % par an
+  // sur la série de l'indice de référence des loyers depuis 1998 — et en portant
+  // celle de la taxe foncière de 3,0 à 3,2 %. Les deux corrections poussent le
+  // croisement dans le même sens : un loyer qui monte moins vite et une taxe qui
+  // monte plus vite retardent le moment où acheter revient moins cher.
+  await expect(croisement(page, "decaissement")).toHaveAttribute("data-valeur", "23");
   await expect(croisement(page, "fondsPerdus")).toHaveAttribute("data-valeur", "4");
 
   const enDecaissement = await croisement(page, "decaissement").getAttribute("data-valeur");
@@ -163,18 +170,27 @@ test("les deux croisements restent visibles quelle que soit la lecture retenue",
 test("la bascule change les montants comparés, pas seulement l'étiquette", async ({ page }) => {
   await page.goto("/comparaison");
 
-  // Le scénario par défaut ouvre sur l'année 29, la plus tardive des deux
-  // croisements. En décaissement, le propriétaire a versé 442 564,07 € ; en
-  // fonds perdus, 262 564,07 €. La différence vaut exactement le capital
-  // remboursé, 180 000,00 €, et c'est l'invariant du moteur.
-  await expect(chiffre(page, "proprietaire")).toHaveText(eur("442 564", "07"));
-  await expect(chiffre(page, "capital")).toHaveText(eur("180 000"));
+  // ── LE SCÉNARIO PAR DÉFAUT N'A PLUS DE CROISEMENT, ET IL OUVRE À L'ANNÉE 1 ──
+  //
+  // Il ouvrait sur l'année 29, la plus tardive des deux croisements. Le journal
+  // de `VIZ-003` avait signalé la fragilité : « le croisement du décaissement est
+  // à un an de l'horizon, année 29 sur 30 ; un pas de plus sur n'importe quel
+  // paramètre le fait disparaître ». `FIS-006` a été ce pas — l'indexation du
+  // loyer ramenée de 2,0 à 1,5 % par an sur la série INSEE. Le croisement sort de
+  // l'horizon, et le curseur retombe sur l'année 1.
+  //
+  // Ce que ce test garde n'est pas l'année : c'est que la bascule change les
+  // MONTANTS, et que leur différence vaut exactement le capital remboursé.
+  await expect(chiffre(page, "proprietaire")).toHaveText(eur("17 346", "68"));
+  await expect(chiffre(page, "capital")).toHaveText(eur("6 531", "92"));
 
   await page.locator('[data-bascule-lecture] [data-lecture="fondsPerdus"]').click();
-  await expect(chiffre(page, "proprietaire")).toHaveText(eur("262 564", "07"));
+  // 17 346,68 − 6 531,92 = 10 814,76 : l'invariant du moteur, à l'année 1 comme
+  // à l'année 30.
+  await expect(chiffre(page, "proprietaire")).toHaveText(eur("10 814", "76"));
   // Le locataire ne bouge pas : tout ce qu'il verse est consommé dans les deux
   // lectures. Cette égalité EST l'enseignement, elle ne doit pas s'effacer.
-  await expect(chiffre(page, "locataire")).toHaveText(eur("447 662", "80"));
+  await expect(chiffre(page, "locataire")).toHaveText(eur("11 540"));
 });
 
 test("la bascule se parcourt aux flèches", async ({ page }) => {
@@ -222,7 +238,7 @@ test("le trait de croisement porte son nom, pas seulement sa couleur", async ({ 
   await page.goto(DEUX_CROISEMENTS);
 
   const etiquette = page.locator("[data-etiquette-croisement]");
-  await expect(etiquette).toHaveAttribute("data-annee", "22");
+  await expect(etiquette).toHaveAttribute("data-annee", "23");
   await expect(etiquette).toContainText("croisement");
 });
 
@@ -264,48 +280,56 @@ async function hauteurs(page: Page, reperes: readonly (readonly [string, number]
 test("les repères des courbes sont proportionnels aux montants du moteur", async ({ page }) => {
   await page.goto("/comparaison");
 
-  // Échelle du scénario par défaut : 468 156,02 €, le plus grand cumul de
-  // décaissement de l'horizon — celui du locataire à l'année 30.
-  //   année  1  propriétaire   17 346,68 €   →   3,705 %
-  //   année 10  propriétaire  178 564,82 €   →  38,142 %
-  //   année 20  propriétaire  370 347,69 €   →  79,108 %
-  //   année 20  locataire     280 392,09 €   →  59,893 %
-  //   année 30  locataire     468 156,02 €   → 100,000 %
+  // Échelle du scénario par défaut : 453 764,21 €, le plus grand cumul de
+  // décaissement de l'horizon.
+  //
+  // `FIS-006` a changé de main le sommet de l'échelle. Il appartenait au
+  // locataire à l'année 30 ; avec une indexation de loyer ramenée de 2,0 à 1,5 %
+  // par an, c'est désormais le propriétaire qui finit le plus haut. Le test
+  // mesure les deux, ce qui rend le changement lisible au lieu de le masquer.
+  //   année  1  propriétaire   17 346,68 €   →   3,823 %
+  //   année 10  propriétaire  178 713,44 €   →  39,384 %
+  //   année 20  propriétaire  371 122,42 €   →  81,787 %
+  //   année 20  locataire     268 420,17 €   →  59,154 %
+  //   année 30  locataire     437 255,90 €   →  96,362 %
+  //   année 30  propriétaire  453 764,21 €   → 100,000 %
   const mesure = await hauteurs(page, [
     ["proprietaire", 1],
     ["proprietaire", 10],
     ["proprietaire", 20],
     ["locataire", 20],
     ["locataire", 30],
+    ["proprietaire", 30],
   ]);
   expect(mesure, "aucun repère mesurable").not.toBeNull();
-  const [an1, an10, an20, loc20, loc30] = mesure as number[];
+  const [an1, an10, an20, loc20, loc30, an30] = mesure as number[];
 
   expect(an1, "repère de l'année 1 non mesurable").toBeGreaterThan(0);
-  // Aucune hauteur plancher : l'année 1 vaut 3,7 % de l'échelle et pas un pixel
+  // Aucune hauteur plancher : l'année 1 vaut 3,8 % de l'échelle et pas un pixel
   // de plus. Un plancher, même de trois pixels, ferait échouer cette ligne.
-  expect(an1).toBeCloseTo(3.705, 0);
-  expect(an10).toBeCloseTo(38.142, 0);
-  expect(an20).toBeCloseTo(79.108, 0);
-  expect(loc20).toBeCloseTo(59.893, 0);
+  expect(an1).toBeCloseTo(3.823, 0);
+  expect(an10).toBeCloseTo(39.384, 0);
+  expect(an20).toBeCloseTo(81.787, 0);
+  expect(loc20).toBeCloseTo(59.154, 0);
+  expect(loc30).toBeCloseTo(96.362, 0);
   // Le sommet de l'échelle est atteint, et il n'est pas dépassé.
-  expect(loc30).toBeCloseTo(100, 0);
+  expect(an30).toBeCloseTo(100, 0);
 });
 
 test("l'échelle ne se recale pas sur la lecture retenue", async ({ page }) => {
   await page.goto("/comparaison");
 
   const [avant] = (await hauteurs(page, [["proprietaire", 30]])) as number[];
-  expect(avant).toBeCloseTo(96.456, 0);
+  expect(avant).toBeCloseTo(100, 0);
 
   await page.locator('[data-bascule-lecture] [data-lecture="fondsPerdus"]').click();
   const [apres] = (await hauteurs(page, [["proprietaire", 30]])) as number[];
 
-  // 271 563,72 € sur la même échelle de 468 156,02 € : 58,0 %. Si le cadre se
+  // 273 764,21 € sur la même échelle de 453 764,21 € : 60,3 %. Si le cadre se
   // réétalait sur la nouvelle lecture, ce repère remonterait à 100 % et la
   // disparition du capital deviendrait invisible — exactement le biais que le
   // module corrige.
-  expect(apres).toBeCloseTo(58.007, 0);
+  expect(apres).toBeCloseTo(60.329, 0);
   expect(apres, "les fonds perdus ne redescendent pas dans le cadre").toBeLessThan(avant ?? 0);
 });
 
@@ -314,11 +338,20 @@ test("l'échelle ne se recale pas sur la lecture retenue", async ({ page }) => {
 test("le bandeau d'écart chiffre la différence à l'année lue", async ({ page }) => {
   await page.goto("/comparaison");
 
-  // Année 29, en décaissement : 442 564,07 € contre 447 662,80 €.
-  await expect(page.locator("[data-ecart]")).toContainText("Écart à l'année 29");
-  await expect(chiffre(page, "ecart")).toHaveText(eur("5 098", "73"));
+  // Année 1, en décaissement : 17 346,68 € contre 11 540,00 €. Le scénario par
+  // défaut ouvre là depuis `FIS-006`, faute de croisement dans l'horizon.
+  await expect(page.locator("[data-ecart]")).toContainText("Écart à l'année 1");
+  await expect(chiffre(page, "ecart")).toHaveText(eur("5 806", "68"));
   // Le sens est écrit, pas suggéré par une couleur ni par une flèche.
-  await expect(page.locator('[data-chiffre="ecart"]')).toContainText("de moins décaissé");
+  await expect(page.locator('[data-chiffre="ecart"]')).toContainText("de plus décaissé");
+
+  // Et il s'écrit dans les deux sens. La bascule inverse le signe : en fonds
+  // perdus, le propriétaire a consommé 725,24 € de moins dès la première année.
+  // Sans cette seconde moitié, le test ne verrait plus qu'un seul des deux
+  // libellés — le scénario par défaut ne produit plus de « de moins décaissé ».
+  await page.locator('[data-bascule-lecture] [data-lecture="fondsPerdus"]').click();
+  await expect(chiffre(page, "ecart")).toHaveText(eur("725", "24"));
+  await expect(page.locator('[data-chiffre="ecart"]')).toContainText("de moins consommé");
 });
 
 test("le curseur d'année déplace le bandeau, la ligne de lecture et le tableau", async ({
@@ -330,9 +363,9 @@ test("le curseur d'année déplace le bandeau, la ligne de lecture et le tableau
 
   await expect(page.locator("[data-ecart]")).toContainText("Écart à l'année 10");
   await expect(page.locator("[data-curseur]")).toContainText("Année 10");
-  await expect(lecture(page, "proprietaire")).toHaveText(eur("178 564", "82"));
-  await expect(lecture(page, "locataire")).toHaveText(eur("126 359", "96"));
-  await expect(lecture(page, "ecart")).toHaveText(eur("52 204", "86"));
+  await expect(lecture(page, "proprietaire")).toHaveText(eur("178 713", "44"));
+  await expect(lecture(page, "locataire")).toHaveText(eur("123 840", "56"));
+  await expect(lecture(page, "ecart")).toHaveText(eur("54 872", "88"));
 
   // Une seule ligne marquée à la fois, comme dans le tableau d'amortissement.
   await expect(page.locator('[data-tableau="comparaison"] [data-marquee="oui"]')).toHaveCount(1);

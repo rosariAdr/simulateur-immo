@@ -186,11 +186,18 @@ Le découpage en versions, le modèle de branches et les portes sont dans
       de marché, aucune loi ne les fixe. Décision d’architecture à prendre
       → `src/core/assumptions/market.ts`. Chaque valeur porte son intervalle observé, sa
       fiabilité et sa provenance. Aucun chiffre modifié, et un test le garde. Voir ADR-008
-- [ ] `FIS-006` Recouper les hypothèses de marché sur des grilles publiées. Les cinq
+- [x] `FIS-006` Recouper les hypothèses de marché sur des grilles publiées. Les cinq
       coûts de garantie, les deux fourchettes de taux d'assurance et les deux de frais
       d'acquisition sont toutes en fiabilité `estimee`. **Un contre-exemple est déjà
       documenté** : l'exemple représentatif de la Société Générale donne 0,26 % d'assurance
       pour un emprunteur de 35 ans, sous la borne basse de 0,30 % (voir `ENG-008`)
+      → dix-sept entrées passées en revue, **sept recoupées** sur des documents ouverts
+      (INSEE, Observatoire national des taxes foncières, Crédit Agricole, notaires de France,
+      Journal officiel, Century 21, exemples représentatifs SG), **six chiffres corrigés**,
+      **dix restées `estimee` avec la raison écrite**. Le contre-exemple SG est intégré : la
+      borne basse du contrat de groupe descend de 0,30 à 0,26 %. `RENDEMENTS_NETS_OBSERVES`
+      rapatrié de `compare/portefeuille.ts` sans qu'un chiffre bouge. Voir ADR-017 et le
+      journal du 23 août 2026
 - [x] `TST-002` `reference.test.ts` compare la mensualité de référence avec
       `toBeCloseTo(908.97, 1)` — une tolérance muette de 5 centimes, quand la valeur
       exacte est 908,9705 €. Le test passerait encore si le moteur dérivait. Fichier
@@ -1826,3 +1833,193 @@ qui change une valeur affichée. C'est ce qu'elle prétend, et pas davantage.
 
 **Porte** — `PORT_E2E=3133 npm run porte`, verte : typecheck, lint, **901 tests Vitest sur
 18 fichiers**, build, **304 tests Playwright passés et 10 ignorés**.
+
+### 23 août 2026 — `FIS-006`, dix-sept hypothèses passées au document
+
+**Fait**
+
+Les dix-sept entrées de `src/core/assumptions/market.ts` confrontées une par une à des
+documents publiés. **Sept passent en `observee`, six chiffres sont corrigés, dix restent
+`estimee` — chacune avec, écrite dans sa provenance, la raison pour laquelle la
+vérification n'a pas abouti.** Le fichier gagne un bloc, `rendements`, rapatrié de
+`compare/portefeuille.ts` sans qu'un chiffre bouge. La règle qui décide de la promotion
+est ADR-017.
+
+**Le tableau**
+
+| Entrée | Avant | Après | Fiabilité | Source |
+| --- | --- | --- | --- | --- |
+| `suretyshipCostPct` | 1,25 % [1,0 ; 1,5] | **1,35 %** [1,0 ; 1,5] | estimee → **observee** | Deux exemples représentatifs SG : 2 750 € / 200 000 € (1,375 %, au 01/05/2025) et 2 660 € (1,33 %, offre 15/06–15/07/2026) |
+| `suretyshipRefundPct` | 55 % [0 ; 75] | inchangé | estimee | Crédit Logement annonce ~70 %, **du seul FMG** ; le partage n'est pas publié |
+| `mortgageCostPct` | 1,5 % [1,2 ; **2,0**] | **1,35 %** [1,2 ; **1,5**] | estimee → **observee** | Crédit Agricole : « 1,2 % à 1,5 % du montant du prêt », TPF 0,715 %, débours 200–300 € |
+| `mortgageReleasePct` | 0,4 % [0,3 ; **0,7**] | 0,4 % [0,3 ; **0,6**] | estimee → **observee** | Question écrite n° 6820, XVIIe législature, publiée au *JO* avec la réponse du gouvernement |
+| `pledgeCostPct` | 0,3 % [0,1 ; 0,5] | inchangé | estimee | Aucune grille publique trouvée |
+| `groupRatePct` | [**0,30** ; 0,42] | [**0,26** ; 0,42] | estimee | SG, 35 ans : 43,33 €/mois sur 200 000 € = 0,26 %/an. SG, 38 ans : 61,33 €/mois = 0,368 %/an |
+| `delegationRatePct` | [0,1 ; 0,2] | inchangé | estimee | Aucun exemple représentatif d'assureur alternatif ; le bilan CCSF ne donne pas de taux |
+| `totalFeesOldPct` | [7 ; 8,5] | inchangé | estimee | Notaires de France disent « 7 à 8 % », et publient une TPF à 6,31 % — les deux ne tiennent pas ensemble |
+| `totalFeesNewPct` | [2 ; 3] | inchangé | estimee → **observee** | Notaires de France, « environ 2 à 3 % » |
+| `provisionTravauxPctAnnuel` | 1,0 % [0,5 ; 2,0] | inchangé | estimee | Les observatoires publient des charges au m², pas une dépense rapportée à la valeur du bien |
+| `indexationLoyerPctAnnuel` | **2,0 %** [0 ; **3,5**] | **1,5 %** [0 ; **3,6**] | estimee → **observee** | INSEE, IRL : 148,37 au T2 2026 pour une base 100 au T4 1998, soit 1,44 %/an ; plus forte hausse annuelle +3,60 % au T2 2022 |
+| `indexationTaxeFoncierePctAnnuel` | **3,0 %** [**1,0** ; **5,0**] | **3,2 %** [**1,9** ; **6,5**] | estimee → **observee** | Observatoire national des taxes foncières, 19e rapport (oct. 2025, données DGFiP) : +37,3 % de 2014 à 2024 ; Caen +21 %, Paris +88 % |
+| `indexationChargesPctAnnuel` | 2,0 % [1,0 ; 4,0] | inchangé | estimee | Deux observatoires en désaccord sur 2023 : +10,71 % (FNAIM Grand Paris) contre +4,6 % (ARC) |
+| `appreciationAnnuellePct` | [−2 ; 4] | inchangé | estimee | Notaires-INSEE : −5,5 % (T1 2024) à +10,0 % (T2 2011) en variation annuelle. Notre intervalle est plus étroit, **de notre fait** |
+| `commissionAgencePct` | 5 % [3 ; 8] | inchangé | estimee → **observee** | Barème Century 21 au 01/01/2026, affichage obligatoire : de 4,7 à 6,7 % TTC selon le prix |
+| `rendements.sansRisque` | [1,5 ; 3] | inchangé | estimee | France Assureurs 2,6 % et ACPR 2,63 % en 2025, **bruts** de prélèvements sociaux, soit ~2,2 % nets |
+| `rendements.actionsDiversifiees` | [4 ; 7] | inchangé | estimee | IEIF, « 40 ans de performances comparées » : actions à 12,4 %/40 ans et 9,9 %/15 ans, **brutes** de fiscalité |
+
+**Le contre-exemple de la Société Générale, traité et non contourné**
+
+`ENG-008` avait relevé que l'exemple représentatif SG facture 43,33 € par mois d'assurance
+pour 200 000 € empruntés à 35 ans, soit **0,26 % par an du capital initial**, sous notre
+borne basse de 0,30 %. La borne était fausse : elle descend à 0,26 %.
+
+Ce qui n'était pas prévu, c'est le second point. L'offre SG du 15 juin au 15 juillet 2026
+donne 61,33 € par mois pour un emprunteur de **38 ans**, soit 0,368 % — TAEA de 0,63 %
+contre 0,44 %. **Trois ans d'écart d'âge, 42 % de prime en plus.** Une fourchette unique
+pour « le contrat de groupe » est donc une simplification bien plus grossière que ses
+bornes ne le laissent croire ; c'est dit dans la provenance. L'entrée reste `estimee` :
+la borne basse est désormais lue, la borne haute ne l'est pas.
+
+⚠️ Le second exemple a été lu sur **FranceTransactions**, qui le reproduit ; la page SG ne
+publie plus que celui de mai 2025. Une reproduction fidèle en apparence n'est pas une
+source primaire, et la provenance ne prétend pas le contraire.
+
+**Ce qui n'a pas pu être vérifié, et pourquoi**
+
+- **Crédit Logement ne publie aucune grille.** Ses pages « Tarification Classic » et
+  « Tarification Initio » décrivent les deux composantes — commission de caution, versement
+  au fonds mutuel — sans un seul chiffre, et renvoient à un simulateur qui n'affiche que
+  des zéros tant qu'on ne le remplit pas. Le seul chiffre publié est le taux de restitution,
+  « environ 70 % », **qui porte sur le FMG et non sur le coût total**. Notre champ, lui, est
+  un pourcentage du coût total : `plan.ts` calcule `applyPct(cost, refundPct)`. La
+  conversion suppose de connaître le partage entre commission et FMG, qui n'est publié nulle
+  part. 55 % reste donc une estimation, et sa provenance le dit maintenant.
+- **L'ANIL ne publie pas de chiffres.** Le ticket la citait comme source possible. Sa page
+  « Calcul du coût d'une hypothèque » est un simulateur, sa page « Les frais annexes » écrit
+  que le coût d'une hypothèque « varie en fonction du type de prêt » et que la commission
+  d'agence « n'est pas réglementée », sans un ordre de grandeur. Une agence publique qui
+  refuse de donner un chiffre qu'elle ne maîtrise pas : c'est cohérent, et c'est un
+  renseignement en soi.
+- **Le nantissement n'a pas de prix affiché.** MAIF, AG2R La Mondiale, Matmut, Corum en
+  décrivent le mécanisme et vantent l'économie réalisée face à une hypothèque, sans jamais
+  chiffrer l'acte, qui se négocie de gré à gré.
+- **La délégation d'assurance non plus.** Les assureurs alternatifs ne publient pas
+  d'exemple représentatif ; la fiche standardisée d'information est remise au client. Le
+  bilan de la loi Lemoine adressé au Parlement par le CCSF raisonne en parts de marché —
+  16,1 % fin mai 2023, 17,48 % en 2024 — et en nombre de substitutions, jamais en taux. Les
+  seuls chiffres trouvés viennent de courtiers, qui vendent ce qu'ils décrivent.
+- **L'ACPR n'a pas pu être consultée.** Même refus des requêtes automatisées que celui déjà
+  noté par `ENG-008` pour `banque-france.fr`. Le taux moyen 2025 des fonds en euros a donc
+  été lu sur des reprises, pas sur la publication.
+- **Aucun réseau à honoraires réduits ne publie de barème atteignable.** La borne basse de
+  3 % de la commission d'agence reste notre extension.
+
+**Trois contradictions entre sources, dont une interne**
+
+*Les notaires de France se contredisent sur leur propre page.* La phrase « environ 7 à 8 %
+du prix » dans l'ancien cohabite, sur un site mis à jour le 5 décembre 2025, avec un taux
+global de taxe de publicité foncière porté à **6,31 %** après le relèvement départemental de
+2025. Les 6,31 % de taxe ne laissent pas la place aux émoluments, débours et formalités sous
+une borne haute de 8 %. Notre intervalle `[7 ; 8,5]` tient compte de la hausse ; la phrase
+des notaires visiblement pas. Faute de source qui l'écrive, l'entrée reste `estimee`.
+
+*Les deux observatoires de charges de copropriété ne mesurent pas la même chose.* La FNAIM
+du Grand Paris relève **+10,71 %** pour 2023 — 43,34 €/m², 2 453,95 € par lot —, l'ARC
+**+4,6 %** pour la même année. Périmètres géographiques et méthodes différents. Choisir en
+silence aurait été le pire des trois choix possibles.
+
+*L'IEIF se contredit dans son propre communiqué.* Le paragraphe titré « Sur 30 ans » est
+daté « (2003-2023) », soit vingt ans. Les chiffres qui suivent — Logement 9,3 %, Foncières
+8,2 %, Actions 7,7 % — sont donc de période incertaine. Ils ne portent aucune de nos
+valeurs ; ceux qui les portent sont les TRI à 40 et 15 ans, non ambigus.
+
+**Un piège évité de peu.** L'IEIF donne « Logement France, TRI 15 ans : 5,2 % ». La tentation
+était de s'en servir pour l'appréciation du bien. C'eût été faux : un TRI immobilier de
+l'IEIF **inclut les loyers**. L'appréciation seule se lit sur l'indice Notaires-INSEE, et
+nulle part ailleurs.
+
+**Le déplacement de `RENDEMENTS_NETS_OBSERVES`**
+
+Rapatrié de `compare/portefeuille.ts` vers `MARKET_2026.rendements`, avec la discipline de
+`FIS-005` : **pas un chiffre modifié**, et un test qui le dit. Le type
+`FourchetteDeRendement` disparaît — il reproduisait déjà exactement `FourchetteObservee`.
+Une garde de plus vérifie que l'ancien emplacement est **vide** et qu'il dit où c'est parti :
+un `export const` resté en place, même inutilisé, donnerait deux sources de vérité dont une
+périmée.
+
+La garde qui énumère les blocs de `MARKET_2026` a rougi à l'ajout de `rendements`, comme
+annoncé. Elle a été reprise en écrivant dans le test pourquoi le bloc entre.
+
+**Trouvé sans être corrigé**
+
+- **⚠️ L'assiette de la mainlevée est fausse dans `credit/plan.ts`.** La question écrite
+  n° 6820 chiffre ces frais en pourcentage du **montant initial de l'emprunt** ; le Crédit
+  Agricole dit de même que l'hypothèque s'assoit sur le montant du prêt. `plan.ts` écrit
+  `releaseCostOnEarlySale: applyPct(propertyPrice, g.mortgageReleasePct.valeur)` — le **prix
+  du bien**. Sur un achat avec apport, le prix dépasse le capital emprunté et la mainlevée
+  est surestimée d'autant : 20 % d'apport, 20 % de mainlevée en trop. Le fichier est gelé
+  (ADR-004) et la correction change une valeur affichée : elle demande son propre ticket.
+  L'avertissement est écrit dans la provenance en attendant, en capitales.
+- **`params.ts` porte encore les droits de mutation d'avant la hausse.** `oldStandardPct`
+  vaut 5,81 % quand les notaires de France publient une taxe globale à **6,31 %** dans la
+  grande majorité des départements depuis 2025. `oldFullPct` vaut 6,32 %, ce qui suggère que
+  la hausse est bien connue du fichier mais que « standard » et « full » ne désignent plus ce
+  qu'ils désignaient. C'est une valeur réglementaire : elle ne pouvait pas être touchée
+  depuis ce ticket, dont la frontière est précisément de ne pas mêler la loi et le marché.
+  À rapprocher de `FIS-002`, qui porte déjà deux `TODO_VERIFY` sur ce bloc.
+- **Le scénario par défaut de `/comparaison` n'a plus de croisement dans l'horizon.** Le
+  journal de `VIZ-003` l'avait annoncé : « le croisement du décaissement est à un an de
+  l'horizon, année 29 sur 30 ; un pas de plus sur n'importe quel paramètre le fait
+  disparaître ». Ramener l'indexation du loyer de 2,0 à 1,5 % a été ce pas. La page ouvre
+  désormais sur l'année 1 et affiche « aucun avant l'année 30 ». Ce n'est pas un défaut —
+  c'est juste, et c'est même l'enseignement — mais le scénario d'ouverture montre maintenant
+  moins bien ce que le module sait faire. Un choix de paramètres par défaut, donc un ticket
+  d'interface.
+- **Aucun test ne relit une provenance contre sa source.** Voir les sabotages.
+
+**Ce que les sabotages ont fait rougir**
+
+Cinq, tous rétablis. Les fichiers ont été copiés avant, pas confiés à `git checkout`.
+
+| Sabotage | Rouge |
+| --- | --- |
+| `pledgeCostPct` promue en `observee` | **2** — le compte des `estimee`, et « une hypothèse observée nomme le document qu'on a ouvert » |
+| `export const RENDEMENTS_NETS_OBSERVES` réintroduit dans `portefeuille.ts` | **1** — la garde du déplacement |
+| Borne haute des actions portée de 7 à 7,5 | **1** — « reprend à l'identique les rendements » |
+| `suretyshipCostPct` portée de 1,35 à 1,40 | **1** — l'ancrage des cinq coûts de garantie |
+| **148,37 remplacé par 158,37 à l'intérieur d'une phrase de provenance** | **0** |
+
+Le dernier est le seul intéressant, et c'est un sabotage qui n'aurait rien fait rougir :
+**914 tests verts sur un chiffre de source falsifié.** La provenance est de la prose
+montrable à l'utilisateur, pas une donnée vérifiable ; rien ne la relit contre la source
+qu'elle cite. Un test qui exigerait la cohérence entre le texte et les bornes est possible
+en principe et illusoire en pratique — il faudrait analyser du français. Le seul rempart
+est la relecture humaine, et il valait mieux l'écrire que le découvrir.
+
+Une sixième garde a rougi **sans qu'on l'ait cherché**, et elle avait été écrite pour ça.
+`hypotheses-detention.test.ts` exigeait `estimee` pour les quatre hypothèses de détention,
+en annonçant : « le jour où `FIS-006` en recoupe une, ce test rougit — il faut alors dire
+ici laquelle, et sur quoi ». Il a fallu venir l'écrire, pour le loyer et pour la taxe
+foncière. C'est le meilleur exemple du dépôt d'une garde qui ne protège pas un chiffre mais
+oblige à rendre des comptes.
+
+**Ce que la correction a déplacé dans l'interface**
+
+Six chiffres de données, et huit valeurs affichées qui bougent en conséquence — sans qu'une
+ligne de moteur ait changé. Coût total du crédit par défaut +180 € (caution 1,25 → 1,35 % sur
+180 000 €), TAEG 3,96 → 3,97 % ; sur le scénario partagé sous hypothèque, −630 € et
+4,69 → 4,67 %. Les deux corrections de garantie jouent **en sens inverse**, ce qui est le
+signe qu'aucune n'a été choisie pour arranger un total. Côté comparaison, le croisement du
+scénario `DEUX_CROISEMENTS` passe de l'année 22 à l'année 23, et le sommet de l'échelle
+change de main : le propriétaire finit désormais au-dessus du locataire à l'année 30, un
+loyer indexé à 1,5 % ne rattrapant plus un coût de propriété indexé à 3,2 %.
+
+**Note d'outillage** — la copie de travail avait un `node_modules` **vide**. `typecheck`,
+`lint` et Vitest passaient quand même, Node remontant l'arborescence jusqu'au dépôt parent ;
+`next build` échouait seul, Turbopack refusant de sortir de la racine du projet. Une jonction
+Windows vers le `node_modules` du parent ne suffit pas non plus — « Symlink `[project]`
+/node_modules is invalid, it points out of the filesystem root ». Il faut un `npm ci` dans la
+copie. À savoir avant de conclure qu'une branche casse le build.
+
+**Porte** — `PORT_E2E=3142 npm run porte`, verte : typecheck, lint, **914 tests Vitest sur
+18 fichiers**, build, **306 tests Playwright passés et 10 ignorés**.

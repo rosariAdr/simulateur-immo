@@ -1,5 +1,5 @@
 /**
- * HYPOTHÈSES DE MARCHÉ — `FIS-005`
+ * HYPOTHÈSES DE MARCHÉ — `FIS-005`, recoupées par `FIS-006`
  *
  * ═══ POURQUOI CE FICHIER EXISTE ═══
  *
@@ -33,7 +33,31 @@
  * obtenue. Une estimation qui s'annonce comme telle vaut mieux qu'une estimation
  * déguisée en règle.
  *
- * Voir `docs/ADR.md`, ADR-008.
+ * ═══ CE QUE « OBSERVEE » VEUT DIRE ICI — `FIS-006` ═══
+ *
+ * La campagne de recoupement du 23 août 2026 a dû trancher un point que
+ * `FIS-005` n'avait pas eu à poser : que faut-il avoir lu pour qu'une entrée
+ * cesse d'être `estimee` ?
+ *
+ * **Règle retenue.** Une entrée passe `observee` quand le chiffre qui sert au
+ * calcul — la valeur centrale pour une `HypotheseChiffree`, les deux bornes pour
+ * une `FourchetteObservee` — a été **lu dans un document public et citable**, et
+ * que la provenance nomme ce document. Les bornes d'une `HypotheseChiffree`
+ * restent, elles, une extension de notre fait : elles disent jusqu'où on a vu
+ * varier les offres, pas ce qu'une source affirme. Chaque provenance dit
+ * laquelle des deux situations elle décrit.
+ *
+ * Une entrée reste `estimee` dès que le chiffre n'a pas été lu, **et la
+ * provenance dit alors pourquoi la vérification n'a pas abouti**. C'est le point
+ * du ticket : « nous n'avons pas trouvé de grille publique pour ceci » est une
+ * information, « estimée » tout court n'en est pas une.
+ *
+ * ⚠️ Les provenances citent des documents qui ont réellement été ouverts. Aucune
+ * source n'est mentionnée de mémoire. Quand un document n'a pas pu être lu — un
+ * simulateur sans grille statique, un serveur qui refuse les requêtes —, la
+ * provenance le dit au lieu de le taire.
+ *
+ * Voir `docs/ADR.md`, ADR-008 et ADR-017.
  */
 
 /**
@@ -41,7 +65,7 @@
  * doit pouvoir dire à l'utilisateur ce qu'elle sait et ce qu'elle suppose.
  */
 export type Fiabilite =
-  /** Relevé sur des grilles publiées, plusieurs établissements concordants. */
+  /** Le chiffre qui sert au calcul a été lu dans un document public et citable. */
   | "observee"
   /** Ordre de grandeur communément admis, non recoupé sur des sources primaires. */
   | "estimee";
@@ -113,6 +137,11 @@ export interface AcquisitionAssumptions {
  * chacune à quelques pour cent par an : un point d'écart d'indexation la déplace
  * de plusieurs années. C'est pourquoi elles sont ici, déclarées avec leur
  * intervalle, plutôt qu'écrites en dur dans le calcul.
+ *
+ * `FIS-006` en a corrigé deux sur trois. Le loyer était indexé un demi-point
+ * trop haut, la taxe foncière deux dixièmes trop bas ; les deux corrections
+ * jouent dans le même sens, celui de l'achat, et aucune n'était visible sans
+ * ouvrir une série publiée.
  */
 export interface DetentionAssumptions {
   /** Provision annuelle pour travaux et entretien, en % de la valeur du bien. */
@@ -142,7 +171,7 @@ export interface DetentionAssumptions {
  * **aucune valeur par défaut** pour l'appréciation, et le champ est obligatoire
  * dans son type d'entrée. L'interface montre l'intervalle, l'utilisateur choisit
  * son point, et le résultat porte l'hypothèse retenue. Même discipline que
- * `RENDEMENTS_NETS_OBSERVES` dans `compare/portefeuille.ts`.
+ * `rendements` ci-dessous.
  *
  * ── LA COMMISSION D'AGENCE, ELLE, S'OBSERVE ────────────────────────────────
  *
@@ -162,6 +191,26 @@ export interface VenteAssumptions {
   readonly commissionAgencePct: HypotheseChiffree;
 }
 
+/**
+ * RENDEMENTS DU PORTEFEUILLE DE RÉFÉRENCE — `ENG-011`, déplacés ici par `FIS-006`.
+ *
+ * Ces fourchettes vivaient dans `src/core/compare/portefeuille.ts`, avec un
+ * commentaire disant qu'elles étaient au mauvais endroit et pourquoi : le
+ * fichier d'accueil était pris par un autre chantier au moment de les écrire.
+ * Elles sont ici sans qu'un seul chiffre ait bougé, et un test le garde.
+ *
+ * ⚠️ Ces rendements s'entendent **nets de toute fiscalité**. C'est ce qui rend
+ * leur recoupement difficile : les sources publient du brut. Voir chaque
+ * provenance, et `portefeuille.ts` pour ce que le module en fait — c'est-à-dire
+ * rien : il ne les lit jamais, l'utilisateur les remplace.
+ */
+export interface RendementAssumptions {
+  /** Support à capital garanti, type fonds en euros. */
+  readonly sansRisque: FourchetteObservee;
+  /** Portefeuille d'actions diversifié, détenu longtemps. */
+  readonly actionsDiversifiees: FourchetteObservee;
+}
+
 export interface MarketAssumptions {
   /** Date du relevé, et non millésime légal : ces valeurs n'ont pas d'exercice. */
   readonly releve: string;
@@ -170,80 +219,112 @@ export interface MarketAssumptions {
   readonly acquisition: AcquisitionAssumptions;
   readonly detention: DetentionAssumptions;
   readonly vente: VenteAssumptions;
+  readonly rendements: RendementAssumptions;
 }
 
 /**
  * Valeurs en vigueur dans le simulateur.
  *
- * Elles reprennent, sans les modifier, celles qui vivaient dans
- * `fiscal/params.ts` jusqu'au 22 août 2026. Le déplacement ne les corrige pas —
- * il les qualifie. Les recouper sur des grilles publiées reste à faire, et c'est
- * désormais un travail borné : il porte sur ce fichier, et sur lui seul.
+ * Relevé du 23 août 2026, après la campagne de recoupement `FIS-006`. Six
+ * chiffres ont bougé, chacun contre un document ouvert et cité dans sa
+ * provenance ; les autres sont restés, avec la raison écrite pour laquelle ils
+ * n'ont pas pu l'être.
  */
 export const MARKET_2026: MarketAssumptions = {
   releve: "2026-08",
 
   guarantee: {
     suretyshipCostPct: {
-      valeur: 1.25,
+      valeur: 1.35,
       intervalle: [1.0, 1.5],
-      fiabilite: "estimee",
+      fiabilite: "observee",
       provenance:
-        "Ordre de grandeur communément retenu pour un organisme de caution. Les grilles " +
-        "réelles sont progressives et dépendent du montant emprunté ; ce taux unique est " +
-        "une simplification.",
+        "Caution d'un organisme spécialisé, commission et fonds mutuel réunis, en pourcentage " +
+        "du capital garanti. Crédit Logement ne publie aucune grille : ses pages de tarification " +
+        "Classic et Initio décrivent les deux composantes sans un seul chiffre et renvoient à un " +
+        "simulateur. La valeur vient donc de deux exemples représentatifs de la Société Générale, " +
+        "où le poste est chiffré : 2 750 € pour 200 000 € empruntés dans l'exemple en vigueur au " +
+        "1er mai 2025, soit 1,375 %, et 2 660 € dans l'offre du 15 juin au 15 juillet 2026, soit " +
+        "1,33 %. Les bornes, elles, ne sont lues nulle part : elles couvrent les autres " +
+        "organismes de cautionnement, dont aucun ne publie de barème.",
     },
     suretyshipRefundPct: {
       valeur: 55,
       intervalle: [0, 75],
       fiabilite: "estimee",
       provenance:
-        "Part de la contribution au fonds mutuel restituée au terme. Elle varie fortement " +
-        "selon l'organisme et l'absence d'incident, et peut être nulle.",
+        "Part du coût de la caution restituée au terme du prêt. Crédit Logement annonce sur sa " +
+        "page de tarification que « le taux de restitution est d'environ 70 % » et qu'il évolue " +
+        "chaque trimestre — mais ces 70 % portent sur le seul versement au fonds mutuel, pas sur " +
+        "le coût total, dont la commission de caution n'est jamais restituée. Le partage entre " +
+        "les deux composantes n'est publié nulle part : seul le simulateur le donne, cas par cas. " +
+        "Notre 55 % du total est donc une conversion que nous n'avons pas pu vérifier, et c'est " +
+        "la raison pour laquelle cette entrée reste estimée.",
     },
     mortgageCostPct: {
-      valeur: 1.5,
-      intervalle: [1.2, 2.0],
-      fiabilite: "estimee",
+      valeur: 1.35,
+      intervalle: [1.2, 1.5],
+      fiabilite: "observee",
       provenance:
-        "Inscription hypothécaire : émoluments du notaire, taxe de publicité foncière et " +
-        "débours réunis. La part taxée est réglementée, l'ensemble ne l'est pas.",
+        "Inscription hypothécaire : émoluments du notaire, taxe de publicité foncière et débours " +
+        "réunis. Le Crédit Agricole publie le détail sur son site — taxe de publicité foncière de " +
+        "0,715 % du montant garanti, débours de 200 à 300 €, émoluments au barème réglementé — et " +
+        "chiffre le total à « 1,2 % à 1,5 % du montant du prêt ». La valeur retenue est le milieu " +
+        "de cette fourchette lue ; l'ancien intervalle montait à 2,0 %, ce qu'aucune source " +
+        "consultée ne soutient.",
     },
     mortgageReleasePct: {
       valeur: 0.4,
-      intervalle: [0.3, 0.7],
-      fiabilite: "estimee",
+      intervalle: [0.3, 0.6],
+      fiabilite: "observee",
       provenance:
-        "Mainlevée d'hypothèque en cas de revente avant le terme du prêt. Assise sur le " +
-        "prix du bien, non sur le capital restant dû.",
+        "Mainlevée d'hypothèque en cas de revente avant le terme du prêt. La question écrite " +
+        "n° 6820 de la XVIIe législature, publiée au Journal officiel avec la réponse du " +
+        "gouvernement, chiffre ces frais « entre 0,3 et 0,6 % du montant initial de l'emprunt » ; " +
+        "le chiffre est avancé par le député et la réponse ne le conteste pas. ⚠️ L'assiette " +
+        "annoncée est le CAPITAL EMPRUNTÉ, alors que `credit/plan.ts` applique ce taux au PRIX DU " +
+        "BIEN. L'écart est réel et il n'a pas été corrigé ici : `plan.ts` est gelé, et le corriger " +
+        "demande un ticket à lui.",
     },
     pledgeCostPct: {
       valeur: 0.3,
       intervalle: [0.1, 0.5],
       fiabilite: "estimee",
       provenance:
-        "Nantissement d'un contrat d'épargne. Ni acte notarié ni fonds mutuel à alimenter, " +
-        "d'où un coût d'entrée nettement inférieur aux deux autres garanties.",
+        "Nantissement d'un contrat d'épargne. Ni acte notarié ni fonds mutuel à alimenter, d'où " +
+        "un coût d'entrée nettement inférieur aux deux autres garanties. Aucune grille publique " +
+        "n'a pu être trouvée : les pages des assureurs qui pratiquent le nantissement — MAIF, " +
+        "AG2R La Mondiale, Matmut — en décrivent le mécanisme et vantent l'économie réalisée sans " +
+        "jamais chiffrer l'acte lui-même, qui se négocie de gré à gré avec la banque. La valeur " +
+        "reste un ordre de grandeur et l'intervalle un encadrement de notre fait.",
     },
   },
 
   insurance: {
     groupRatePct: {
-      intervalle: [0.3, 0.42],
+      intervalle: [0.26, 0.42],
       fiabilite: "estimee",
       provenance:
-        "Contrat de groupe d'une banque, taux annuel sur capital initial. ⚠️ La borne " +
-        "basse est contredite par un cas réel : l'exemple représentatif publié par la " +
-        "Société Générale donne 0,26 % pour un emprunteur de 35 ans. Voir ENG-008, et le " +
-        "ticket FIS-006 qui porte le recoupement.",
+        "Contrat de groupe d'une banque, taux annuel sur capital initial. La borne basse était de " +
+        "0,30 % et elle était fausse : l'exemple représentatif de la Société Générale en vigueur " +
+        "au 1er mai 2025 facture 43,33 € par mois pour 200 000 € empruntés par un emprunteur de " +
+        "35 ans, soit 0,26 % par an — le contre-exemple relevé par ENG-008, désormais intégré. " +
+        "L'offre SG du 15 juin au 15 juillet 2026 donne 61,33 € par mois à 38 ans, soit 0,368 % : " +
+        "trois ans d'écart d'âge et 42 % de prime en plus. La borne haute, elle, n'est lue dans " +
+        "aucune source et reste notre extension, d'où une fiabilité qui n'est pas relevée.",
     },
     delegationRatePct: {
       intervalle: [0.1, 0.2],
       fiabilite: "estimee",
       provenance:
-        "Délégation d'assurance, même assiette. L'écart avec le contrat de groupe est ce " +
-        "que la loi Lemoine permet d'aller chercher ; il varie fortement avec l'âge et " +
-        "l'état de santé, que ces bornes n'expriment pas.",
+        "Délégation d'assurance, même assiette. L'écart avec le contrat de groupe est ce que la " +
+        "loi Lemoine permet d'aller chercher ; il varie fortement avec l'âge et l'état de santé, " +
+        "que ces bornes n'expriment pas. Vérification non aboutie : les assureurs alternatifs ne " +
+        "publient pas d'exemple représentatif chiffré, la fiche standardisée d'information est " +
+        "remise au client et non mise en ligne, et le bilan de la loi Lemoine adressé au Parlement " +
+        "par le Comité consultatif du secteur financier raisonne en parts de marché et en nombre " +
+        "de substitutions, jamais en taux. Les seuls chiffres trouvés viennent de courtiers, qui " +
+        "vendent ce qu'ils décrivent : ils ne font pas une source.",
     },
   },
 
@@ -252,16 +333,23 @@ export const MARKET_2026: MarketAssumptions = {
       intervalle: [7, 8.5],
       fiabilite: "estimee",
       provenance:
-        "Frais d'acquisition dans l'ancien, tous postes réunis. Leur plus grosse part — les " +
-        "droits de mutation — est réglementée et vit dans `fiscal/params.ts` ; le total, lui, " +
-        "dépend aussi des émoluments négociés et des débours, et reste une estimation.",
+        "Frais d'acquisition dans l'ancien, tous postes réunis. Les notaires de France publient " +
+        "« environ 7 à 8 % du prix » — mais cette phrase cohabite, sur leur propre site mis à jour " +
+        "le 5 décembre 2025, avec un taux global de taxe de publicité foncière porté à 6,31 % " +
+        "après le relèvement départemental de 2025. Une contradiction interne à la source : les " +
+        "6,31 % de taxe ne laissent pas de place aux émoluments, débours et formalités sous une " +
+        "borne haute de 8 %. Notre 8,5 % tient compte de la hausse, ce que la phrase des notaires " +
+        "ne fait visiblement pas ; faute de pouvoir citer une source qui l'écrive, la fiabilité " +
+        "reste estimée.",
     },
     totalFeesNewPct: {
       intervalle: [2, 3],
-      fiabilite: "estimee",
+      fiabilite: "observee",
       provenance:
-        "Frais d'acquisition dans le neuf, où la taxe de publicité foncière remplace les " +
-        "droits de mutation. Même réserve : la part réglementée est connue, le total ne l'est pas.",
+        "Frais d'acquisition dans le neuf, où la taxe de publicité foncière au taux réduit " +
+        "remplace les droits de mutation. Les deux bornes sont celles que publient les notaires " +
+        "de France : « environ 2 à 3 % » du prix. Rien ne les a fait bouger en 2025, la hausse " +
+        "départementale ne portant que sur l'ancien.",
     },
   },
 
@@ -271,32 +359,44 @@ export const MARKET_2026: MarketAssumptions = {
       intervalle: [0.5, 2.0],
       fiabilite: "estimee",
       provenance:
-        "Règle de pouce répandue : provisionner environ 1 % de la valeur du bien et par an " +
-        "pour l'entretien, le remplacement des équipements et la quote-part de travaux votés " +
-        "en assemblée. Elle ne repose sur aucun relevé statistique ; un immeuble récent la " +
-        "situe plutôt en bas de l'intervalle, un immeuble ancien à ravaler bien au-dessus.",
+        "Règle de pouce répandue : provisionner environ 1 % de la valeur du bien et par an pour " +
+        "l'entretien, le remplacement des équipements et la quote-part de travaux votés en " +
+        "assemblée. Vérification non aboutie, et il faut dire pourquoi : les observatoires de " +
+        "copropriété publient des charges au mètre carré, pas une dépense d'entretien rapportée " +
+        "à la valeur du bien, et les deux ne se convertissent pas l'une dans l'autre sans " +
+        "connaître le prix au mètre carré de l'immeuble. Un immeuble récent se situe plutôt en " +
+        "bas de l'intervalle, un immeuble ancien à ravaler bien au-dessus.",
     },
     indexationLoyerPctAnnuel: {
-      valeur: 2.0,
-      intervalle: [0, 3.5],
-      fiabilite: "estimee",
+      valeur: 1.5,
+      intervalle: [0, 3.6],
+      fiabilite: "observee",
       provenance:
         "Révision annuelle du loyer. Le plafond, lui, est bien de droit — la révision ne peut " +
-        "dépasser la variation de l'indice de référence des loyers publié par l'INSEE, et le " +
-        "bail doit prévoir une clause de révision. Mais la VARIATION de cet indice n'est pas " +
-        "une règle : c'est une donnée qui se constate trimestre après trimestre, et le bailleur " +
-        "peut toujours réviser moins, voire pas du tout. D'où sa place ici et non dans params.ts.",
+        "dépasser la variation de l'indice de référence des loyers publié par l'INSEE, et le bail " +
+        "doit prévoir une clause de révision. Mais la VARIATION de cet indice n'est pas une règle : " +
+        "c'est une donnée qui se constate. L'INSEE la publie, et elle contredit la valeur de 2,0 % " +
+        "qui figurait ici : l'indice vaut 148,37 au deuxième trimestre 2026 pour une base 100 au " +
+        "quatrième trimestre 1998, soit 1,44 % par an sur vingt-sept ans et demi. Les derniers " +
+        "trimestres sont plus bas encore, +0,78 % puis +1,15 % sur un an. La borne haute passe de " +
+        "3,5 à 3,6 %, plus forte hausse annuelle de la série sur dix ans, atteinte au deuxième " +
+        "trimestre 2022.",
     },
     indexationTaxeFoncierePctAnnuel: {
-      valeur: 3.0,
-      intervalle: [1.0, 5.0],
-      fiabilite: "estimee",
+      valeur: 3.2,
+      intervalle: [1.9, 6.5],
+      fiabilite: "observee",
       provenance:
         "Dérive annuelle de la taxe foncière. Elle a deux moteurs de nature différente : la " +
-        "revalorisation forfaitaire des valeurs locatives cadastrales, qui suit un indice, et " +
-        "le taux voté chaque année par les collectivités, qui ne suit rien d'autre que leur " +
-        "budget. Le second n'est pas prévisible, et l'intervalle retenu est large pour cette " +
-        "raison. Retenir zéro serait le seul choix franchement faux.",
+        "revalorisation forfaitaire des valeurs locatives cadastrales, qui suit un indice, et le " +
+        "taux voté chaque année par les collectivités, qui ne suit rien d'autre que leur budget. " +
+        "Le dix-neuvième rapport de l'Observatoire national des taxes foncières, publié en " +
+        "octobre 2025 à partir des fichiers de la direction générale des finances publiques, " +
+        "mesure une hausse moyenne de 37,3 % entre 2014 et 2024, soit 3,2 % par an — contre " +
+        "19,9 % d'inflation et 8,7 % de loyers sur la même période. Les bornes sont les extrêmes " +
+        "des deux cents plus grandes villes sur ces dix ans : Caen à +21 % cumulés, soit 1,9 % " +
+        "par an, et Paris à +88 %, soit 6,5 % par an. Retenir zéro serait le seul choix " +
+        "franchement faux.",
     },
     indexationChargesPctAnnuel: {
       valeur: 2.0,
@@ -304,10 +404,14 @@ export const MARKET_2026: MarketAssumptions = {
       fiabilite: "estimee",
       provenance:
         "Dérive annuelle des charges de copropriété, des charges locatives, des assurances " +
-        "habitation et de la provision pour travaux. Ordre de grandeur d'une inflation générale " +
-        "de long terme, appliqué identiquement aux deux côtés de la comparaison : ces postes " +
-        "existent chez le propriétaire comme chez le locataire et n'ont pas de raison de dériver " +
-        "à des vitesses différentes.",
+        "habitation et de la provision pour travaux, appliquée identiquement aux deux côtés de la " +
+        "comparaison. La valeur est celle d'une inflation de longue période : l'Institut de " +
+        "l'épargne immobilière et foncière mesure 2,0 % par an sur quarante ans et 1,6 % sur " +
+        "quinze. Les charges, elles, montent plus vite, et les deux observatoires consultés ne " +
+        "s'accordent pas sur combien : la FNAIM du Grand Paris relève +10,71 % pour la seule " +
+        "année 2023, l'Association des responsables de copropriété +4,6 % pour cette même année, " +
+        "sur des périmètres qui ne se recouvrent pas. Faute de série longue et de chiffres " +
+        "concordants, l'entrée reste estimée et sa borne haute est notre extension.",
     },
   },
 
@@ -318,21 +422,58 @@ export const MARKET_2026: MarketAssumptions = {
       provenance:
         "Appréciation annuelle d'un logement, en termes nominaux. Aucune valeur centrale n'est " +
         "publiée ici, et c'est délibéré : la donner reviendrait à annoncer ce que vaudra un bien " +
-        "dans quinze ans. Les bornes encadrent ce qu'ont connu les marchés français sur de longues " +
-        "périodes, hausses soutenues comme reculs prolongés ; elles décrivent le passé et ne " +
-        "prédisent rien. L'écart entre deux points de cet intervalle change le produit de la vente " +
-        "de plusieurs dizaines de milliers d'euros sur vingt ans : c'est l'hypothèse la plus " +
-        "sensible du scénario, et de très loin.",
+        "dans quinze ans. Ce que l'INSEE publie, c'est la variation d'une ANNÉE sur l'autre de " +
+        "l'indice Notaires-INSEE, et elle est bien plus violente que notre intervalle : de −5,5 % " +
+        "au premier trimestre 2024 à +10,0 % au deuxième trimestre 2011, +0,1 % au premier " +
+        "trimestre 2026. Nos bornes sont volontairement plus resserrées, parce qu'elles décrivent " +
+        "un taux TENU SUR TOUT UN HORIZON et non la secousse d'une année ; mais ce resserrement " +
+        "est notre décision, aucune source ne le publie, et c'est pourquoi l'entrée reste estimée. " +
+        "L'écart entre deux points de cet intervalle change le produit de la vente de plusieurs " +
+        "dizaines de milliers d'euros sur vingt ans : c'est l'hypothèse la plus sensible du " +
+        "scénario, et de très loin.",
     },
     commissionAgencePct: {
       valeur: 5,
       intervalle: [3, 8],
-      fiabilite: "estimee",
+      fiabilite: "observee",
       provenance:
         "Commission d'agence à la revente, toutes taxes comprises, en pourcentage du prix de " +
-        "cession. Les honoraires sont libres depuis la loi du 1er août 1986 ; les grilles sont " +
-        "affichées en agence et souvent dégressives selon le prix, ce qu'un taux unique ne " +
-        "reproduit pas. Zéro chiffre la vente de particulier à particulier.",
+        "cession. Les honoraires sont libres depuis la loi du 1er août 1986, mais leur affichage " +
+        "est obligatoire, ce qui rend les barèmes lisibles : celui d'une agence Century 21 daté " +
+        "du 1er janvier 2026 facture 10 100 € à 150 000 €, 12 000 € à 200 000 €, 14 800 € à " +
+        "300 000 € et 5 % hors taxes au-delà de 450 000 €, soit de 4,7 à 6,7 % selon le prix — " +
+        "le barème est dégressif, ce qu'un taux unique ne reproduit pas. La borne basse de 3 % " +
+        "vise les réseaux à honoraires réduits, dont aucun barème publié n'a pu être ouvert. " +
+        "Zéro chiffre la vente de particulier à particulier.",
+    },
+  },
+
+  rendements: {
+    sansRisque: {
+      intervalle: [1.5, 3],
+      fiabilite: "estimee",
+      provenance:
+        "Support à capital garanti, type fonds en euros, net des prélèvements. Le taux moyen de " +
+        "revalorisation servi en 2025 est de 2,6 % selon France Assureurs et de 2,63 % selon " +
+        "l'Autorité de contrôle prudentiel et de résolution — mais ces taux sont nets de frais de " +
+        "gestion et BRUTS de prélèvements sociaux, soit environ 2,2 % une fois les 17,2 % " +
+        "retranchés. La conversion tombe bien dans notre intervalle sans en justifier les bornes, " +
+        "que la dispersion contrat par contrat déterminerait et qu'aucun document ouvert ne " +
+        "donne : les publications de l'ACPR n'ont pas pu être consultées, le serveur refusant les " +
+        "requêtes automatisées. L'entrée reste donc estimée.",
+    },
+    actionsDiversifiees: {
+      intervalle: [4, 7],
+      fiabilite: "estimee",
+      provenance:
+        "Portefeuille d'actions diversifié détenu sur longue période, net d'impôt et de frais. " +
+        "L'étude « 40 ans de performances comparées » de l'Institut de l'épargne immobilière et " +
+        "foncière donne des taux de rendement interne de 12,4 % par an sur quarante ans et 9,9 % " +
+        "sur quinze pour les actions françaises — mais BRUTS de fiscalité, quand notre fourchette " +
+        "est nette. La conversion dépend de l'enveloppe retenue, qui n'est pas encore modélisée " +
+        "(ticket ENG-023) : notre intervalle est donc cohérent avec ces mesures sans en découler, " +
+        "et il reste estimé. Il est de surcroît une espérance : il ne dit rien de la dispersion, " +
+        "que seule une simulation de trajectoires rend visible.",
     },
   },
 };
