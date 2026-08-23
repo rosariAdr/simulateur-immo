@@ -153,6 +153,24 @@ export function ModuleCredit() {
               poserez vous-même.
             </p>
             {/*
+              Le chemin vers la comparaison — `VIZ-003`. Il est posé exactement
+              sous la phrase qui dit que ce module ne compare pas : c'est là que
+              la question se pose au lecteur, pas dans une barre de navigation.
+            */}
+            <p className="mt-2.5 text-[12px] leading-[1.6]">
+              <Link
+                href="/comparaison"
+                data-vers-comparaison
+                className="text-accent underline underline-offset-2 hover:text-accent-survol
+                           focus-visible:outline focus-visible:outline-2
+                           focus-visible:outline-offset-2 focus-visible:outline-accent"
+              >
+                Acheter ou louer
+              </Link>{" "}
+              — la même échéance confrontée à un loyer, année par année, avec les deux façons de
+              compter et les deux années de croisement qu&apos;elles donnent.
+            </p>
+            {/*
               Le chemin vers la fiche longue — `CNT-002`. La bulle « i » donne la
               définition, la fiche donne le raisonnement : voir docs/06-design-system.md §8.
             */}

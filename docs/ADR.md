@@ -1084,3 +1084,106 @@ rougit désormais deux fois.
   rien n'y désigne un moment favorable. Balayer l'horizon pour tracer une courbe est le
   travail de l'appelant ; il devra le faire sans laisser croire que le maximum de cette
   courbe est une recommandation.
+
+---
+
+## ADR-015 — La limite précède les chiffres, et la bascule vit à l'intérieur
+
+**Date** : 23 août 2026 · **Statut** : adoptée · **Tickets** : `VIZ-003`
+
+### Contexte
+
+`docs/03-spec-domaine.md` §2 n'écrit pas que la comparaison « acheter ou louer » de niveau
+simple a des limites. Il écrit qu'elle **est faussée**, et il en donne la raison : la part
+de capital d'une mensualité n'est pas une dépense. ADR-012 a tiré la conséquence côté
+moteur — deux lectures produites ensemble, deux années de croisement — en laissant une
+question ouverte, et elle est entièrement d'interface : *où* cet énoncé se pose sur l'écran.
+
+La réponse par défaut, celle que produit n'importe quelle mise en page raisonnable, est
+« sous le graphique, dans la section des limites ». C'est l'ordre qu'on trouve partout, et
+c'est celui qui annule l'énoncé : le lecteur pressé lit les courbes, en tire une conclusion,
+et ne descend pas. Le module aurait alors produit exactement le raccourci qu'il existe pour
+corriger, à ceci près qu'il l'aurait produit en ayant l'air de s'en défendre.
+
+Trois autres formes ont été essayées avant celle qui a été retenue.
+
+- **Une infobulle sur le titre.** Invisible tant qu'on ne la cherche pas — et c'est celui
+  qui ne la cherche pas qu'il s'agit d'atteindre.
+- **Un encadré au-dessus du graphique, sans plus.** Lisible, et parfaitement contournable :
+  rien n'oblige à le traverser, et l'œil va au premier gros chiffre.
+- **Une phrase dans la légende du graphique.** Elle devient un ornement du graphique, donc
+  une chose qu'on regarde après avoir lu la forme des courbes.
+
+### Décision
+
+**Trois règles, qui ne valent que prises ensemble.**
+
+**1. Aucun chiffre de comparaison n'apparaît avant la limite, dans l'ordre du document.**
+Le titre de la page ne porte aucun montant ; le bloc de limite le suit immédiatement ; tout
+ce qui est chiffré vient après et porte l'attribut `data-chiffre`. L'ordre du document, et
+non le dessin : c'est lui que suit un lecteur d'écran, et c'est lui qui décide de ce qui est
+lu en premier quand la grille de bureau s'effondre en une colonne.
+
+**2. La bascule entre les deux lectures vit à l'intérieur du bloc de limite, et nulle part
+ailleurs sur l'écran.** C'est la moitié de la décision, et c'est elle qui rend
+l'avertissement non contournable : on ne peut pas changer de lecture sans passer par la
+raison d'être de ce choix. Les **deux** années de croisement y figurent ensemble, et non
+celle de la seule lecture retenue — sur le scénario d'ouverture, vingt-huit ans les
+séparent, ce qui énonce la limite mieux qu'aucune phrase.
+
+**3. L'échelle du graphique ne se recale jamais sur la lecture retenue.** Elle vaut toujours
+le plus grand cumul de décaissement de l'horizon. Passer en fonds perdus fait donc
+**retomber** les courbes dans la hauteur du cadre au lieu de les réétaler : ce qui a disparu
+est visible, et c'est le capital.
+
+Corollaire de forme, tranché en même temps : la bascule n'est **pas** un `SelecteurSegmente`.
+Cette primitive passe par `Champ`, qui pose sur tout contrôle une étiquette de famille —
+négociable, contraint, réglementaire. Une lecture n'est aucune des trois : ce n'est pas un
+paramètre de l'opération, c'est une façon de la regarder. Le dessin est repris, la sémantique
+de champ ne l'est pas. Même raisonnement pour les quatre hypothèses de marché du panneau,
+qui ne portent aucune famille mais leur intervalle observé et leur fiabilité, lus dans
+`src/core/assumptions/market.ts` — c'est la distinction d'ADR-008 rendue visible à l'écran
+plutôt que niée par une étiquette de commodité.
+
+### Justification
+
+La règle 1 seule est une intention : rien n'empêche une refonte de bonne foi de déplacer un
+encadré. La règle 2 la rend structurelle — déplacer le bloc casse la commande, et une
+commande cassée se remarque. La règle 3 est ce qui empêche le graphique de mentir dans le
+sens inverse : un cadre qui se réétale à chaque bascule rendrait les deux lectures
+indiscernables à l'œil, et le passage de l'une à l'autre n'apprendrait plus rien.
+
+### Ce qui la garde
+
+`tests/e2e/comparaison.spec.ts`, sur les deux profils :
+
+- **« la limite précède tous les chiffres dans l'ordre du document »** — comparaison de
+  position DOM entre `[data-limite]` et chaque `[data-chiffre]` ;
+- **« la limite se lit sans défiler »** — la phrase de la spécification est entièrement dans
+  la fenêtre, à 1 280 × 900 comme sur un Pixel 7 ;
+- **« la bascule vit à l'intérieur du bloc de limite »** — et il n'en existe qu'une sur la
+  page ;
+- **« l'échelle ne se recale pas sur la lecture retenue »** — le repère de l'année 30 vaut
+  58,0 % du cadre en fonds perdus contre 96,5 % en décaissement, mesuré en pixels ;
+- **« les repères des courbes sont proportionnels aux montants du moteur »** — cinq repères
+  confrontés aux cumuls, sans hauteur plancher ;
+- **« aucune tournure prescriptive n'atteint le lecteur »** — quatorze tournures, dont
+  quatre propres à ce module : `rentab`, `gagnant`, `l'emporte`, `plus avantageux`.
+
+Vérifié à l'adoption, gardes cassées puis rétablies : un plancher de 6 % sur les repères fait
+rougir la garde de proportions ; une échelle assise sur la seule courbe du propriétaire en
+fait rougir deux ; déplacer le bloc de limite sous la grille et glisser un « mieux vaut »
+dans le texte en font rougir trois, sur chacun des deux profils.
+
+### Conséquences acceptées
+
+- **Le haut de l'écran est occupé par du texte, pas par un chiffre.** C'est l'inverse de ce
+  que fait `/credit`, où le bandeau d'indicateurs ouvre la page. La divergence est assumée :
+  le module crédit calcule une grandeur qui ne se conteste pas, celui-ci en calcule une qui
+  se conteste, et l'écran doit le dire avant de la montrer.
+- **La lecture retenue n'entre pas dans l'URL** — ADR-005, elle change un cadrage et non un
+  chiffre. On ne partage donc pas « regarde cet écran en fonds perdus ». La perte est petite :
+  le destinataire du lien reçoit de toute façon les deux croisements sous les yeux.
+- **Le bloc de limite ne peut pas beaucoup grossir.** Il doit tenir dans une fenêtre de
+  téléphone avec le bandeau d'avertissement au-dessus. Toute phrase ajoutée là devra en
+  chasser une autre, et c'est une contrainte utile.

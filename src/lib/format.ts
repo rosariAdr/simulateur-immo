@@ -49,6 +49,27 @@ export function formatDuree(mois: number): string {
 }
 
 /**
+ * Date d'un relevé d'hypothèses de marché, « 2026-08 », rendue en clair.
+ *
+ * Les hypothèses de `src/core/assumptions/market.ts` portent un mois de relevé
+ * et non un millésime légal — elles n'ont pas d'exercice. L'écran qui les
+ * affiche doit dire ce mois-là, et « 2026-08 » n'est pas une date lisible.
+ * Une chaîne qui n'a pas la forme attendue est rendue telle quelle plutôt que
+ * déformée : mieux vaut afficher un code brut qu'un mois inventé.
+ */
+const MOIS = [
+  "janvier", "février", "mars", "avril", "mai", "juin",
+  "juillet", "août", "septembre", "octobre", "novembre", "décembre",
+] as const;
+
+export function formatMoisReleve(releve: string): string {
+  const trouve = /^(\d{4})-(\d{2})$/.exec(releve);
+  if (!trouve) return releve;
+  const nom = MOIS[Number(trouve[2]) - 1];
+  return nom ? `${nom} ${trouve[1]}` : releve;
+}
+
+/**
  * Analyse une saisie française et rend des centimes.
  *
  * Tolère l'espace insécable, l'espace fine, le point comme séparateur de
