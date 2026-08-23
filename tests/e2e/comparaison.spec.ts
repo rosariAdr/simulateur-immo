@@ -170,27 +170,32 @@ test("les deux croisements restent visibles quelle que soit la lecture retenue",
 test("la bascule change les montants comparés, pas seulement l'étiquette", async ({ page }) => {
   await page.goto("/comparaison");
 
-  // ── LE SCÉNARIO PAR DÉFAUT N'A PLUS DE CROISEMENT, ET IL OUVRE À L'ANNÉE 1 ──
+  // ── LE SCÉNARIO PAR DÉFAUT N'A PLUS DE CROISEMENT, ET IL OUVRE À L'HORIZON ──
   //
   // Il ouvrait sur l'année 29, la plus tardive des deux croisements. Le journal
   // de `VIZ-003` avait signalé la fragilité : « le croisement du décaissement est
   // à un an de l'horizon, année 29 sur 30 ; un pas de plus sur n'importe quel
   // paramètre le fait disparaître ». `FIS-006` a été ce pas — l'indexation du
-  // loyer ramenée de 2,0 à 1,5 % par an sur la série INSEE. Le croisement sort de
-  // l'horizon, et le curseur retombe sur l'année 1.
+  // loyer ramenée de 2,0 à 1,5 % par an sur la série INSEE.
+  //
+  // Le curseur est alors retombé sur l'année 1, et c'était un second défaut :
+  // le calcul prenait le maximum des croisements NON NULS, donc celui des fonds
+  // perdus, seul survivant. `UI-015` exige les deux — à défaut, l'horizon. Voir
+  // le commentaire de `ModuleComparaison.tsx`, qui donnait déjà trois raisons de
+  // ne pas ouvrir sur l'année 1 pendant que le code le faisait.
   //
   // Ce que ce test garde n'est pas l'année : c'est que la bascule change les
   // MONTANTS, et que leur différence vaut exactement le capital remboursé.
-  await expect(chiffre(page, "proprietaire")).toHaveText(eur("17 346", "68"));
-  await expect(chiffre(page, "capital")).toHaveText(eur("6 531", "92"));
+  await expect(chiffre(page, "proprietaire")).toHaveText(eur("453 764", "21"));
+  await expect(chiffre(page, "capital")).toHaveText(eur("180 000"));
 
   await page.locator('[data-bascule-lecture] [data-lecture="fondsPerdus"]').click();
-  // 17 346,68 − 6 531,92 = 10 814,76 : l'invariant du moteur, à l'année 1 comme
-  // à l'année 30.
-  await expect(chiffre(page, "proprietaire")).toHaveText(eur("10 814", "76"));
+  // 453 764,21 − 180 000,00 = 273 764,21 : l'invariant du moteur, à l'année 1
+  // comme à l'année 30.
+  await expect(chiffre(page, "proprietaire")).toHaveText(eur("273 764", "21"));
   // Le locataire ne bouge pas : tout ce qu'il verse est consommé dans les deux
   // lectures. Cette égalité EST l'enseignement, elle ne doit pas s'effacer.
-  await expect(chiffre(page, "locataire")).toHaveText(eur("11 540"));
+  await expect(chiffre(page, "locataire")).toHaveText(eur("437 255", "90"));
 });
 
 test("la bascule se parcourt aux flèches", async ({ page }) => {
@@ -333,24 +338,46 @@ test("l'échelle ne se recale pas sur la lecture retenue", async ({ page }) => {
   expect(apres, "les fonds perdus ne redescendent pas dans le cadre").toBeLessThan(avant ?? 0);
 });
 
+test("l'année d'ouverture exige les deux croisements, pas un seul", async ({ page }) => {
+  // La règle est énoncée dans `ModuleComparaison.tsx` : on ouvre sur l'état où
+  // l'histoire entière est derrière soi. Deux scénarios la mettent à l'épreuve
+  // dans les deux sens, et c'est le second qui a fait défaut jusqu'à `UI-015`.
+
+  // Les deux lectures croisent : la plus tardive des deux, année 23.
+  await page.goto(DEUX_CROISEMENTS);
+  await expect(page.locator("[data-ecart]")).toContainText("Écart à l'année 23");
+
+  // Une seule croise — le décaissement sort de l'horizon sur le scénario par
+  // défaut. L'année 1 des fonds perdus n'est PAS une ouverture : à cette
+  // année-là, l'autre lecture n'a pas basculé et ne basculera jamais.
+  await page.goto("/comparaison");
+  await expect(page.locator('[data-croisement="decaissement"]')).not.toHaveAttribute(
+    "data-valeur",
+    /\d+/,
+  );
+  await expect(page.locator('[data-croisement="fondsPerdus"]')).toHaveAttribute("data-valeur", "1");
+  await expect(page.locator("[data-ecart]")).toContainText("Écart à l'année 30");
+});
+
 /* ── Le bandeau d'écart et le curseur d'année ─────────────────────────────── */
 
 test("le bandeau d'écart chiffre la différence à l'année lue", async ({ page }) => {
   await page.goto("/comparaison");
 
-  // Année 1, en décaissement : 17 346,68 € contre 11 540,00 €. Le scénario par
-  // défaut ouvre là depuis `FIS-006`, faute de croisement dans l'horizon.
-  await expect(page.locator("[data-ecart]")).toContainText("Écart à l'année 1");
-  await expect(chiffre(page, "ecart")).toHaveText(eur("5 806", "68"));
+  // Année 30, en décaissement : 453 764,21 € contre 437 255,90 €. Le scénario par
+  // défaut ouvre à l'horizon depuis `UI-015`, faute de croisement dans les deux
+  // lectures — et c'est bien à l'horizon que se lit un scénario qui ne croise pas.
+  await expect(page.locator("[data-ecart]")).toContainText("Écart à l'année 30");
+  await expect(chiffre(page, "ecart")).toHaveText(eur("16 508", "31"));
   // Le sens est écrit, pas suggéré par une couleur ni par une flèche.
   await expect(page.locator('[data-chiffre="ecart"]')).toContainText("de plus décaissé");
 
   // Et il s'écrit dans les deux sens. La bascule inverse le signe : en fonds
-  // perdus, le propriétaire a consommé 725,24 € de moins dès la première année.
+  // perdus, le propriétaire a consommé 163 491,69 € de moins sur trente ans.
   // Sans cette seconde moitié, le test ne verrait plus qu'un seul des deux
   // libellés — le scénario par défaut ne produit plus de « de moins décaissé ».
   await page.locator('[data-bascule-lecture] [data-lecture="fondsPerdus"]').click();
-  await expect(chiffre(page, "ecart")).toHaveText(eur("725", "24"));
+  await expect(chiffre(page, "ecart")).toHaveText(eur("163 491", "69"));
   await expect(page.locator('[data-chiffre="ecart"]')).toContainText("de moins consommé");
 });
 

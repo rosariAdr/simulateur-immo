@@ -245,6 +245,15 @@ Le découpage en versions, le modèle de branches et les portes sont dans
       signature de `guaranteeCost` : plus aucun poste ne s'y adossait. La garde nomme
       désormais son assiette — la version proportionnelle laissait passer un facteur
       1,25 sans un seul rouge. Voir ADR-019
+- [x] `UI-015` **`/comparaison` s'ouvrait sur l'année 1**, alors que son propre
+      commentaire donnait trois raisons de ne pas le faire. Le calcul prenait le
+      maximum des croisements **non nuls** ; quand une seule lecture croise, il rendait
+      l'année de celle-là. Révélé par `FIS-006` : l'indexation du loyer ramenée à 1,5 %
+      a sorti le croisement en décaissement de l'horizon
+      → il faut désormais les **deux** croisements ; à défaut, l'horizon. C'est
+      l'intention déjà écrite — l'état où l'histoire entière est derrière soi — appliquée
+      au cas où une lecture ne bascule jamais. L'écran d'ouverture passe d'un écart de
+      5 806,68 € à l'année 1 à 16 508,31 € à l'année 30
 - [ ] `UI-010` Assistant d'éligibilité
 
 ## Portes de vérification

@@ -70,10 +70,27 @@ export function ModuleComparaison() {
    *
    * Bornée à chaque rendu plutôt que réinitialisée par un effet : raccourcir
    * l'horizon ne doit pas laisser le curseur pointer une année disparue.
+   *
+   * ── Il faut les DEUX croisements, et pas un seul — `UI-015` ──
+   *
+   * Ce calcul filtrait les croisements nuls puis prenait le maximum de ce qui
+   * restait. Quand une seule des deux lectures croise, il rendait donc l'année de
+   * celle-là — et la phrase ci-dessus cesse d'être vraie : à cette année-là, les
+   * deux lectures n'ont pas toutes deux basculé, puisque l'autre ne bascule
+   * jamais dans l'horizon.
+   *
+   * Le défaut est resté invisible jusqu'à ce que `FIS-006` ramène l'indexation du
+   * loyer de 2,0 à 1,5 % : le croisement en décaissement est sorti de l'horizon,
+   * seul celui des fonds perdus est resté — année 1 — et l'écran s'est mis à
+   * ouvrir sur l'année 1, très exactement ce que ce commentaire donne trois
+   * raisons de ne pas faire.
+   *
+   * Le remède se lit dans l'intention déjà écrite : l'état où l'histoire entière
+   * est derrière soi. Si une lecture ne bascule jamais, cet état est l'horizon.
    */
-  const croisements = [comparaison.croisement.decaissement, comparaison.croisement.fondsPerdus]
-    .filter((a): a is number => a !== null);
-  const ouverture = croisements.length > 0 ? Math.max(...croisements) : dernier;
+  const croisements = [comparaison.croisement.decaissement, comparaison.croisement.fondsPerdus];
+  const tousCroises = croisements.every((a): a is number => a !== null);
+  const ouverture = tousCroises ? Math.max(...(croisements as number[])) : dernier;
   const annee = Math.min(Math.max(anneeChoisie ?? ouverture, 1), Math.max(dernier, 1));
   const anneeLue = comparaison.annees.find((a) => a.annee === annee);
 
