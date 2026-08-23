@@ -7,6 +7,17 @@ type Herite = Omit<ChampProps, "children" | "id">;
 export interface Option<T extends string> {
   readonly valeur: T;
   readonly libelle: string;
+  /**
+   * Option présente mais non choisissable. Ajouté par `UI-007`.
+   *
+   * Une option retirée de la liste n'apprend rien : l'utilisateur ne sait pas
+   * qu'elle existe, ni pourquoi elle ne s'offre pas à lui. Un forfait fiscal
+   * fermé par une condition de durée de détention est exactement ce cas — le
+   * moteur sait dire *pourquoi* (`motifExclusionForfait…`), et l'écran doit
+   * pouvoir montrer l'option grisée avec son motif à côté plutôt que de la
+   * faire disparaître.
+   */
+  readonly desactivee?: boolean;
 }
 
 export interface ListeDeroulanteProps<T extends string> extends Herite {
@@ -58,7 +69,7 @@ export function ListeDeroulante<T extends string>({
             </option>
           )}
           {options.map((o) => (
-            <option key={o.valeur} value={o.valeur}>
+            <option key={o.valeur} value={o.valeur} disabled={o.desactivee}>
               {o.libelle}
             </option>
           ))}

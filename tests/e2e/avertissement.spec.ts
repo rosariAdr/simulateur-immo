@@ -16,6 +16,7 @@ const ROUTES = [
   "/credit",
   "/credit/comprendre",
   "/comparaison",
+  "/comparaison/patrimoine",
   "/composants",
   "/avertissement",
 ];
