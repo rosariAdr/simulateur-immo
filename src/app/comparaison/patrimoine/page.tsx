@@ -11,8 +11,8 @@ export const metadata: Metadata = {
   description:
     "Compare ce que possède un propriétaire qui revend son bien et ce que vaut le portefeuille " +
     `d'un locataire qui aurait placé le même effort d'épargne, sur ${DEFAUTS.horizonAnnees} ans. ` +
-    `${CHIFFREES === 1 ? "Une seule" : String(CHIFFREES)} des trois sorties prévues est chiffrée : ` +
-    "la vente. Le résultat dépend de deux hypothèses de marché affichées avec leur intervalle et " +
+    `${CHIFFREES === 3 ? "Les trois sorties prévues sont chiffrées — vendre, louer en longue durée, louer en courte durée" : `${CHIFFREES} des trois sorties prévues ${CHIFFREES > 1 ? "sont chiffrées" : "est chiffrée"}`}. ` +
+    "Le résultat dépend d'hypothèses de marché affichées avec leur intervalle et " +
     "leur fiabilité. Gratuit, sans compte, sans collecte de données.",
 };
 

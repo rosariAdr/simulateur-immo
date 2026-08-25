@@ -198,16 +198,30 @@ Le découpage en versions, le modèle de branches et les portes sont dans
       saisonnalité, réglementation locale (les 120 nuits), taxe de séjour, TVA
       para-hôtelière. 16 tests, deux sabotages, chacun tombé sur sa garde.
       Livré le 25 août 2026
-- [ ] `UI-024` **Étude** — le câblage des trois sorties dans
-      `/comparaison/patrimoine` : où vivent le choix de la sortie et celui du
-      régime, quels champs nouveaux l'URL porte (loyer de marché, tarif,
-      occupation, TMI…), comment les alertes de seuil et les réserves des
-      scénarios s'affichent sans écraser l'écran, et ce que deviennent les
-      gardes « déclarées absentes ». L'écran est dessiné (ADR-020) : l'étude
-      précède le geste, comme en phase 8
-- [ ] `UI-025` Réalisation du câblage — dépend de `UI-024`. Les trois moteurs
-      sont prêts : `ENG-027` (vente), `ENG-029` (longue durée), `ENG-015`
-      (courte durée). La version v0.3.1 s'étiquette après lui, par `TST-031`
+- [x] `UI-024` **Étude** — le câblage des trois sorties dans
+      `/comparaison/patrimoine`. Menée le 25 août 2026 sur pièce
+      → `docs/reference/UI-024-etude-cablage.md`, décision de forme en
+      **ADR-022** : une location est un récit, pas un point sur les courbes.
+      L'analyse principale ne change pas ; la section des trois sorties devient
+      le lieu des récits locatifs, chacun daté à ses propres échéances, sans
+      jamais additionner des euros de dates différentes. Dix clés d'URL
+      nouvelles, le reste repris des vingt-cinq existantes ; les hypothèses de
+      `market.location` s'affichent avec leur fiabilité au lieu de s'ouvrir en
+      champs ; le TMI est une liste — les cinq taux du barème
+- [x] `UI-025` Réalisation du câblage — livré le 25 août 2026
+      → le sélecteur segmenté ouvre l'un des trois récits ; chaque panneau
+      locatif porte ses champs (régime, loyer ou tarif et occupation, durée,
+      TMI…), l'année 1 poste par poste — le flux net a le droit d'être
+      négatif —, les totaux, la revente avec la minoration des amortissements,
+      les alertes de seuil avec le seuil écrit et l'année du franchissement, et
+      ses réserves visibles sans interaction. `TROIS_SORTIES` reste la source
+      unique de l'état : la phrase du bandeau se déduit désormais du même
+      compte (leçon d'`UI-014`, appliquée une fois de plus). La garde « deux
+      des trois sorties non modélisées » s'est inversée en gardant son objet —
+      l'honnêteté de l'état — et le parcours v0.3.0 est amendé avec la raison
+      datée. 5 tests e2e nouveaux sur deux profils ; deux sabotages — drapeau
+      `modelisee` menteur (4 rouges, la chaîne dérivée), alertes débranchées
+      (2 rouges). La version v0.3.1 s'étiquette par `TST-031`
 - [x] `ENG-016` Statut de résidence fiscale et prélèvements sociaux applicables
       → même fichier. `RegimeSocialDuCedant` commande le taux, et lui seul : taux plein du
       régime dérogatoire immobilier, ou taux réduit pour l'affilié EEE/Suisse. Ce que la
@@ -2988,3 +3002,45 @@ d'invariant qui oubliait l'indexation du tarif.
 
 **Le moteur de v0.3.1 est complet.** Reste `TST-031` — la porte de version — et
 le câblage d'écran des trois sorties, qui a désormais tout ce qu'il faut.
+
+---
+
+### 25 août 2026 — UI-024 et UI-025 : les trois sorties se chiffrent à l'écran
+
+**L'étude d'abord** (`docs/reference/UI-024-etude-cablage.md`), la décision en
+**ADR-022** : *une location est un récit, pas un point sur les courbes*. La vente
+tombe à une date, une mise en location est une série de flux puis une revente
+plus tard — les superposer aurait exigé de comparer des patrimoines à des dates
+différentes sans actualisation, ou de prolonger le portefeuille du locataire avec
+un moteur qui n'existe pas. L'analyse principale ne change donc pas d'un pixel ;
+la section « trois sorties » cesse de déclarer des absences et devient le lieu où
+les récits se chiffrent, chacun à ses dates, aucun désigné.
+
+**La réalisation.** Dix clés d'URL nouvelles (`so`, `dl`, `tm`, `lm`, `rl`, `rc`,
+`tn`, `oc`, `am`, `ce`), tout le reste — taxe, charges, assurance-devenue-PNO,
+provision, indexations, prix, horizon, plan — repris des clés existantes sans en
+redemander une. Les hypothèses de `market.location` s'affichent avec valeur,
+intervalle et fiabilité au lieu de s'ouvrir en champs. Le TMI est une liste, les
+cinq taux du barème. Le taux d'occupation ouvre sur le milieu de sa fourchette et
+l'aide écrit qu'il n'a aucune autorité — le pattern d'ADR-020, appliqué à la
+courte durée. L'écart 17,2 / 18,6 % de prélèvements sociaux s'écrit sur la ligne
+d'impôt : c'est un enseignement, pas un détail de calcul.
+
+**Ce qui a été appris en vérifiant.** L'aperçu interactif ne composait aucune
+frame — fenêtre non affichée — et l'hydratation ne se révélait jamais : les clics
+tombaient sur un DOM inerte, sans une erreur en console. Une heure aurait pu s'y
+perdre ; la leçon est consignée : **la vérification d'écran de ce projet passe
+par le build de production et Playwright**, qui ont rendu 78 verts sur les deux
+profils du premier coup — y compris le clic du sélecteur, l'écriture d'`so` dans
+l'URL et les seuils de la courte durée.
+
+**Les gardes ont changé d'état sans changer d'objet.** « Deux des trois sorties
+sont annoncées comme non modélisées » devient « les trois sorties sont chiffrées,
+et la sortie regardée se choisit » ; le parcours v0.3.0 est amendé avec la raison
+datée ; la phrase du bandeau se **déduit** désormais de `TROIS_SORTIES` au lieu
+d'être écrite à la main — la leçon d'`UI-014`, appliquée au moment même où elle
+allait être enfreinte. **Deux sabotages** : le drapeau `modelisee` menti — 4
+rouges, toute la chaîne dérivée tombe ensemble — et les alertes débranchées du
+panneau courte durée — 2 rouges, la garde des seuils seule.
+
+**Reste pour v0.3.1** : `TST-031`, la porte de version.

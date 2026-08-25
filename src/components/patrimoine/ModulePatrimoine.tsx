@@ -50,7 +50,19 @@ import { usePatrimoine } from "./usePatrimoine";
  * envoyer.
  */
 export function ModulePatrimoine() {
-  const { scenario, definir, sortie, definirSortie, plan, comparaison, analyse } = usePatrimoine();
+  const {
+    scenario,
+    definir,
+    sortie,
+    definirSortie,
+    location,
+    definirLocation,
+    plan,
+    comparaison,
+    analyse,
+    longueDuree,
+    courteDuree,
+  } = usePatrimoine();
   const [anneeChoisie, setAnneeChoisie] = useState<number | null>(null);
   const [copie, setCopie] = useState(false);
 
@@ -153,7 +165,12 @@ export function ModulePatrimoine() {
             motifForfait={analyse.motifForfait}
           />
 
-          <TroisSorties />
+          <TroisSorties
+            location={location}
+            definir={definirLocation}
+            longueDuree={longueDuree}
+            courteDuree={courteDuree}
+          />
 
           <section data-limites className="border-t border-filet pt-3">
             <h2 className="mb-1.5 text-[11px] uppercase tracking-[0.07em] text-encre-secondaire">

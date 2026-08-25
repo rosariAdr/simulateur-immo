@@ -172,11 +172,13 @@ test("le parcours complet : de l'accueil à l'hypothèse déplacée", async ({ p
   // entre « ces chiffres sont incertains » et « voici de combien ».
   await expect(page.locator("[data-incertitude]")).toContainText(montant);
 
-  // Et les deux sorties que le moteur ne sait pas traiter sont nommées comme
-  // absentes — pas comme prochaines. `UI-014` a corrigé l'erreur inverse ;
-  // celle-ci serait pire, parce qu'elle promettrait.
+  // Ce que cette étape garde n'a pas bougé : l'état des sorties est dit
+  // honnêtement, jamais promis. À la sortie de v0.3.0, l'état vrai était
+  // « n'existe pas dans ce simulateur » ; depuis le 25 août 2026 (`UI-025`,
+  // v0.3.1), les trois sorties sont chiffrées, et c'est cela que l'écran doit
+  // dire — toujours sans « à venir ».
   const sorties = page.locator("[data-trois-sorties]");
-  await expect(sorties).toContainText(/n'existe pas dans ce simulateur/i);
+  await expect(sorties).toContainText(/Les trois sont chiffrées ici/i);
   await expect(sorties).not.toContainText(/à venir|bientôt|prochainement/i);
 });
 
