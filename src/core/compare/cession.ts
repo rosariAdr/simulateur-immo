@@ -159,6 +159,14 @@ export type RegimeDeCession =
       readonly regimeSocial: RegimeSocialDuCedant;
       readonly fraisAcquisition: ModeMajoration;
       readonly travaux: ModeMajoration;
+      /**
+       * Amortissements admis en déduction pendant la location du bien. Ils
+       * minorent le prix d'acquisition (art. 150 VB, III) — transmis tels quels
+       * à `plus-value.ts`, qui porte la règle et ses réserves. Défaut zéro.
+       * C'est `ENG-029` qui les cumule ; personne d'autre ne devrait les
+       * recalculer.
+       */
+      readonly amortissementsDeduits?: Cents;
     };
 
 /**
@@ -195,7 +203,7 @@ export interface EntreeCession {
 /* ── Sortie ───────────────────────────────────────────────────────────────── */
 
 /** D'où vient une réserve. L'appelant doit pouvoir le dire. */
-export type SourceDeReserve = "vente" | "plus-value" | "cession";
+export type SourceDeReserve = "vente" | "plus-value" | "cession" | "location";
 
 export interface Reserve {
   readonly source: SourceDeReserve;
@@ -454,6 +462,11 @@ export function chiffrerCession(entree: EntreeCession, p: FiscalParams): Cession
     prixAcquisition,
     fraisAcquisition: majorationFrais(regime.fraisAcquisition, situation, p),
     travaux: majorationTravaux(regime.travaux, situation, p),
+    // `exactOptionalPropertyTypes` : le champ absent et le champ à `undefined`
+    // sont deux états distincts — on n'écrit le champ que s'il existe.
+    ...(regime.amortissementsDeduits !== undefined
+      ? { amortissementsDeduits: regime.amortissementsDeduits }
+      : {}),
     regimeSocial: regime.regimeSocial,
     // Le millésime est celui de la vente. Aucun champ de l'entrée ne permet
     // d'en désigner un autre : deux millésimes dans un même décompte

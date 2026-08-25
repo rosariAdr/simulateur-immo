@@ -95,11 +95,16 @@ describe("chaque hypothèse de marché déclare ce qu'elle vaut", () => {
     // de `compare/portefeuille.ts`. Cette liste a rougi à ce moment-là, et
     // c'était son travail : elle a obligé à venir écrire ici que l'ajout était
     // voulu, au lieu de le laisser passer.
+    //
+    // `location` est entré le 25 août 2026 avec `ENG-029` : les quatre ordres
+    // de grandeur du scénario « louer plutôt que vendre » — vacance, gestion,
+    // amortissement du meublé et part amortissable. Même rituel.
     expect(blocs.map(([nom]) => nom).sort()).toEqual([
       "acquisition",
       "detention",
       "guarantee",
       "insurance",
+      "location",
       "rendements",
       "vente",
     ]);
@@ -239,10 +244,17 @@ describe("l'estimation ne se répand pas sans qu'on la voie", () => {
 
   const estimees = toutes.filter(([, h]) => h.fiabilite === "estimee").map(([nom]) => nom);
 
-  it("compte dix hypothèses encore estimées, et pas une de plus", () => {
+  it("compte quatorze hypothèses encore estimées, et pas une de plus", () => {
     // État au 23 août 2026, après la campagne de recoupement `FIS-006` : dix
-    // entrées sur dix-sept restent estimées, chacune avec, dans sa provenance,
+    // entrées sur dix-sept restaient estimées, chacune avec, dans sa provenance,
     // la raison pour laquelle la vérification n'a pas abouti.
+    //
+    // Le 25 août 2026, `ENG-029` en ajoute quatre — les hypothèses de mise en
+    // location. Toutes entrent en `estimee`, et chacune dit pourquoi : la
+    // vacance n'a de mesure ouverte qu'en 2017, les barèmes de gestion sont
+    // publiés par ceux qui les vendent, l'amortissement et la part de terrain
+    // sont des conventions de praticien. Ce compte a rougi à leur arrivée,
+    // comme il doit.
     //
     // Les noms sont listés et pas seulement dénombrés : une entrée qui passe
     // `observee` pendant qu'une autre retombe `estimee` laisserait le compte
@@ -250,18 +262,22 @@ describe("l'estimation ne se répand pas sans qu'on la voie", () => {
     expect(
       estimees.sort(),
       "le compte d'hypothèses en fiabilité `estimee` a changé — aller relire " +
-        "docs/TASKS.md, ticket FIS-006, et dire dans la provenance ce qui a bougé",
+        "docs/TASKS.md, tickets FIS-006 et ENG-029, et dire dans la provenance ce qui a bougé",
     ).toEqual([
       "actionsDiversifiees",
+      "amortissementAnnuelPct",
       "appreciationAnnuellePct",
       "delegationRatePct",
+      "fraisGestionPctLoyers",
       "groupRatePct",
       "indexationChargesPctAnnuel",
+      "partAmortissableDuBienPct",
       "pledgeCostPct",
       "provisionTravauxPctAnnuel",
       "sansRisque",
       "suretyshipRefundPct",
       "totalFeesOldPct",
+      "vacanceLocativePctLoyers",
     ]);
   });
 
