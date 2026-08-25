@@ -211,6 +211,27 @@ export interface RendementAssumptions {
   readonly actionsDiversifiees: FourchetteObservee;
 }
 
+/**
+ * MISE EN LOCATION — `ENG-029`, entrées du 25 août 2026.
+ *
+ * Le scénario « louer plutôt que vendre » a besoin de quatre ordres de grandeur
+ * qu'aucun texte ne fixe et qu'un utilisateur ne connaît généralement pas : ce
+ * que la vacance coûte, ce que la gestion prélève, et à quel rythme un meublé
+ * s'amortit au régime réel. Les quatre entrent en `estimee`, chacune avec la
+ * raison écrite — les listes-cliquets de `market.test.ts` ont été mises à jour
+ * en conséquence, ce qui est leur usage prévu.
+ */
+export interface LocationAssumptions {
+  /** Loyers perdus entre deux locataires, en % des loyers annuels. */
+  readonly vacanceLocativePctLoyers: HypotheseChiffree;
+  /** Honoraires de gestion courante, TTC, en % des loyers encaissés. */
+  readonly fraisGestionPctLoyers: HypotheseChiffree;
+  /** Dotation annuelle au réel meublé, en % de la part amortissable. */
+  readonly amortissementAnnuelPct: HypotheseChiffree;
+  /** Part de la valeur du bien qui s'amortit — le terrain ne s'amortit jamais. */
+  readonly partAmortissableDuBienPct: HypotheseChiffree;
+}
+
 export interface MarketAssumptions {
   /** Date du relevé, et non millésime légal : ces valeurs n'ont pas d'exercice. */
   readonly releve: string;
@@ -218,6 +239,7 @@ export interface MarketAssumptions {
   readonly insurance: InsuranceAssumptions;
   readonly acquisition: AcquisitionAssumptions;
   readonly detention: DetentionAssumptions;
+  readonly location: LocationAssumptions;
   readonly vente: VenteAssumptions;
   readonly rendements: RendementAssumptions;
 }
@@ -412,6 +434,62 @@ export const MARKET_2026: MarketAssumptions = {
         "année 2023, l'Association des responsables de copropriété +4,6 % pour cette même année, " +
         "sur des périmètres qui ne se recouvrent pas. Faute de série longue et de chiffres " +
         "concordants, l'entrée reste estimée et sa borne haute est notre extension.",
+    },
+  },
+
+  location: {
+    vacanceLocativePctLoyers: {
+      valeur: 2.5,
+      intervalle: [0, 8],
+      fiabilite: "estimee",
+      provenance:
+        "Part des loyers annuels perdue entre deux locataires. L'observatoire CLAMEUR mesurait " +
+        "4,6 semaines de vacance moyenne entre deux baux en février 2017 — 3,2 semaines en " +
+        "Aquitaine, 10,6 en Pays de la Loire —, chiffres lus dans un article de SeLoger de " +
+        "mars 2017, seul document qui a pu être ouvert : les communiqués CLAMEUR récents relayés " +
+        "par la presse n'ont pas pu l'être. La conversion en pourcentage des loyers dépend en " +
+        "outre de la durée d'occupation entre deux départs, que ces sources ne donnent pas. " +
+        "Notre 2,5 % — environ 4,6 semaines de vide tous les trois ans et demi — reste donc un " +
+        "ordre de grandeur, et zéro décrit un locataire qui ne part jamais.",
+    },
+    fraisGestionPctLoyers: {
+      valeur: 7,
+      intervalle: [4, 10],
+      fiabilite: "estimee",
+      provenance:
+        "Honoraires de gestion locative courante, toutes taxes comprises, en pourcentage des " +
+        "loyers encaissés. Les grilles publiées le sont par les gestionnaires eux-mêmes : une " +
+        "page de l'agence en ligne Manda, mise à jour en 2026, situe le marché entre 4 et 10 % " +
+        "TTC — 4 à 6 % pour les mandats en ligne, 7 à 10 % en agence traditionnelle. Un " +
+        "gestionnaire qui décrit les tarifs de ses concurrents vend ce qu'il décrit, et aucun " +
+        "barème d'observatoire public n'a pu être trouvé : l'entrée reste estimée. Les " +
+        "honoraires de mise en location et la garantie loyers impayés, facturés à part, n'y " +
+        "sont pas. Zéro chiffre la gestion en direct.",
+    },
+    amortissementAnnuelPct: {
+      valeur: 2.5,
+      intervalle: [2, 3],
+      fiabilite: "estimee",
+      provenance:
+        "Dotation annuelle d'amortissement au régime réel meublé, en pourcentage de la part " +
+        "amortissable du bien. Aucun texte ne fixe ce taux : la doctrine admet l'amortissement " +
+        "par composants, et la pratique des experts-comptables du meublé retient des durées qui " +
+        "reviennent à 2 ou 3 % par an sur l'ensemble bâti. Les durées indicatives composant par " +
+        "composant n'ont pas pu être confrontées — leur application demande une ventilation du " +
+        "prix que le simulateur ne connaît pas. La valeur reste un ordre de grandeur de " +
+        "praticien, pas une mesure.",
+    },
+    partAmortissableDuBienPct: {
+      valeur: 85,
+      intervalle: [75, 90],
+      fiabilite: "estimee",
+      provenance:
+        "Part de la valeur du bien effectivement amortissable, le terrain ne s'amortissant " +
+        "jamais. La quote-part du terrain varie fortement entre une commune rurale et un " +
+        "centre-ville dense, et les ventilations admises par l'administration ne sont pas " +
+        "publiées en tableau national : aucune grille n'a pu être ouverte. Les 85 % retenus — " +
+        "un terrain à 15 % — sont la convention la plus répandue chez les praticiens du " +
+        "meublé ; c'est notre décision, pas une mesure.",
     },
   },
 

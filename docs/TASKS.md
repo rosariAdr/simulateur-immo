@@ -154,11 +154,26 @@ Le découpage en versions, le modèle de branches et les portes sont dans
       champ `amortissementsDeduits` minore le prix d'acquisition, les abattements
       traversent — la réserve « non réintégrés » devient « à saisir ». 30 tests,
       cassés trois fois exprès. La série pluriannuelle du scénario est `ENG-029`
-- [ ] `ENG-029` Scénario de location longue durée — la sortie que `UI-007` déclare
-      absente : loyers nets de vacance et de gestion (hypothèses de marché à
-      ajouter), mensualité toujours due lue dans le plan, impôt annuel par
-      `ENG-013` avec circulation des reports, revente par `ENG-027` avec les
-      amortissements cumulés. Ouvert le 25 août 2026 en livrant `ENG-013`
+- [x] `ENG-029` Scénario de location longue durée — la sortie que `UI-007` déclare
+      absente : loyers nets de vacance et de gestion, mensualité toujours due lue
+      dans le plan, impôt annuel par `ENG-013` avec circulation des reports,
+      revente par `ENG-027` avec les amortissements cumulés. Ouvert et livré le
+      25 août 2026
+      → `src/core/compare/location-longue-duree.ts` : une fonction pure qui plie
+      `calculerImpotLocatif` sur les années de location — les reports circulent
+      là et nulle part ailleurs — puis revend par `chiffrerCession`, les
+      amortissements déduits entrant en minoration du prix d'acquisition
+      (`RegimeDeCession` imposable gagne `amortissementsDeduits`). Le flux net
+      d'une année a le droit d'être négatif : c'est la mensualité toujours due.
+      Quatre hypothèses de marché nouvelles dans `market.ts` (`location.*` :
+      vacance 2,5 %, gestion 7 %, amortissement 2,5 % sur 85 %), toutes en
+      `estimee` avec leur raison — les deux listes-cliquets de `market.test.ts`
+      mises à jour, ce qui est leur usage. Les catégories de tourisme sont
+      refusées : c'est la courte durée (`ENG-015`). 20 tests, dont les postes
+      d'une année sur une feuille et le fil `ENG-013` → `ENG-029` → `ENG-027`
+      vérifié par un seul chiffre ; deux sabotages, chacun tombé sur sa garde.
+      **L'écran de `UI-007` ne les montre pas encore** : le câblage d'interface
+      des deux sorties locatives reste à ouvrir quand `ENG-015` sera là
 - [x] `ENG-014` Plus-value hors résidence principale, abattements par durée
       → `src/core/compare/plus-value.ts`. **Deux abattements, deux assiettes** —
       `baseImpotRevenu` (22 ans) et `basePrelevementsSociaux` (30 ans) — jamais une
@@ -2864,3 +2879,43 @@ prélèvements sociaux inversé — 5 rouges —, la minoration débranchée —
 **Reste pour v0.3.1** : `ENG-029` (série pluriannuelle de la sortie longue durée,
 avec vacance et gestion en hypothèses de marché à ajouter à `market.ts`), `ENG-015`
 (courte durée), `TST-031` (la porte, avec ses cas de référence sourcés).
+
+---
+
+### 25 août 2026 — ENG-029 : la location longue durée, de la première année à la revente
+
+**`src/core/compare/location-longue-duree.ts`.** Le pli annoncé : chaque année de
+location est un appel à `calculerImpotLocatif`, les reports — déficit foncier,
+amortissement 39 C — circulent ici et nulle part ailleurs, et la revente est un
+appel à `chiffrerCession` où les amortissements déduits, cumulés par ce fichier
+parce qu'il est seul à les connaître, minorent le prix d'acquisition. Le fil
+`ENG-013` → `ENG-029` → `ENG-027` se vérifie sur un seul chiffre : dix ans de
+meublé au réel, 42 500 € déduits, un prix d'acquisition retenu de 157 500 €.
+
+**Deux enseignements portés par la sortie.** Le flux net d'une année peut être
+négatif — la mensualité toujours due, −5 791,63 € au cas de référence — et la mise
+en location coûte l'exonération de résidence principale, dit en réserve plutôt que
+laissé à découvrir dans le chiffre.
+
+**Quatre hypothèses de marché nouvelles** (`market.location`) : vacance 2,5 % des
+loyers, gestion 7 % TTC, amortissement 2,5 % l'an sur 85 % de part amortissable.
+Toutes `estimee`, chacune disant pourquoi — la vacance n'a de mesure ouverte qu'un
+article de 2017 sur CLAMEUR, les barèmes de gestion sont publiés par ceux qui les
+vendent, l'amortissement et la part de terrain sont des conventions de praticien.
+Les deux listes-cliquets de `market.test.ts` — blocs, et compte des `estimee`
+passé de dix à quatorze — ont rougi puis été mises à jour avec la raison datée :
+c'est exactement l'usage pour lequel elles existent.
+
+**Choix de modélisation écrits dans les réserves** : loyers hors charges
+récupérables des deux côtés ; la provision pour travaux tient lieu de dépenses
+déductibles au réel ; l'assiette d'amortissement est la valeur vénale à la mise en
+location ; mise en location, GLI et impayés non modélisés ; bien bâti et cédant
+personne physique, comme le reste du module. Les catégories de meublé de tourisme
+sont refusées avec renvoi à `ENG-015`.
+
+**Gardes.** 20 tests : une année posée poste par poste sur une feuille, la
+conservation exacte des deux reports, l'intégration jusqu'à l'assiette de
+plus-value, et un invariant fast-check sur le solde de chaque année. **Cassées
+deux fois** : le fil des amortissements débranché — 1 rouge, le test
+d'intégration — et la circulation du déficit coupée — 1 rouge, la conservation.
+Chaque sabotage est tombé exactement sur sa garde, aucun ailleurs.
