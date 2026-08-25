@@ -181,7 +181,23 @@ Le découpage en versions, le modèle de branches et les portes sont dans
       le revenu, donc s'éteint à 22 ans. Les forfaits de majoration ne s'appliquent qu'au
       travers d'un jeton non falsifiable, revérifié à l'exécution : la dette signalée par
       `FIS-007` est soldée. Voir ADR-013
-- [ ] `ENG-015` Scénario location courte durée
+- [x] `ENG-015` Scénario location courte durée
+      → `src/core/compare/location-courte-duree.ts`, même squelette qu'`ENG-029` :
+      revenus = tarif × 365 nuits × taux d'occupation — l'occupation est
+      **obligatoire et sans défaut**, même discipline que l'appréciation —,
+      moins commission de plateforme et conciergerie (hypothèses nouvelles dans
+      `market.location`, avec la page d'Airbnb ouverte pour la commission),
+      moins les charges d'exploitation que le propriétaire paie en entier,
+      moins l'ameublement décaissé l'année 1 et amorti au réel sur la durée du
+      mobilier — dont la somme des dotations **solde exactement**, comme une
+      dernière échéance. À la revente, **seul l'amortissement du bâti se
+      réintègre** : le mobilier n'est pas dans l'assiette du 150 VB, et la part
+      déduite s'impute d'abord sur le bâti — convention prudente, déclarée. Les
+      seuils de la courte durée mordent tôt et remontent d'`ENG-013` : 15 000 €
+      pour le micro non classé, 23 000 € pour l'affiliation. Réserves :
+      saisonnalité, réglementation locale (les 120 nuits), taxe de séjour, TVA
+      para-hôtelière. 16 tests, deux sabotages, chacun tombé sur sa garde.
+      Livré le 25 août 2026
 - [x] `ENG-016` Statut de résidence fiscale et prélèvements sociaux applicables
       → même fichier. `RegimeSocialDuCedant` commande le taux, et lui seul : taux plein du
       régime dérogatoire immobilier, ou taux réduit pour l'affilié EEE/Suisse. Ce que la
@@ -2919,3 +2935,46 @@ plus-value, et un invariant fast-check sur le solde de chaque année. **Cassées
 deux fois** : le fil des amortissements débranché — 1 rouge, le test
 d'intégration — et la circulation du déficit coupée — 1 rouge, la conservation.
 Chaque sabotage est tombé exactement sur sa garde, aucun ailleurs.
+
+---
+
+### 25 août 2026 — ENG-015 : la courte durée, du tarif de nuit à la revente
+
+**`src/core/compare/location-courte-duree.ts`**, même squelette qu'`ENG-029` avec
+ce qui fait la courte durée : les revenus naissent d'un tarif et d'un taux
+d'occupation — **obligatoire et sans défaut**, comme l'appréciation : en publier
+une moyenne serait une prévision —, le propriétaire paie toutes les charges, et
+l'ameublement sort en caisse l'année 1 avant de s'amortir au réel sur la durée du
+mobilier, par différence de cumuls arrondis pour que la somme **solde exactement**.
+
+**La subtilité fiscale qui méritait le détour** : à la revente, le III de
+l'art. 150 VB minore le prix d'acquisition de l'immeuble cédé — le mobilier a le
+sien propre et reste dehors. Le fichier sépare donc bâti et mobilier dans les
+amortissements, et quand le plafond du 39 C n'a pas tout laissé déduire, la part
+déduite s'impute d'abord sur le bâti : convention prudente — elle majore l'impôt
+de revente plutôt que de le minorer — et déclarée en réserve.
+
+**Quatre hypothèses de marché nouvelles** (`market.location`) : commission de
+plateforme 16 % — la page d'aide d'Airbnb a été ouverte : 3 % côté hôte en modèle
+partagé, 15,5 % en « frais hôte uniquement » ; le raisonnement qui unifie les
+deux reste le nôtre —, conciergerie 25 %, durée du mobilier 7 ans, et un taux
+d'occupation **sans valeur centrale** ([30 ; 75]), même refus qu'à l'appréciation.
+Le compte des `estimee` passe de quatorze à dix-huit, listes-cliquets mises à
+jour avec la raison.
+
+**Les seuils de la courte durée mordent tôt, et ça se voit** : à 60 %
+d'occupation d'un 100 € la nuit, le micro non classé est déjà inéligible
+(21 900 € > 15 000 €) ; à 65 %, l'affiliation aux indépendants se signale
+(23 725 € > 23 000 €). Les alertes montent d'`ENG-013` année par année.
+
+**Gardes.** 16 tests — l'année 1 posée à la main jusqu'au flux net négatif
+(−6 150,70 € : l'ameublement fait sa première année), le solde exact du mobilier
+sur huit ans, le fil bâti-seul jusqu'à l'assiette (12 750 € réintégrés sur
+16 178,57 € déduits), les refus de domaine. **Cassées deux fois** : la
+réintégration étendue au mobilier — 1 rouge — et l'ameublement décaissé chaque
+année — 1 rouge. Deux accrocs de tests corrigés en passant, côté tests : une
+assertion qui citait la réserve de mémoire au lieu de son texte, une borne
+d'invariant qui oubliait l'indexation du tarif.
+
+**Le moteur de v0.3.1 est complet.** Reste `TST-031` — la porte de version — et
+le câblage d'écran des trois sorties, qui a désormais tout ce qu'il faut.

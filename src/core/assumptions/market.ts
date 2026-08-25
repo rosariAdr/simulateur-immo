@@ -212,14 +212,19 @@ export interface RendementAssumptions {
 }
 
 /**
- * MISE EN LOCATION — `ENG-029`, entrées du 25 août 2026.
+ * MISE EN LOCATION — `ENG-029` puis `ENG-015`, entrées du 25 août 2026.
  *
- * Le scénario « louer plutôt que vendre » a besoin de quatre ordres de grandeur
+ * Les scénarios « louer plutôt que vendre » ont besoin d'ordres de grandeur
  * qu'aucun texte ne fixe et qu'un utilisateur ne connaît généralement pas : ce
- * que la vacance coûte, ce que la gestion prélève, et à quel rythme un meublé
- * s'amortit au régime réel. Les quatre entrent en `estimee`, chacune avec la
- * raison écrite — les listes-cliquets de `market.test.ts` ont été mises à jour
- * en conséquence, ce qui est leur usage prévu.
+ * que la vacance coûte, ce que la gestion et les plateformes prélèvent, à quel
+ * rythme un meublé s'amortit. Tout entre en `estimee`, chacune avec la raison
+ * écrite — les listes-cliquets de `market.test.ts` ont été mises à jour en
+ * conséquence, ce qui est leur usage prévu.
+ *
+ * ⚠️ Le taux d'occupation de la courte durée n'a **pas de valeur centrale**, et
+ * n'en aura pas : il dépend de l'adresse et de la saison plus que de toute
+ * moyenne, et en publier une serait une prévision. Même discipline que
+ * l'appréciation — l'utilisateur choisit son point dans la fourchette.
  */
 export interface LocationAssumptions {
   /** Loyers perdus entre deux locataires, en % des loyers annuels. */
@@ -230,6 +235,14 @@ export interface LocationAssumptions {
   readonly amortissementAnnuelPct: HypotheseChiffree;
   /** Part de la valeur du bien qui s'amortit — le terrain ne s'amortit jamais. */
   readonly partAmortissableDuBienPct: HypotheseChiffree;
+  /** Commission de plateforme en courte durée, en % des revenus bruts. */
+  readonly commissionPlateformePctRevenus: HypotheseChiffree;
+  /** Honoraires de conciergerie, en % des revenus bruts. */
+  readonly conciergeriePctRevenus: HypotheseChiffree;
+  /** Taux d'occupation annuel en courte durée, en % des nuits. Sans valeur centrale. */
+  readonly tauxOccupationPct: FourchetteObservee;
+  /** Durée d'amortissement du mobilier au réel, en années. */
+  readonly amortissementMobilierAnnees: HypotheseChiffree;
 }
 
 export interface MarketAssumptions {
@@ -490,6 +503,52 @@ export const MARKET_2026: MarketAssumptions = {
         "publiées en tableau national : aucune grille n'a pu être ouverte. Les 85 % retenus — " +
         "un terrain à 15 % — sont la convention la plus répandue chez les praticiens du " +
         "meublé ; c'est notre décision, pas une mesure.",
+    },
+    commissionPlateformePctRevenus: {
+      valeur: 16,
+      intervalle: [3, 20],
+      fiabilite: "estimee",
+      provenance:
+        "Commission de plateforme en courte durée, en pourcentage de ce que paie le voyageur. " +
+        "La page d'aide d'Airbnb, ouverte le 25 août 2026, publie deux modèles : 3 % côté hôte " +
+        "dans le partage classique — les 14,1 à 16,5 % restants étant facturés au voyageur — et " +
+        "15,5 % dans le modèle « frais hôte uniquement ». La valeur retenue suppose que le " +
+        "voyageur raisonne en prix total, ce qui ramène la ponction au même ordre quel que soit " +
+        "le modèle ; ce raisonnement est le nôtre, les barèmes des autres plateformes n'ont pas " +
+        "été ouverts, et l'entrée reste estimée.",
+    },
+    conciergeriePctRevenus: {
+      valeur: 25,
+      intervalle: [15, 35],
+      fiabilite: "estimee",
+      provenance:
+        "Honoraires de conciergerie — accueil, ménage, linge, annonces — en pourcentage des " +
+        "revenus bruts. Aucun barème d'observatoire public n'existe : les taux de 15 à 35 % se " +
+        "lisent sur les pages des conciergeries elles-mêmes, qui vendent ce qu'elles décrivent. " +
+        "Notre 25 % est un milieu de gamme, pas une mesure, et zéro chiffre l'exploitation en " +
+        "direct par le propriétaire.",
+    },
+    tauxOccupationPct: {
+      intervalle: [30, 75],
+      fiabilite: "estimee",
+      provenance:
+        "Taux d'occupation annuel d'un meublé de tourisme, en pourcentage des nuits. Aucune " +
+        "valeur centrale n'est publiée ici, et c'est délibéré : l'occupation dépend de " +
+        "l'adresse, de la saison et du calendrier local plus que de toute moyenne nationale, et " +
+        "en retenir une serait une prévision. Les données par ville sont commercialisées par " +
+        "des fournisseurs spécialisés dont les bases n'ont pas pu être ouvertes ; les bornes " +
+        "sont notre encadrement des ordres de grandeur couramment cités, et l'utilisateur " +
+        "choisit son point comme il le fait pour l'appréciation.",
+    },
+    amortissementMobilierAnnees: {
+      valeur: 7,
+      intervalle: [5, 10],
+      fiabilite: "estimee",
+      provenance:
+        "Durée d'amortissement du mobilier et de l'équipement au régime réel, en années. " +
+        "Aucun texte ne la fixe : c'est une durée d'usage admise en pratique, que les guides " +
+        "professionnels du meublé situent entre cinq et dix ans selon la nature des biens. " +
+        "Sept ans est une convention de praticien, pas une mesure.",
     },
   },
 

@@ -244,17 +244,19 @@ describe("l'estimation ne se répand pas sans qu'on la voie", () => {
 
   const estimees = toutes.filter(([, h]) => h.fiabilite === "estimee").map(([nom]) => nom);
 
-  it("compte quatorze hypothèses encore estimées, et pas une de plus", () => {
+  it("compte dix-huit hypothèses encore estimées, et pas une de plus", () => {
     // État au 23 août 2026, après la campagne de recoupement `FIS-006` : dix
     // entrées sur dix-sept restaient estimées, chacune avec, dans sa provenance,
     // la raison pour laquelle la vérification n'a pas abouti.
     //
     // Le 25 août 2026, `ENG-029` en ajoute quatre — les hypothèses de mise en
-    // location. Toutes entrent en `estimee`, et chacune dit pourquoi : la
-    // vacance n'a de mesure ouverte qu'en 2017, les barèmes de gestion sont
-    // publiés par ceux qui les vendent, l'amortissement et la part de terrain
-    // sont des conventions de praticien. Ce compte a rougi à leur arrivée,
-    // comme il doit.
+    // location longue durée — puis `ENG-015` quatre autres, celles de la courte
+    // durée : commission de plateforme (la page d'Airbnb a été ouverte, mais le
+    // raisonnement qui unifie ses deux modèles est le nôtre), conciergerie
+    // (barèmes publiés par ceux qui les vendent), taux d'occupation (pas de
+    // valeur centrale, même discipline que l'appréciation) et durée du mobilier
+    // (convention de praticien). Ce compte a rougi à chaque arrivée, comme il
+    // doit.
     //
     // Les noms sont listés et pas seulement dénombrés : une entrée qui passe
     // `observee` pendant qu'une autre retombe `estimee` laisserait le compte
@@ -262,11 +264,14 @@ describe("l'estimation ne se répand pas sans qu'on la voie", () => {
     expect(
       estimees.sort(),
       "le compte d'hypothèses en fiabilité `estimee` a changé — aller relire " +
-        "docs/TASKS.md, tickets FIS-006 et ENG-029, et dire dans la provenance ce qui a bougé",
+        "docs/TASKS.md, tickets FIS-006, ENG-029 et ENG-015, et dire dans la provenance ce qui a bougé",
     ).toEqual([
       "actionsDiversifiees",
       "amortissementAnnuelPct",
+      "amortissementMobilierAnnees",
       "appreciationAnnuellePct",
+      "commissionPlateformePctRevenus",
+      "conciergeriePctRevenus",
       "delegationRatePct",
       "fraisGestionPctLoyers",
       "groupRatePct",
@@ -276,6 +281,7 @@ describe("l'estimation ne se répand pas sans qu'on la voie", () => {
       "provisionTravauxPctAnnuel",
       "sansRisque",
       "suretyshipRefundPct",
+      "tauxOccupationPct",
       "totalFeesOldPct",
       "vacanceLocativePctLoyers",
     ]);
