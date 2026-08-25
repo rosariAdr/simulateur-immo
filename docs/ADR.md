@@ -1974,3 +1974,69 @@ révélateur d'un effet qui compensait une composition faible.
 
 Voir `docs/01-brief-design.md` §2, §3 et §10, `docs/CONTEXT.md` §11, et
 `docs/TICKETS-MOTIFS-UI.md`.
+
+---
+
+## ADR-022 — Une location est un récit, pas un point sur les courbes
+
+**Date** : 25 août 2026 · **Statut** : adoptée · **Tickets** : `UI-024`, `UI-025`
+
+### Contexte
+
+Les moteurs de v0.3.1 sont livrés : `ENG-029` chiffre la location longue durée,
+`ENG-015` la courte durée, chacune de la première année de location jusqu'à la
+revente. L'écran `/comparaison/patrimoine`, lui, déclare encore les deux sorties
+absentes, et il fallait décider **comment** elles y entrent.
+
+L'analyse principale de cet écran balaie la vente année par année : à chaque
+année de l'horizon, un produit net de vente, comparé au portefeuille du
+locataire de référence **à la même date**. Une mise en location ne se plie pas à
+cette forme. C'est un récit : des flux annuels d'abord — qui peuvent être
+négatifs tant que la mensualité court —, une revente ensuite, à une date que la
+durée de location repousse au-delà de l'horizon. La superposer aux courbes
+aurait exigé l'un de ces deux mensonges : comparer des patrimoines à des dates
+différentes sans actualisation, ou prolonger le portefeuille du locataire
+au-delà de l'horizon avec un moteur qui n'existe pas.
+
+### Décision
+
+**1. L'analyse principale ne change pas.** Courbes, retournement, décompte :
+la vente à chaque année contre le portefeuille, comme ADR-020 l'a dessinée.
+
+**2. Les récits locatifs vivent dans la section des trois sorties, qui cesse de
+déclarer des absences pour devenir le lieu où ils se chiffrent.** Un sélecteur
+segmenté — vente, longue durée, courte durée ; l'onglet vente renvoie au
+décompte au-dessus ; chaque onglet locatif porte ses champs et son décompte,
+daté à ses propres échéances. Aucune ligne ne compare des euros de dates
+différentes, et l'écran dit pourquoi.
+
+**3. Le strict nécessaire se saisit, le reste s'affiche.** Dix clés d'URL
+nouvelles ; la taxe foncière, les charges, l'assurance, la provision, les
+indexations et le plan de financement sont **repris** des clés existantes.
+L'assurance habitation saisie tient lieu d'assurance propriétaire non
+occupant — approximation déclarée. Les hypothèses de `market.location`
+(vacance, gestion, commission, conciergerie, amortissements) ne sont pas des
+champs : elles s'affichent avec leur valeur, leur intervalle et leur fiabilité.
+
+**4. La sortie regardée entre dans l'URL.** Elle ne change aucun chiffre du
+moteur, mais elle change ceux que l'écran montre : un lien partagé doit ouvrir
+sur ce que l'expéditeur regardait — la frontière d'ADR-005 passe ici.
+
+**5. Le taux marginal d'imposition est une liste, pas un champ libre.** Cinq
+taux, ceux du barème : une liste dit d'où ils viennent.
+
+### Justification
+
+La forme suit ce que les moteurs savent prouver. `ENG-029` et `ENG-015` rendent
+des récits complets — série, reports, revente — et c'est ce que l'écran montre.
+Ce qu'aucun moteur ne sait comparer, l'écran ne le compare pas : le refus de la
+quatrième courbe est le même refus que celui de la valeur centrale d'ADR-020,
+appliqué au temps plutôt qu'au marché.
+
+### Ce qui la garde
+
+`tests/e2e/patrimoine.spec.ts` : la garde « deux des trois sorties sont
+annoncées comme non modélisées » s'inverse — les trois sont chiffrées, le
+sélecteur fonctionne au clavier, une saisie de loyer change l'impôt affiché,
+l'écart 17,2 / 18,6 % de prélèvements sociaux se lit, les alertes de seuil
+apparaissent avec leur seuil, et les clés voyagent par URL sur les deux profils.

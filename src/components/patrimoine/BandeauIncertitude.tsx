@@ -1,7 +1,7 @@
 "use client";
 
 import { MARKET_2026 } from "@/core/assumptions/market";
-import { INTERVALLE_APPRECIATION, INTERVALLE_RENDEMENT } from "@/lib/patrimoine";
+import { INTERVALLE_APPRECIATION, INTERVALLE_RENDEMENT, TROIS_SORTIES } from "@/lib/patrimoine";
 import { ChampFourchette } from "./ChampFourchette";
 
 /**
@@ -129,11 +129,18 @@ export function BandeauIncertitude({
         />
       </div>
 
+      {/* La phrase se DÉDUIT du même compte que la section et la description de
+          la page — leçon d'`UI-014` : un état ne s'écrit qu'une fois. */}
       <p data-une-sortie className="mt-3 max-w-[96ch] border-t border-filet pt-2.5 text-[12px] leading-[1.5] text-encre-secondaire">
-        <span className="text-encre">Une sortie sur trois est chiffrée.</span> La spécification en
-        annonce trois — vendre, louer en longue durée, louer en courte durée. Seule la vente est
-        modélisée ; les deux autres ne sont ni calculées, ni approchées, ni prévues sur cet écran.
-        Le détail est plus bas, sous « Trois sorties, une seule chiffrée ».
+        <span className="text-encre">
+          {TROIS_SORTIES.filter((s) => s.modelisee).length === TROIS_SORTIES.length
+            ? "Les trois sorties sont chiffrées."
+            : `${TROIS_SORTIES.filter((s) => s.modelisee).length} des trois sorties sont chiffrées.`}
+        </span>{" "}
+        Vendre à l&apos;horizon — c&apos;est elle que les courbes balaient —, louer en longue
+        durée, louer en courte durée. Les deux locations se chiffrent plus bas, sous « Les trois
+        sorties » : chacune tombe à ses propres dates, et cette page n&apos;additionne jamais des
+        euros de dates différentes.
       </p>
     </section>
   );

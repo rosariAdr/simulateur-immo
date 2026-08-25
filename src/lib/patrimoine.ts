@@ -49,9 +49,20 @@ import {
   type Reserve,
 } from "@/core/compare/cession";
 import {
+  projeterLocationCourteDuree,
+  type EntreeLocationCourteDuree,
+  type LocationCourteDuree,
+} from "@/core/compare/location-courte-duree";
+import {
+  projeterLocationLongueDuree,
+  type EntreeLocationLongueDuree,
+  type LocationLongueDuree,
+} from "@/core/compare/location-longue-duree";
+import {
   motifExclusionForfaitFraisAcquisition,
   motifExclusionForfaitTravaux,
 } from "@/core/compare/plus-value";
+import type { RegimeLocatif } from "@/core/compare/regimes-locatifs";
 import {
   construirePortefeuille,
   type Portefeuille,
@@ -477,18 +488,286 @@ export function analyserPatrimoine(
   };
 }
 
+/* ── Les sorties locatives — `UI-024`/`UI-025`, ADR-022 ───────────────────── */
+
+/**
+ * La sortie que l'écran regarde. Elle ne change aucun chiffre du moteur, mais
+ * elle change ceux que l'écran montre : un lien partagé doit ouvrir sur ce que
+ * l'expéditeur regardait — c'est là que passe la frontière d'ADR-005.
+ */
+export const SORTIES_REGARDEES = ["vente", "longue-duree", "courte-duree"] as const;
+export type SortieRegardee = (typeof SORTIES_REGARDEES)[number];
+
+export const REGIMES_LONGUE_DUREE = ["micro-foncier", "reel-nu", "micro-bic", "reel-meuble"] as const;
+export type RegimeLongueDuree = (typeof REGIMES_LONGUE_DUREE)[number];
+
+export const REGIMES_COURTE_DUREE = ["tourisme-classe", "tourisme-non-classe", "reel-meuble"] as const;
+export type RegimeCourteDuree = (typeof REGIMES_COURTE_DUREE)[number];
+
+/** Les cinq taux du barème de l'impôt sur le revenu. Une liste dit d'où ils viennent. */
+export const TAUX_MARGINAUX = [0, 11, 30, 41, 45] as const;
+
+/** Durées de mise en location proposées, en années. */
+export const DUREES_LOCATION = [1, 2, 3, 5, 8, 10, 15, 20] as const;
+
+const L = MARKET_2026.location;
+
+export const DEFAUTS_LOCATION = {
+  sortieRegardee: "vente" as SortieRegardee,
+  dureeLocationAnnees: 8,
+  /** Taux marginal d'imposition du foyer, en %. */
+  tmi: 30,
+  /** Loyer mensuel de marché du bien, hors charges, en euros. */
+  loyerMarche: 1_000,
+  regimeLongueDuree: "micro-foncier" as RegimeLongueDuree,
+  regimeCourteDuree: "tourisme-classe" as RegimeCourteDuree,
+  /** Tarif par nuit, en euros. */
+  tarifNuitee: 90,
+  /**
+   * Taux d'occupation annuel, en %. Milieu de la fourchette observée, faute de
+   * valeur centrale — même discipline que l'appréciation, et même absence
+   * d'autorité, déclarée à côté du champ.
+   */
+  tauxOccupation: milieu(L.tauxOccupationPct.intervalle),
+  /** Ameublement et équipement initial, en euros. */
+  ameublement: 8_000,
+  /** Charges d'exploitation annuelles en courte durée, tout compris, en euros. */
+  chargesExploitation: 2_400,
+} as const;
+
+export type Location = {
+  sortieRegardee: SortieRegardee;
+  dureeLocationAnnees: number;
+  tmi: number;
+  loyerMarche: number;
+  regimeLongueDuree: RegimeLongueDuree;
+  regimeCourteDuree: RegimeCourteDuree;
+  tarifNuitee: number;
+  tauxOccupation: number;
+  ameublement: number;
+  chargesExploitation: number;
+};
+
+/** Clés courtes. Aucune collision avec les dix-sept du niveau simple ni les huit de la sortie. */
+export const CLES_LOCATION = {
+  sortieRegardee: "so",
+  dureeLocationAnnees: "dl",
+  tmi: "tm",
+  loyerMarche: "lm",
+  regimeLongueDuree: "rl",
+  regimeCourteDuree: "rc",
+  tarifNuitee: "tn",
+  tauxOccupation: "oc",
+  ameublement: "am",
+  chargesExploitation: "ce",
+} as const satisfies Readonly<Record<keyof Location, string>>;
+
+const BORNES_LOCATION = {
+  loyerMarche: { min: 0, max: 100_000 },
+  tarifNuitee: { min: 0, max: 10_000 },
+  tauxOccupation: { min: 0, max: 100 },
+  ameublement: { min: 0, max: 1_000_000 },
+  chargesExploitation: { min: 0, max: 200_000 },
+} as const;
+
+export function assainirLocation(brut: Location): Location {
+  const duree = (DUREES_LOCATION as readonly number[]).includes(brut.dureeLocationAnnees)
+    ? brut.dureeLocationAnnees
+    : DEFAUTS_LOCATION.dureeLocationAnnees;
+  const tmi = (TAUX_MARGINAUX as readonly number[]).includes(brut.tmi)
+    ? brut.tmi
+    : DEFAUTS_LOCATION.tmi;
+  return {
+    sortieRegardee: SORTIES_REGARDEES.includes(brut.sortieRegardee)
+      ? brut.sortieRegardee
+      : DEFAUTS_LOCATION.sortieRegardee,
+    dureeLocationAnnees: duree,
+    tmi,
+    loyerMarche: Math.round(
+      borne(brut.loyerMarche, BORNES_LOCATION.loyerMarche.min, BORNES_LOCATION.loyerMarche.max),
+    ),
+    regimeLongueDuree: REGIMES_LONGUE_DUREE.includes(brut.regimeLongueDuree)
+      ? brut.regimeLongueDuree
+      : DEFAUTS_LOCATION.regimeLongueDuree,
+    regimeCourteDuree: REGIMES_COURTE_DUREE.includes(brut.regimeCourteDuree)
+      ? brut.regimeCourteDuree
+      : DEFAUTS_LOCATION.regimeCourteDuree,
+    tarifNuitee: Math.round(
+      borne(brut.tarifNuitee, BORNES_LOCATION.tarifNuitee.min, BORNES_LOCATION.tarifNuitee.max),
+    ),
+    tauxOccupation: borne(
+      brut.tauxOccupation,
+      BORNES_LOCATION.tauxOccupation.min,
+      BORNES_LOCATION.tauxOccupation.max,
+    ),
+    ameublement: Math.round(
+      borne(brut.ameublement, BORNES_LOCATION.ameublement.min, BORNES_LOCATION.ameublement.max),
+    ),
+    chargesExploitation: Math.round(
+      borne(
+        brut.chargesExploitation,
+        BORNES_LOCATION.chargesExploitation.min,
+        BORNES_LOCATION.chargesExploitation.max,
+      ),
+    ),
+  };
+}
+
+/* ── Passage aux moteurs locatifs ─────────────────────────────────────────── */
+
+function regimeLocatifLongueDuree(r: RegimeLongueDuree): RegimeLocatif {
+  return r === "micro-bic" ? { type: "micro-bic", categorie: "longue-duree" } : { type: r };
+}
+
+function regimeLocatifCourteDuree(r: RegimeCourteDuree): RegimeLocatif {
+  return r === "reel-meuble" ? { type: "reel-meuble" } : { type: "micro-bic", categorie: r };
+}
+
+/**
+ * Ce que les deux scénarios locatifs partagent, dérivé des clés existantes.
+ *
+ * Rien n'est redemandé : la taxe foncière, les charges, l'assurance — qui tient
+ * lieu d'assurance propriétaire non occupant, approximation déclarée par le
+ * moteur et par l'écran —, la provision, les indexations, le prix et le plan
+ * viennent du niveau simple ; l'appréciation, la commission d'agence et les
+ * majorations viennent de la sortie de vente. La mise en location commence le
+ * mois qui suit l'horizon projeté : c'est la question posée — « et si, à
+ * l'horizon, je louais au lieu de vendre ? ».
+ */
+function socleLocatif(s: Comparaison, sortie: Sortie, plan: CreditPlan) {
+  return {
+    credit: { plan, tauxMoyenAnnuelPct: s.taux },
+    moisMiseEnLocation: s.horizonAnnees * 12 + 1,
+    valeurInitiale: euros(s.prix),
+    appreciationAnnuellePct: sortie.appreciation,
+    regimeSocial: "affilie-france" as const,
+    taxeFonciereAnnuelle: euros(s.taxeFonciere),
+    assurancePnoAnnuelle: euros(s.assuranceHabitation),
+    provisionTravauxPctAnnuel: s.provisionTravauxPct,
+    indexations: {
+      loyerPctAnnuel: s.indexationLoyer,
+      taxeFoncierePctAnnuel: s.indexationTaxeFonciere,
+      chargesPctAnnuel: s.indexationCharges,
+    },
+    commissionAgencePct: sortie.commissionAgence,
+    fraisAcquisition: majoration(sortie.modeFrais, sortie.fraisAcquisitionReels),
+    travaux: majoration(sortie.modeTravaux, sortie.travauxReels),
+  };
+}
+
+export function versEntreeLongueDuree(
+  brut: Comparaison,
+  brutSortie: Sortie,
+  brutLocation: Location,
+  plan: CreditPlan,
+): EntreeLocationLongueDuree {
+  const s = assainir(brut);
+  const sortie = assainirSortie(brutSortie);
+  const loc = assainirLocation(brutLocation);
+  return {
+    ...socleLocatif(s, sortie, plan),
+    dureeLocationAnnees: loc.dureeLocationAnnees,
+    loyerMensuelMarche: euros(loc.loyerMarche),
+    regime: regimeLocatifLongueDuree(loc.regimeLongueDuree),
+    tmiPct: loc.tmi,
+    chargesCoproprieteAnnuelles: euros(s.chargesCopropriete),
+  };
+}
+
+export function versEntreeCourteDuree(
+  brut: Comparaison,
+  brutSortie: Sortie,
+  brutLocation: Location,
+  plan: CreditPlan,
+): EntreeLocationCourteDuree {
+  const s = assainir(brut);
+  const sortie = assainirSortie(brutSortie);
+  const loc = assainirLocation(brutLocation);
+  return {
+    ...socleLocatif(s, sortie, plan),
+    dureeLocationAnnees: loc.dureeLocationAnnees,
+    tarifNuitee: euros(loc.tarifNuitee),
+    tauxOccupationPct: loc.tauxOccupation,
+    regime: regimeLocatifCourteDuree(loc.regimeCourteDuree),
+    tmiPct: loc.tmi,
+    chargesExploitationAnnuelles: euros(loc.chargesExploitation),
+    ameublementInitial: euros(loc.ameublement),
+  };
+}
+
+/**
+ * Pourquoi la revente locative n'est pas chiffrable, ou `null` si elle l'est.
+ *
+ * Même discipline que `motifNonChiffrable` : `ForfaitHorsChampError` ne se
+ * rattrape pas, il s'anticipe. La revente locative est toujours imposable —
+ * mettre en location fait perdre l'exonération —, et elle reprend les
+ * majorations saisies pour la vente : un forfait travaux demandé sur une durée
+ * totale trop courte la fermerait, et l'écran doit l'écrire.
+ */
+export function motifSortieLocativeNonChiffrable(
+  brutSortie: Sortie,
+  horizonCessionMois: number,
+): string | null {
+  const sortie = assainirSortie(brutSortie);
+  const situation = {
+    nature: "immeuble-bati",
+    qualiteDuCedant: "personne-physique",
+    dureeDetentionMois: horizonCessionMois,
+  } as const;
+  if (sortie.modeTravaux === "forfait") {
+    const motif = motifExclusionForfaitTravaux(situation, PARAMS_2026);
+    if (motif !== null) return motif;
+  }
+  if (sortie.modeFrais === "forfait") {
+    const motif = motifExclusionForfaitFraisAcquisition(situation);
+    if (motif !== null) return motif;
+  }
+  return null;
+}
+
+/** Un scénario locatif chiffré, ou le motif écrit de son refus. */
+export interface SortieLocativeAnalysee<T> {
+  readonly resultat: T | null;
+  readonly motifNonChiffrable: string | null;
+}
+
+export function analyserLongueDuree(
+  brut: Comparaison,
+  brutSortie: Sortie,
+  brutLocation: Location,
+  plan: CreditPlan,
+): SortieLocativeAnalysee<LocationLongueDuree> {
+  const entree = versEntreeLongueDuree(brut, brutSortie, brutLocation, plan);
+  const horizonCession = entree.moisMiseEnLocation - 1 + 12 * entree.dureeLocationAnnees;
+  const motif = motifSortieLocativeNonChiffrable(brutSortie, horizonCession);
+  if (motif !== null) return { resultat: null, motifNonChiffrable: motif };
+  return { resultat: projeterLocationLongueDuree(entree), motifNonChiffrable: null };
+}
+
+export function analyserCourteDuree(
+  brut: Comparaison,
+  brutSortie: Sortie,
+  brutLocation: Location,
+  plan: CreditPlan,
+): SortieLocativeAnalysee<LocationCourteDuree> {
+  const entree = versEntreeCourteDuree(brut, brutSortie, brutLocation, plan);
+  const horizonCession = entree.moisMiseEnLocation - 1 + 12 * entree.dureeLocationAnnees;
+  const motif = motifSortieLocativeNonChiffrable(brutSortie, horizonCession);
+  if (motif !== null) return { resultat: null, motifNonChiffrable: motif };
+  return { resultat: projeterLocationCourteDuree(entree), motifNonChiffrable: null };
+}
+
 /* ── Les trois sorties de la spécification ────────────────────────────────── */
 
 /**
- * `docs/03-spec-domaine.md` §2 annonce trois sorties. **Une seule est
- * modélisée**, et cette liste existe pour que l'écran le dise en toutes lettres
- * plutôt que de laisser deviner.
+ * `docs/03-spec-domaine.md` §2 annonce trois sorties. **Les trois sont
+ * modélisées** depuis le 25 août 2026 — `ENG-027` pour la vente, `ENG-029` et
+ * `ENG-015` pour les deux locations, câblées par `UI-025`.
  *
- * Ce n'est pas une liste de « prochainement ». `UI-014` vient de corriger un
- * écran qui annonçait « à venir » un module déjà livré ; l'erreur inverse — un
- * calcul esquissé qui n'existe pas — serait pire, parce qu'elle porterait sur un
- * chiffre. Les deux sorties non modélisées ne sont donc ni grisées, ni
- * approchées, ni datées : elles sont décrites, et déclarées absentes.
+ * La liste reste la source unique de cet état — leçon d'`UI-014` : la phrase du
+ * bandeau, la prose de la section et la description de la page s'en déduisent.
+ * Chaque texte décrit ce qui est calculé ET où s'arrête le calcul, jamais une
+ * promesse.
  */
 export interface Sortie3 {
   readonly cle: string;
@@ -503,7 +782,7 @@ export const TROIS_SORTIES: readonly Sortie3[] = [
     nom: "Vente à l'horizon",
     modelisee: true,
     texte:
-      "Chiffrée ici, poste par poste : prix de cession apprécié, commission d'agence, capital " +
+      "Chiffrée poste par poste : prix de cession apprécié, commission d'agence, capital " +
       "restant dû lu dans l'échéancier, indemnité de remboursement anticipé sous son double " +
       "plafond légal, mainlevée d'hypothèque, restitution du fonds de garantie, impôt de " +
       "plus-value. Le total peut être négatif, et il est rendu tel quel.",
@@ -511,23 +790,24 @@ export const TROIS_SORTIES: readonly Sortie3[] = [
   {
     cle: "location-longue-duree",
     nom: "Location longue durée",
-    modelisee: false,
+    modelisee: true,
     texte:
-      "N'existe pas dans ce simulateur. Il faudrait des loyers nets de vacance et de gestion, " +
-      "les charges non récupérables, la mensualité toujours due, et l'impôt selon le régime — " +
-      "micro-foncier, réel avec intérêts déductibles, micro-BIC ou réel meublé où " +
-      "l'amortissement annule souvent la base imposable avant de s'ajouter à la plus-value. " +
-      "Rien de tout cela n'est calculé, et aucun chiffre de cette page n'en approche le " +
-      "résultat.",
+      "Chiffrée année par année : loyers nets de vacance et de gestion, charges non " +
+      "récupérables, mensualité toujours due, impôt selon le régime — micro-foncier, réel nu, " +
+      "micro-BIC ou réel meublé, où l'amortissement annule souvent la base avant de minorer le " +
+      "prix d'acquisition à la revente. La location nue paie 17,2 % de prélèvements sociaux, " +
+      "la meublée 18,6 %. La revente au terme est imposée : l'exonération de résidence " +
+      "principale est perdue.",
   },
   {
     cle: "location-courte-duree",
     nom: "Location courte durée",
-    modelisee: false,
+    modelisee: true,
     texte:
-      "N'existe pas non plus. Il faudrait un tarif, un taux d'occupation, la commission de la " +
-      "plateforme, les honoraires de conciergerie, les charges d'exploitation et l'ameublement " +
-      "initial, sans compter les régimes des meublés de tourisme, dont les abattements ont " +
-      "changé récemment. Aucun de ces paramètres n'est saisissable ici.",
+      "Chiffrée à partir d'un tarif et d'un taux d'occupation — sans valeur centrale, comme " +
+      "l'appréciation : personne ne connaît l'occupation d'un bien précis. Commission de " +
+      "plateforme et conciergerie en hypothèses déclarées, charges d'exploitation en entier, " +
+      "ameublement décaissé la première année et amorti au réel. Les seuils mordent tôt : " +
+      "micro non classé fermé à 15 000 €, affiliation aux indépendants signalée à 23 000 €.",
   },
 ];

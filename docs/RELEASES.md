@@ -102,14 +102,13 @@ fiscaux locatifs · `ENG-029` scénario de location longue durée · `ENG-015` s
 de location courte durée · `UI-024` étude du câblage des trois sorties ·
 `UI-025` réalisation · `TST-031`.
 
-**État au 25 août 2026.** Le moteur de la version est complet — les quatre tickets
-`FIS` et `ENG` sont fusionnés, 1 067 tests Vitest. Ce qui reste est l'écran :
-`/comparaison/patrimoine` déclare encore les deux sorties locatives absentes, et
-c'est une garde qui le vérifie. Le câblage touche un écran dessiné (ADR-020) et
-suit donc le rituel de la phase 8 — une étude (`UI-024`), puis la réalisation
-(`UI-025`) — plutôt qu'une fin de chantier pressée. **La version ne s'étiquette
-pas avant** : une version est un produit utilisable, pas un lot de moteurs.
-`TST-031` clôt, avec le critère de sortie exécuté sur l'écran câblé.
+**État au 25 août 2026, fin de journée.** Le moteur ET l'écran sont livrés :
+`UI-024` (étude, ADR-022) puis `UI-025` ont câblé les trois sorties dans
+`/comparaison/patrimoine` — le sélecteur, les récits locatifs datés à leurs
+propres échéances, les alertes de seuil, les réserves. La garde « deux des trois
+sorties non modélisées » s'est inversée en gardant son objet. **Reste `TST-031`**,
+la porte de version : porte à froid, relevé des compteurs, critère de sortie
+exécuté sur l'écran câblé, étiquette.
 
 **Pourquoi ils sortent de v0.3.0.** Ils décrivent ce qu'on fait *après* avoir acheté,
 et non le choix d'acheter — une autre question, posée par quelqu'un d'autre. Et c'est

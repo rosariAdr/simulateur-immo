@@ -34,7 +34,7 @@ import {
  * **Le croisement se lit qu'il existe ou non.** Les deux cas sont éprouvés sur
  * deux adresses.
  *
- * **Deux sorties sur trois ne sont pas modélisées, et l'écran le dit.**
+ * **Les trois sorties sont chiffrées, et chaque récit tombe à ses dates.**
  *
  * Les valeurs attendues viennent du moteur, sur le scénario que la route ouvre
  * par défaut. Elles ne sont pas devinées.
@@ -473,28 +473,95 @@ test("l'épuisement du portefeuille est signalé, pas dissous", async ({ page })
 
 /* ── Les trois sorties ────────────────────────────────────────────────────── */
 
-test("deux des trois sorties sont annoncées comme non modélisées", async ({ page }) => {
+/*
+ * Cette garde disait « deux des trois sorties sont annoncées comme non
+ * modélisées », et c'était vrai jusqu'au 25 août 2026. `ENG-029` et `ENG-015`
+ * ont livré les moteurs, `UI-025` les a câblés : ce qu'elle protège n'a pas
+ * changé — l'état des sorties est dit honnêtement, jamais « à venir », jamais
+ * approché — mais l'état vrai est désormais « chiffrées », et la garde le
+ * vérifie dans les deux sens : les récits s'affichent, et rien ne promet.
+ */
+test("les trois sorties sont chiffrées, et la sortie regardée se choisit", async ({ page }) => {
   await page.goto("/comparaison/patrimoine");
 
-  await expect(page.locator("[data-sortie]")).toHaveCount(3);
-  await expect(page.locator('[data-sortie][data-modelisee="oui"]')).toHaveCount(1);
-  await expect(page.locator('[data-sortie][data-modelisee="non"]')).toHaveCount(2);
+  // Le sélecteur porte les trois récits ; la vente est l'état par défaut.
+  const selecteur = page.locator("#sortie-regardee");
+  await expect(selecteur.getByRole("radio")).toHaveCount(3);
+  await expect(page.locator('[data-sortie="vente"]')).toHaveAttribute("data-modelisee", "oui");
+  await expect(page.locator("[data-trois-sorties]")).not.toContainText(/à venir|prochainement/i);
 
-  await expect(page.locator('[data-sortie="vente"]')).toContainText("chiffrée ici");
+  // Choisir la longue durée affiche son récit, et la sortie regardée entre
+  // dans l'URL : un lien partagé ouvre sur ce que l'expéditeur regardait.
+  await selecteur.getByRole("radio", { name: "Louer en longue durée" }).click();
+  const panneau = page.locator('[data-sortie="location-longue-duree"]');
+  await expect(panneau).toHaveAttribute("data-modelisee", "oui");
+  await expect(panneau.locator("[data-poste]")).toHaveCount(7);
+  await expect(panneau.locator('[data-poste="fluxNet"] [data-montant]')).toContainText("€");
+  await expect(panneau.locator("[data-produit-revente]")).toContainText("€");
+  await expect(page).toHaveURL(/so=longue-duree/);
 
-  // Ni grisées, ni datées, ni annoncées « à venir » : dites absentes, en toutes
-  // lettres. `UI-014` a corrigé l'erreur symétrique sur l'accueil ; celle-ci
-  // porterait sur un chiffre, et serait pire.
-  for (const cle of ["location-longue-duree", "location-courte-duree"]) {
-    const sortie = page.locator(`[data-sortie="${cle}"]`);
-    await expect(sortie).toContainText("non modélisée");
-    await expect(sortie).toContainText(/n'existe pas/i);
-    await expect(sortie, `${cle} est annoncée comme prochaine`).not.toContainText(/à venir/i);
-  }
-
-  // Et la mention figure aussi dans le bloc de limite, avant tout chiffre.
+  // Et la phrase du bloc de limite dit le nouvel état, dérivé du même compte.
   await expect(page.locator("[data-limite] [data-une-sortie]")).toContainText(
-    "Une sortie sur trois est chiffrée",
+    "Les trois sorties sont chiffrées",
+  );
+});
+
+test("la nue paie 17,2 % de prélèvements sociaux, la meublée 18,6 — et l'écran l'écrit", async ({
+  page,
+}) => {
+  // Micro-foncier : location nue, taux dérogatoire.
+  await page.goto("/comparaison/patrimoine?so=longue-duree&rl=micro-foncier");
+  const impot = page.locator('[data-sortie="location-longue-duree"] [data-poste="impot"]');
+  await expect(impot).toContainText("17,2");
+
+  // Micro-BIC : meublée, droit commun. Même écran, un régime plus loin.
+  await page.goto("/comparaison/patrimoine?so=longue-duree&rl=micro-bic");
+  await expect(impot).toContainText("18,6");
+});
+
+test("la courte durée signale ses seuils, avec le seuil écrit et l'année du franchissement", async ({
+  page,
+}) => {
+  // 100 € la nuit à 60 % d'occupation : 21 900 € de recettes. Le micro du
+  // non-classé (15 000 €) est déjà dépassé ; l'affiliation (23 000 €) pas encore.
+  await page.goto("/comparaison/patrimoine?so=courte-duree&rc=tourisme-non-classe&tn=100&oc=60");
+  const alerteMicro = page.locator('[data-alerte="micro-ineligible"]');
+  // L'espace des milliers est l'espace fine insécable du format français.
+  await expect(alerteMicro).toContainText(/15[\s  ]000,00/);
+  await expect(alerteMicro).toContainText(/dès l'année 1/);
+
+  // À 65 %, 23 725 € : le second seuil se franchit aussi.
+  await page.goto("/comparaison/patrimoine?so=courte-duree&rc=tourisme-non-classe&tn=100&oc=65");
+  await expect(page.locator('[data-alerte="affiliation-courte-duree"]')).toContainText(
+    /23[\s  ]000,00/,
+  );
+});
+
+test("un récit locatif voyage par URL : le lien redonne les mêmes postes", async ({ page }) => {
+  const adresse =
+    "/comparaison/patrimoine?so=longue-duree&rl=reel-meuble&lm=1400&dl=10&tm=41";
+  await page.goto(adresse);
+  const flux = page.locator('[data-poste="fluxNet"] [data-montant]');
+  await expect(flux).toContainText("€");
+  const montant = await flux.textContent();
+
+  // La même adresse, rechargée à froid, rend exactement le même flux net.
+  await page.goto(adresse);
+  await expect(flux).toHaveText(montant ?? "");
+
+  // Et le réel meublé déclare la minoration du prix d'acquisition à la revente.
+  await expect(page.locator("[data-revente]")).toContainText("minorent le prix d'acquisition");
+});
+
+test("un récit locatif porte ses réserves, visibles sans interaction", async ({ page }) => {
+  await page.goto("/comparaison/patrimoine?so=longue-duree");
+  const reserves = page.locator("[data-reserves-location]");
+  await expect(reserves).toBeVisible();
+  await expect(reserves).toContainText("cesse d'être la résidence principale");
+
+  await page.goto("/comparaison/patrimoine?so=courte-duree");
+  await expect(page.locator("[data-reserves-location]")).toContainText(
+    "cent vingt nuits",
   );
 });
 

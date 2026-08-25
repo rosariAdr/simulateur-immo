@@ -41,7 +41,7 @@ import type { MarketAssumptions } from "../assumptions/market";
 import { MARKET_2026 } from "../assumptions/market";
 import type { IndexationsDetention } from "./types";
 import type { RegimeLocatif, ImpotAnneeLocative } from "./regimes-locatifs";
-import { calculerImpotLocatif, natureDuRegime } from "./regimes-locatifs";
+import { calculerImpotLocatif } from "./regimes-locatifs";
 import type { CreditReprisPourVente } from "./vente";
 import { valeurAppreciee } from "./vente";
 import type { CessionChiffree, ModeMajoration, Reserve } from "./cession";
