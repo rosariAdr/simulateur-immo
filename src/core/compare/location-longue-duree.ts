@@ -226,8 +226,8 @@ function exigerMontantPositifOuNul(valeur: Cents, contexte: string): Cents {
   return valeur;
 }
 
-/** Montant dérivé de `annees` pas d'indexation annuelle. */
-function indexe(montant: Cents, pctAnnuel: number, annees: number): Cents {
+/** Montant dérivé de `annees` pas d'indexation annuelle. Partagé avec `ENG-015`. */
+export function indexe(montant: Cents, pctAnnuel: number, annees: number): Cents {
   if (annees <= 0 || pctAnnuel === 0) return montant;
   const facteur = Math.pow(1 + pctAnnuel / 100, annees);
   return roundCents(montant * facteur);
