@@ -333,6 +333,36 @@ Transversales aux phases. Voir `docs/RELEASES.md` §3.
 - [ ] `INF-005` Mesure d'audience sans cookie
 - [ ] `INF-006` Métadonnées de partage reflétant le scénario
 
+## Phase 8 — Charte d'ornement et motifs d'interface
+
+Huit tickets ouverts le 23 août 2026, détaillés dans `docs/TICKETS-MOTIFS-UI.md` :
+quatre sujets, chacun avec son étude puis sa réalisation. Le cadre a changé le même
+jour — le second objectif du dépôt est écrit (`docs/CONTEXT.md` §11), l'interdit
+« esthétique fintech » est levé et remplacé par un interdit de conséquence
+(`docs/01-brief-design.md` §3 et §10), et la décision est consignée en **ADR-021**.
+Le mandat n'est plus de tolérer un peu d'ornement mais d'en produire un qui tienne, et
+la borne qui reste est la **sémantique des couleurs** : capital, intérêts, assurance et
+marchés ne servent jamais de décor.
+
+**L'ordre compte** : `UI-022` produit la matière que les trois autres sujets emploient.
+
+- [ ] `UI-022` **Étude** — la charte d'ornement, les boutons, les cartes. Deux manques
+      constatés : aucune primitive `Bouton` (les `<button>` sont écrits à la main dans
+      huit fichiers) et des cartes d'accueil en balisage direct dans `page.tsx`
+- [ ] `UI-023` Jetons `--ornement-*`, `Bouton`, cartes, galerie — dépend de `UI-022`.
+      Porte la garde qu'ADR-021 met en contrepartie du retrait : un jeton d'ornement ne
+      peut pas valoir une couleur sémantique
+- [ ] `UI-020` **Étude** — ce que sert une URL qui n'existe pas. Mesuré sur le site
+      déployé : Next sert sa page par défaut, en anglais, sur fond blanc, avec deux
+      `<title>` dans le même document
+- [ ] `UI-021` `not-found.tsx` — dépend de `UI-020`
+- [ ] `UI-016` **Étude** — où le produit fait attendre, et ce qu'il montre alors
+- [ ] `UI-017` Indicateur d'attente, et la règle `prefers-reduced-motion` qui manque
+      aujourd'hui à `globals.css` — dépend de `UI-016`
+- [ ] `UI-018` **Étude** — rendre quarante-huit entrées de glossaire lisibles sans
+      les cacher derrière un survol
+- [ ] `UI-019` Nouvelle présentation du glossaire — dépend de `UI-018`
+
 ---
 
 ---

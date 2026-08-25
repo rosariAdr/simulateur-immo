@@ -1865,3 +1865,112 @@ fait rougir du tout, et c'est l'entrée la plus utile : voir le journal de `docs
   une seule carte**. La garde d'`UI-014` a dû être reprise en conséquence : l'égalité se lit
   désormais entre routes déclarées et **liens** des cartes ouvertes, non entre routes et
   cartes. Ce qu'elle protège n'a pas bougé.
+
+---
+
+## ADR-021 — Le dépôt a deux destinataires, et l'interface a le droit d'être remarquable
+
+**Date** : 23 août 2026 · **Statut** : adoptée · **Tickets** : `UI-016` à `UI-023`
+
+### Contexte
+
+Le brief design portait depuis l'origine un interdit rédigé ainsi : « **Pas d'esthétique
+fintech.** Aucun dégradé violet-bleu, aucune carte à coins très arrondis flottant sur fond
+blanc, aucune ombre portée diffuse. » Il a été retiré le 23 août 2026, à l'ouverture des
+tickets `UI-016` à `UI-021`.
+
+Le retrait n'était pas une correction de détail. Cet interdit interdisait des **procédés**,
+là où les quatre autres puces de la même liste interdisent des **effets sur le lecteur** —
+tromper par la taille, rassurer à tort, cacher la complexité, décorer au lieu de
+représenter. Un dégradé ne trompe personne ; il ne figurait dans cette liste que par
+réaction à un genre.
+
+Le déclencheur du retrait est un objectif du projet qui n'était écrit nulle part. Ce dépôt
+sert deux destinataires. Le premier est le primo-accédant décrit dans `docs/CONTEXT.md` §5.
+Le second est **le lecteur professionnel** : ce projet est aussi un exercice de
+construction rapide et une pièce à montrer — publication, capture, démonstration courte.
+Il doit démontrer trois choses, un moteur de calcul non trivial, une architecture tenue
+par des règles opposables, et **une démarche de design conduite**. Tant que le troisième
+volet restait bridé par un interdit de procédé, il ne pouvait pas se démontrer : un
+produit qui ne se laisse pas regarder ne prouve rien de la compétence qui le dessine.
+
+Cet objectif est désormais écrit — `docs/CONTEXT.md` §11 — ce qui est la condition pour
+qu'il puisse être arbitré au lieu d'être deviné.
+
+### Décision
+
+**1. Le second objectif est consigné, pas sous-entendu.** `docs/CONTEXT.md` §11 énonce ce
+que le dépôt démontre et dans quel ordre. Il est explicitement subordonné : rien de ce qui
+sert la démonstration n'entame ce qui sert l'utilisateur.
+
+**2. L'interdit de procédé est remplacé par un interdit de conséquence.** La puce
+« esthétique fintech » quitte le brief. Une puce entre à sa place : « **Pas d'effet qui
+coûte à l'usage** — rien qui retarde un résultat, cache un texte derrière une interaction,
+abaisse un contraste sous 4,5:1, ou ne survive pas à `prefers-reduced-motion` ». Dégradé,
+halo, flou, angle adouci, profondeur deviennent des outils disponibles, jugés sur leur
+effet et non sur leur genre.
+
+**3. La liberté est bornée par une hiérarchie explicite**, écrite en section 10 du brief :
+trois niveaux d'ornement selon que l'écran sert ou non à lire un chiffre engageant. Un
+ornement juste au mauvais niveau reste un défaut.
+
+**4. La palette décorative est disjointe de la palette sémantique.** Capital, intérêts,
+assurance et marchés ne servent **jamais** d'ornement. L'ornement se construit sur encre,
+papier, panneau, filet, accent, et sur des jetons `--ornement-*` déclarés pour cet usage.
+Deux exceptions : une couleur sémantique employée là où elle signifie, et une
+représentation de données.
+
+**5. La métaphore directrice gagne sa seconde moitié.** « Un instrument de mesure, pas une
+brochure » devient aussi « un instrument, pas un formulaire administratif ». Les documents
+qui font foi restent la référence de la mise en ordre ; ils ne sont pas la référence de la
+facture.
+
+### Justification
+
+**Pourquoi ne pas simplement assouplir au cas par cas ?** Parce qu'un interdit qu'on
+contourne écran par écran ne protège plus rien et ne se garde pas. Les deux issues
+honnêtes étaient de le tenir ou de le retirer en écrivant pourquoi. Le tenir aurait
+sacrifié le troisième volet de la démonstration pour préserver une formulation défensive.
+
+**Pourquoi la règle 4 est la contrepartie exacte du retrait.** La section 4 du brief pose
+que la sémantique des couleurs est « la règle la plus importante du système ». C'est vrai
+comme choix de produit, et c'est aussi ce que la démonstration a de plus solide à montrer :
+une charte où chaque couleur porte un sens fixe dans tous les modules relève d'une démarche
+de design, là où un empilement d'effets n'en relève pas. Ouvrir les procédés sans verrouiller
+la sémantique aurait échangé l'atout contre l'ornement. Les maquettes qui ont déclenché la
+discussion l'illustrent : leur dégradé magenta → cyan tombe à côté du violet de l'assurance
+et du bleu des marchés, et c'est cela — non le dégradé — qui était le vrai coût.
+
+**Pourquoi l'interdit de conséquence est meilleur que l'interdit de procédé.** Il est
+vérifiable. « Pas de fintech » se plaide ; « contraste ≥ 4,5:1 mesuré sur le fond réel »,
+« l'écran reste complet sous `prefers-reduced-motion` », « le parcours se fait au doigt sans
+survol » se testent. La section 10.6 en fait cinq contrôles applicables à tout écran, dont
+le test de la capture — l'écran arrêté doit se tenir seul, ce qui est aussi le meilleur
+révélateur d'un effet qui compensait une composition faible.
+
+### Conséquences acceptées
+
+- **Le brief n'est plus un document figé.** Il porte désormais la trace datée d'un
+  amendement, et la section 3 signale ce qui en est sorti. C'est plus lourd à lire, et
+  c'est le prix de la traçabilité — le même arbitrage que pour les paramètres fiscaux.
+- **La revue devient plus exigeante, pas moins.** Un interdit de genre se vérifiait à
+  l'œil ; un interdit de conséquence demande cinq mesures par écran. C'est assumé : ces
+  mesures existaient déjà, elles deviennent une liste.
+- **Le risque de dérive est réel** et repose sur la règle 4. Si un écran emploie une
+  couleur sémantique comme ornement, la convention se délite partout. D'où la garde
+  ci-dessous, qui ne peut pas être seulement une intention.
+
+### Ce qui la garde
+
+- La garde des jetons — `src/app/__tests__/design-tokens.test.ts` — est étendue à la
+  famille `--ornement-*` : déclarée dans les deux thèmes, et **distincte** des quatre
+  jetons sémantiques. Un jeton d'ornement qui vaudrait la même couleur qu'un jeton
+  sémantique fait échouer le test.
+- Les cinq contrôles de la section 10.6 rejoignent la porte de branche pour tout ticket
+  qui touche un écran : contraste dans les deux thèmes, clavier, doigt,
+  `prefers-reduced-motion`, capture.
+- La règle `@media (prefers-reduced-motion: reduce)` est livrée par `UI-017` **avant**
+  toute animation, avec sa propre garde.
+
+Voir `docs/01-brief-design.md` §2, §3 et §10, `docs/CONTEXT.md` §11, et
+`docs/TICKETS-MOTIFS-UI.md`.

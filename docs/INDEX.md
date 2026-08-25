@@ -19,6 +19,8 @@ Le problème identifié : les simulateurs existants sont dispersés — un site 
 
 Public prioritaire : le primo-accédant, qui ne connaît ni le TAEG ni la différence entre caution et hypothèque, et qui doit décider d'un engagement de vingt ans.
 
+**Et un second destinataire, écrit le 23 août 2026** : le lecteur professionnel du dépôt et de l'application publiée. Ce projet est aussi un exercice — construire vite, mettre en production pour de bon, apprendre en le faisant — et une pièce à montrer. Il doit démontrer trois choses : un moteur de calcul non trivial et gardé, une architecture tenue par des règles qu'on peut faire respecter, et une démarche de design conduite. Ce second objectif est subordonné au premier : rien de ce qui sert la démonstration n'entame ce qui sert l'utilisateur. Voir `CONTEXT.md` §11, `01-brief-design.md` §10 et ADR-021.
+
 ## 2. Le fil conducteur : la taxonomie des paramètres
 
 Chaque paramètre de l'interface porte visuellement son appartenance à l'une de trois familles. C'est l'apport pédagogique central du produit, et ce qu'aucun concurrent ne fait.
@@ -120,6 +122,7 @@ Un taux dénormal de 3×10⁻³²¹ % annule le dénominateur de l'annuité — 
 | `05-plan-production.md` | Processus de production détaillé |
 | `CLAUDE.md` | Fichier de contexte minimal pour Claude Code |
 | `TASKS.md` | Tickets par phase, convention de préfixes |
+| `TICKETS-MOTIFS-UI.md` | La charte d'ornement et trois motifs d'interface — boutons et cartes, page introuvable, attente, glossaire. Une étude puis une réalisation par sujet |
 | `RELEASES.md` | Découpage en versions, modèle de branches, portes de vérification |
 | `REGISTRE-TESTS.md` | Ce que la suite couvre à chaque version, et les gardes vérifiées par sabotage |
 | `ADR.md` | Décisions d'architecture et leurs raisons |
