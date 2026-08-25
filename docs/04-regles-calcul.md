@@ -217,11 +217,11 @@ Au-delà de 50 000 € de plus-value nette imposable, surtaxe progressive de 2 �
 
 Les amortissements déduits au régime réel viennent diminuer le prix d'acquisition et augmentent donc la plus-value imposable.
 
-**Le point le plus important, et celui que mon prototype modélisait mal** : les amortissements réintégrés ne bénéficient d'**aucun abattement pour durée de détention**. Ils restent imposés même après 22 ou 30 ans. Seule la plus-value brute bénéficie des abattements progressifs.
+**Corrigé le 25 août 2026 par `FIS-010`, à la source.** Ce document affirmait que les amortissements réintégrés ne bénéficiaient d'aucun abattement pour durée de détention et que la base se scindait en deux composantes. **C'est faux dans les deux textes consultés.** Le III de l'art. 150 VB minore le **prix d'acquisition** : il n'y a qu'une seule plus-value brute, qui traverse les abattements de l'art. 150 VC comme n'importe quelle autre. La réponse ministérielle n° 10097 (AN, 24 mars 2026) le dit expressément : « sous réserve de l'application des abattements pour durée de détention, l'ensemble des amortissements déduits […] seront pris en compte ». Voir `docs/reference/FIS-010-verification.md`, point 3.
 
-Conséquence sur le modèle : la base imposable se scinde en deux composantes traitées différemment. L'effet est maximal sur les détentions courtes — les sources consultées évoquent un doublement de l'imposition sur une détention de douze ans.
+Conséquence sur le modèle : les amortissements cumulés entrent en **minoration du prix d'acquisition**, sans barème parallèle. L'effet est maximal sur les détentions courtes et s'éteint avec les abattements sur les longues — l'inverse de ce que la version antérieure de cette note laissait attendre.
 
-Les résidences services conservent l'ancien régime.
+Les amortissements antérieurs à 2025 sont visés, pour toute cession postérieure au 15 février 2025 (même réponse ministérielle). Les résidences services — étudiantes, personnes âgées ou handicapées, soins de longue durée — conservent l'ancien régime. La loi de finances pour 2026 (art. 47) a étendu la minoration aux amortissements du nouveau statut du bailleur privé (art. 31, i et j).
 
 ---
 
@@ -233,10 +233,18 @@ Les résidences services conservent l'ancien régime.
 |---|---|---|
 | Meublé longue durée | 77 700 € revenus 2025, 83 600 € revenus 2026 | 50 % |
 | Meublé de tourisme classé | idem | 50 % — contre 71 % avant réforme |
-| Meublé de tourisme non classé | **15 000 €** | **30 %** — contre 50 % avant réforme |
-| Chambres d'hôtes | 188 700 € | 71 % |
+| Meublé de tourisme non classé | **15 000 €**, non indexé | **30 %** — contre 50 % avant réforme |
+| Chambres d'hôtes | idem classés — **corrigé le 25 août 2026** : ce document donnait 188 700 € / 71 %, l'état antérieur à la réforme | 50 % |
 
 Abattement minimum de 305 €. Au-delà du seuil, bascule obligatoire au régime réel.
+
+**Vérifié à la source le 25 août 2026 (`FIS-010`)** : art. 50-0 dans sa version au
+1er juillet 2026, actualisation triennale du décret n° 2026-562 du 29 juin 2026.
+La longue durée et les classés relèvent du même 2° (83 600 €) ; les non classés du
+1° bis, dont le seuil est expressément exclu de l'actualisation ; les chambres
+d'hôtes sont rattachées au régime des classés (confirmation gouvernementale de
+mai 2025, fiche service-public F32744 vérifiée le 15 avril 2026). Voir
+`docs/reference/FIS-010-verification.md`, point 2.
 
 ### Ce que la réforme a changé
 
@@ -275,6 +283,13 @@ Taux globaux indicatifs : environ 27,5 % pour un affilié EEE, environ 37,2 % ho
 
 La hausse des prélèvements sociaux à 18,6 % introduite en 2026 concerne les **placements financiers** — dividendes, plus-values mobilières, revenus de comptes-titres. Elle ne concerne **pas** les revenus fonciers, les plus-values immobilières, l'assurance-vie ni l'épargne réglementée.
 
+**Complété le 25 août 2026 (`FIS-010`)** : elle concerne en revanche la **location
+meublée non professionnelle**. La dérogation à 17,2 % du IV de l'art. L136-8 vise les
+revenus fonciers (a du I de l'art. L136-6) ; les BIC non professionnels de la meublée
+relèvent du f du même I, qu'elle ne cite pas. Une location nue à 17,2 % et une
+meublée à 18,6 % — le module « louer plutôt que vendre » doit l'enseigner. Voir
+`docs/reference/FIS-010-verification.md`, point 4.
+
 Ce détail modifie l'arbitrage entre pierre et papier au détriment du compte-titres, et renforce l'intérêt relatif du plan d'épargne en actions et de l'assurance-vie. Il doit être paramétré finement dans le module.
 
 ---
@@ -283,7 +298,7 @@ Ce détail modifie l'arbitrage entre pierre et papier au détriment du compte-ti
 
 Points non confirmés ou contradictoires dans les sources consultées :
 
-- **Micro-foncier** : seuil et abattement non retrouvés dans la recherche. À vérifier à la source.
+- ~~**Micro-foncier** : seuil et abattement non retrouvés dans la recherche. À vérifier à la source.~~ **Résolu le 25 août 2026** : 15 000 € et 30 %, art. 32 du CGI en vigueur au 21 février 2026 — `FIS-010`, point 1.
 - **Date de fin de la hausse des droits de mutation** : les sources divergent entre le 31 mars et le 30 avril 2028.
 - **Liste des départements à taux réduit** : les listes ne concordent pas entre elles.
 - **Barèmes détaillés du prêt à taux zéro** : à récupérer sur data.gouv.fr plutôt qu'à ressaisir.
