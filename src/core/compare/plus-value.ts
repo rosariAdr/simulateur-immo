@@ -277,6 +277,20 @@ export interface EntreePlusValue extends SituationDuCedant {
   readonly prixAcquisition: Cents;
   readonly fraisAcquisition: MajorationFraisAcquisition;
   readonly travaux: MajorationTravaux;
+  /**
+   * Amortissements admis en déduction pendant la location du bien — régime réel
+   * de la location meublée (art. 39 C) et, depuis la loi de finances pour 2026,
+   * statut du bailleur privé (art. 31, i et j). Ils MINORENT le prix
+   * d'acquisition : art. 150 VB, III, applicable aux cessions depuis le
+   * 15 février 2025, amortissements antérieurs compris. La plus-value ainsi
+   * majorée traverse les abattements pour durée de détention comme une autre —
+   * pas de scission d'assiette (RM AN n° 10097 du 24 mars 2026 ; voir
+   * `docs/reference/FIS-010-verification.md`, point 3). Défaut zéro.
+   *
+   * Les exceptions du III — résidences services — ne sont pas modélisées : pour
+   * ces biens, ne rien saisir ici.
+   */
+  readonly amortissementsDeduits?: Cents;
   /** Commande le taux des prélèvements sociaux — `ENG-016`. */
   readonly regimeSocial: RegimeSocialDuCedant;
   /** Millésime employé. À défaut, celui en vigueur. */
@@ -290,7 +304,9 @@ export interface AssiettePlusValue {
   readonly prixDeCessionNet: Cents;
   readonly majorationFraisAcquisition: Cents;
   readonly majorationTravaux: Cents;
-  /** Prix d'acquisition augmenté des deux majorations. */
+  /** Amortissements déduits, en MOINS du prix d'acquisition (art. 150 VB, III). */
+  readonly minorationAmortissements: Cents;
+  /** Prix d'acquisition augmenté des deux majorations, minoré des amortissements. */
   readonly prixAcquisitionMajore: Cents;
   /**
    * `prixDeCessionNet − prixAcquisitionMajore`. **Peut être négative** : c'est
@@ -518,8 +534,18 @@ export function calculerPlusValue(entree: EntreePlusValue): ImpositionPlusValue 
       ? entree.travaux.montant
       : forfaitTravauxVerifie(entree.travaux.jeton, situation, prixAcquisition, params);
 
+  // Art. 150 VB, III : le prix d'acquisition est minoré des amortissements admis
+  // en déduction. C'est une minoration du PRIX, pas une seconde assiette : la
+  // plus-value majorée traverse ensuite les abattements comme n'importe quelle
+  // autre — voir `docs/reference/FIS-010-verification.md`, point 3.
+  const minorationAmortissements = exigerMontant(
+    entree.amortissementsDeduits ?? 0,
+    "amortissements déduits",
+  );
+
   const prixDeCessionNet = prixDeCession - fraisDeCession;
-  const prixAcquisitionMajore = prixAcquisition + majorationFraisAcquisition + majorationTravaux;
+  const prixAcquisitionMajore =
+    prixAcquisition + majorationFraisAcquisition + majorationTravaux - minorationAmortissements;
   const plusValueBrute = prixDeCessionNet - prixAcquisitionMajore;
   assertSafe(plusValueBrute, "plus-value brute");
 
@@ -527,6 +553,7 @@ export function calculerPlusValue(entree: EntreePlusValue): ImpositionPlusValue 
     prixDeCessionNet,
     majorationFraisAcquisition,
     majorationTravaux,
+    minorationAmortissements,
     prixAcquisitionMajore,
     plusValueBrute,
   };
@@ -666,7 +693,9 @@ export const HORS_MODELE = {
   abattementExceptionnel:
     "L'abattement exceptionnel en zone tendue n'est pas appliqué : il dépend d'un engagement de démolition ou de reconstruction pris par l'acquéreur, que ce simulateur ne connaît pas.",
   amortissementsLmnp:
-    "Les amortissements déduits sous le régime réel de la location meublée ne sont pas réintégrés au calcul. Pour un bien loué meublé au réel, la plus-value imposable est donc sous-estimée ici.",
+    "Aucun amortissement déduit n'a été saisi. Pour un bien loué meublé au régime réel — ou amorti au titre du statut du bailleur privé —, les amortissements déduits minorent le prix d'acquisition (art. 150 VB, III) : sans eux, la plus-value imposable est sous-estimée.",
+  amortissementsExceptions:
+    "Les exceptions à la réintégration des amortissements — résidences étudiantes, établissements pour personnes âgées ou handicapées, soins de longue durée — ne sont pas modélisées : les amortissements de ces biens ne devraient pas être saisis.",
   majorationsDiverses:
     "Seuls les frais d'acquisition et les travaux majorent le prix d'acquisition. Les frais de voirie, réseaux et distribution n'entrent pas dans ce calcul, et les travaux déjà déduits des revenus fonciers ne devraient pas y entrer non plus : c'est à la saisie de les écarter.",
   nonResidents:
@@ -692,7 +721,12 @@ function pointsHorsModele(
     HORS_MODELE.residencePrincipale,
     HORS_MODELE.exonerationsParticulieres,
     HORS_MODELE.abattementExceptionnel,
-    HORS_MODELE.amortissementsLmnp,
+    // La réserve d'amortissements change de nature avec la saisie : absente, elle
+    // rappelle que le champ existe ; remplie, elle borne ce que la minoration
+    // couvre. Les deux ne se cumulent pas.
+    (entree.amortissementsDeduits ?? 0) > 0
+      ? HORS_MODELE.amortissementsExceptions
+      : HORS_MODELE.amortissementsLmnp,
     HORS_MODELE.majorationsDiverses,
     HORS_MODELE.fraisReels,
     HORS_MODELE.arrondiDeLiquidation,

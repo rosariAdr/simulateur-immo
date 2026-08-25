@@ -141,7 +141,24 @@ Le découpage en versions, le modèle de branches et les portes sont dans
       17,2 % (le f du I de l'art. L136-6 n'est pas dans la dérogation du IV de
       l'art. L136-8). Aucun `TODO_VERIFY` ajouté ; ajout pur au fichier gelé, raison
       écrite (ADR-004), gardé par `params-regimes-locatifs.test.ts`
-- [ ] `ENG-013` Régimes fiscaux locatifs
+- [x] `ENG-013` Régimes fiscaux locatifs
+      → `src/core/compare/regimes-locatifs.ts` : les quatre régimes en une fonction
+      annuelle sans état — micro-foncier (30 %, sans plancher), micro-BIC (50 % ou
+      30 % selon la catégorie, plancher de 305 €), réel nu (déficit reporté, jamais
+      d'impôt négatif), réel meublé (plafond de l'art. 39 C : l'amortissement
+      annule la base, ne la rend pas négative ; l'excédent se reporte sans limite).
+      Le taux de prélèvements sociaux vient de `socialLevies` et la NATURE de la
+      location le choisit : nue 17,2 %, meublée 18,6 %. Les seuils sortent en
+      alertes typées, jamais en refus de calcul. Et la **réintégration des
+      amortissements est branchée** dans `plus-value.ts` (art. 150 VB, III) : le
+      champ `amortissementsDeduits` minore le prix d'acquisition, les abattements
+      traversent — la réserve « non réintégrés » devient « à saisir ». 30 tests,
+      cassés trois fois exprès. La série pluriannuelle du scénario est `ENG-029`
+- [ ] `ENG-029` Scénario de location longue durée — la sortie que `UI-007` déclare
+      absente : loyers nets de vacance et de gestion (hypothèses de marché à
+      ajouter), mensualité toujours due lue dans le plan, impôt annuel par
+      `ENG-013` avec circulation des reports, revente par `ENG-027` avec les
+      amortissements cumulés. Ouvert le 25 août 2026 en livrant `ENG-013`
 - [x] `ENG-014` Plus-value hors résidence principale, abattements par durée
       → `src/core/compare/plus-value.ts`. **Deux abattements, deux assiettes** —
       `baseImpotRevenu` (22 ans) et `basePrelevementsSociaux` (30 ans) — jamais une
@@ -2806,3 +2823,44 @@ en `@src` — 1 rouge, la garde de sourçage seule. Un accroc instructif au pass
 surtaxe dans la garde de sourçage de `FIS-007`, qui cherche la première occurrence.
 Renommé `grossIncomeThresholdCents` — plus juste, c'est un seuil de revenu brut — et
 on ne corrige pas un test qui a raison.
+
+---
+
+### 25 août 2026 — ENG-013 : les quatre régimes calculent, la réintégration est branchée
+
+**`src/core/compare/regimes-locatifs.ts`.** Une fonction annuelle SANS ÉTAT :
+recettes, charges, intérêts, dotation entrent ; base, impôt, prélèvements sociaux et
+reports sortent. C'est l'appelant — le futur `ENG-029` — qui fera circuler les
+reports d'une année à l'autre ; un échéancier est un pli de cette fonction, pas une
+boucle cachée dedans.
+
+**Trois choix de modélisation, écrits dans les sorties.**
+
+- **Le régime est une donnée, jamais un choix du moteur.** Décider du « meilleur
+  régime » serait une recommandation. La fonction calcule le régime demandé, même
+  inéligible — l'inéligibilité sort en alerte typée avec seuil et recettes. Un
+  calcul arrêté n'apprend rien.
+- **Réel nu, prudence assumée** : tout le déficit part en report sur les revenus
+  fonciers suivants ; l'imputation sur le revenu global (10 700 €) et l'expiration
+  décennale sont déclarées non modélisées.
+- **Réel meublé, art. 39 C au cordeau** : l'amortissement se déduit dans la limite
+  du résultat avant amortissement, l'excédent se reporte sans limite de durée. La
+  part déduite est rendue à l'appelant parce qu'elle a un avenir : elle minore le
+  prix d'acquisition à la revente.
+
+**Le branchement 150 VB, III.** `plus-value.ts` gagne `amortissementsDeduits`, qui
+minore le prix d'acquisition dans l'assiette — pas de barème parallèle, les
+abattements traversent, conformément à la RM n° 10097 vérifiée par `FIS-010`. La
+réserve `amortissementsLmnp` — « ne sont pas réintégrés, plus-value sous-estimée » —
+change de nature au lieu de disparaître : sans saisie elle dit « à saisir », avec
+saisie elle borne les exceptions (résidences services). Le test existant « porte
+toujours ses réserves » passe inchangé : c'est la même clé, et c'est voulu.
+
+**Gardes.** 25 tests sur les régimes (cas dérivés à la main des articles, invariants
+de conservation, quatre propriétés fast-check), 5 sur la réintégration. **Cassées
+trois fois** : le plafond du 39 C retiré — 3 rouges —, le choix du taux de
+prélèvements sociaux inversé — 5 rouges —, la minoration débranchée — 2 rouges.
+
+**Reste pour v0.3.1** : `ENG-029` (série pluriannuelle de la sortie longue durée,
+avec vacance et gestion en hypothèses de marché à ajouter à `market.ts`), `ENG-015`
+(courte durée), `TST-031` (la porte, avec ses cas de référence sourcés).
