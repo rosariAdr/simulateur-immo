@@ -302,6 +302,9 @@ Transversales aux phases. Voir `docs/RELEASES.md` §3.
       à graine fixée, et quantiles vérifiés sur une distribution connue
 - [ ] `TST-060` Porte de version **v0.6.0**. Les règles d'éligibilité, chacune avec
       son cas passant et son cas bloquant
+- [ ] `TST-070` Porte de version **v0.7.0**. Les cinq contrôles du §10.6 du brief
+      design, exécutés sur chaque écran, et les parcours des versions précédentes
+      re-passés tels quels
 - [ ] `TST-100` Porte de version **v1.0.0**. Plus aucun `TODO_VERIFY` dans
       `src/core/fiscal/`, et un test qui échoue s'il en réapparaît un
 
@@ -332,6 +335,24 @@ Transversales aux phases. Voir `docs/RELEASES.md` §3.
       et texte long à `/avertissement`. **Non relu par un juriste**
 - [ ] `INF-005` Mesure d'audience sans cookie
 - [ ] `INF-006` Métadonnées de partage reflétant le scénario
+- [ ] `LEG-003` Dossier de relecture juridique, puis relecture par un professionnel
+      du droit — `LEG-001` et `LEG-002` sont publiés mais non relus, et le site
+      reste en `noindex` jusque-là. Délai externe : peut partir à tout moment sur
+      signal d'Adrian, au plus tard au début de v0.7.0
+- [ ] `LEG-004` Licence du dépôt — « encore à décider » depuis `LEG-001` ; à
+      trancher avant la vitrine (`CNT-004`), le dépôt est public
+- [ ] `FIS-009` Procédure de mise à jour trimestrielle du taux d'usure — l'avis au
+      JO change chaque trimestre ; dire qui met à jour, comment, et ce qui alerte
+      quand le millésime est périmé
+- [ ] `INF-008` Bascule `INDEXABLE` : inversion de la garde de `verif-deploiement`
+      — elle vérifie aujourd'hui que le site n'est **pas** indexable —, sitemap,
+      déclaration Search Console
+- [ ] `CNT-004` Annonce et vitrine — README du dépôt, démo de trois minutes
+      (`CONTEXT.md` §11), publications vers les deux destinataires ; l'acte qui
+      suit l'étiquette v1.0.0
+
+Les cinq derniers sont nés du plan de lancement du 25 août 2026 et sont écrits
+dans leur ordre d'exécution. Voir `docs/RELEASES.md`, v0.7.0 et v1.0.0.
 
 ## Phase 8 — Charte d'ornement et motifs d'interface
 
@@ -345,6 +366,10 @@ la borne qui reste est la **sémantique des couleurs** : capital, intérêts, as
 marchés ne servent jamais de décor.
 
 **L'ordre compte** : `UI-022` produit la matière que les trois autres sujets emploient.
+
+**Ces tickets forment le cœur de v0.7.0 « L'interface se montre »**, la version de
+la refonte décidée le 25 août 2026 — voir `docs/RELEASES.md`. La revue des manques
+fonctionnels en est la porte d'entrée.
 
 - [ ] `UI-022` **Étude** — la charte d'ornement, les boutons, les cartes. Deux manques
       constatés : aucune primitive `Bouton` (les `<button>` sont écrits à la main dans
@@ -2672,3 +2697,47 @@ qui se fige, ce sont des sources qui énoncent leur assiette. Voir ADR-019.
 **Porte de version** — `rm -rf .next` puis `npm run porte`, à froid : typecheck, lint,
 **955 tests Vitest sur 20 fichiers**, build, **386 tests Playwright passés et 10 ignorés**.
 Puis `npm run verif-deploiement` sur https://simulateur-immo-snowy.vercel.app/.
+
+---
+
+### 25 août 2026 — Le plan de lancement s'écrit dans le dépôt
+
+**D'où il vient.** Session de cadrage menée avec la compétence `brainstorming` du
+plugin `superpowers`, installée ce jour hors dépôt : questions une par une, approches
+comparées, conception validée section par section avant toute écriture.
+
+**Les décisions, dans l'ordre où elles ont été prises.**
+
+- **Le lancement recouvre tout** — l'ouverture publique, la vitrine professionnelle,
+  et les versions qui y mènent.
+- **La séquence : fonctionnalités d'abord, refonte du design ensuite, mécanique du
+  lancement enfin.** Les fonctionnalités suivent le plan de versions tel qu'il est
+  écrit — v0.3.1, v0.4, v0.5, v0.6 — avec une revue des manques en cours de route.
+- **Le plan vit dans les conventions du dépôt**, pas dans un document à part :
+  `RELEASES.md` porte les versions, `TASKS.md` porte les tickets. Deux approches
+  écartées — un `docs/LANCEMENT.md` séparé, qui aurait fait deux sources de vérité
+  pour les versions, et des tickets sans plan, qui n'auraient consigné la séquence
+  nulle part.
+- **v0.7.0 « L'interface se montre »** est créée : la refonte A→Z, qui absorbe la
+  phase 8. Porte d'entrée : la revue des manques fonctionnels. Première conversation :
+  délimiter ce qui se rediscute et ce que les règles protègent — sémantique des
+  quatre couleurs, contrastes gardés par tests, ADR-021. Sortie : les cinq contrôles
+  du §10.6 et les parcours des versions précédentes re-passés tels quels.
+- **v1.0.0 devient officiellement la version du lancement** : s'y ajoutent la bascule
+  `INDEXABLE` avec l'inversion de la garde de `verif-deploiement`, le sitemap et la
+  Search Console, la licence du dépôt et la procédure du taux d'usure. L'annonce est
+  l'acte qui suit l'étiquette.
+- **Cinq tickets créés en phase 7**, écrits dans leur ordre d'exécution : `LEG-003`
+  dossier juriste et relecture, `LEG-004` licence, `FIS-009` procédure d'usure,
+  `INF-008` bascule et trouvabilité, `CNT-004` annonce et vitrine. Plus `TST-070`,
+  la porte de la refonte.
+- **La relecture juridique est un délai externe** : notée « peut partir à tout moment
+  sur signal d'Adrian, au plus tard au début de v0.7.0 ». Rien d'autre ne peut la
+  raccourcir.
+
+**Pas d'ADR** : aucune décision d'architecture technique — le plan est une décision
+de production, et `RELEASES.md` est son lieu.
+
+**Ensuite** : v0.3.1 « Louer plutôt que vendre » démarre par la vérification fiscale
+à la source — la spécification signale elle-même les régimes micro comme le terrain
+le plus incertain du module.
