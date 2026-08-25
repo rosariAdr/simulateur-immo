@@ -123,3 +123,59 @@ Le conseil en investissement financier et l'intermédiation en opérations de ba
 À prévoir dès la mise en ligne : mentions légales, conditions générales d'utilisation, politique de confidentialité, et un avertissement visible indiquant que l'outil ne constitue ni un conseil en investissement, ni un conseil fiscal, ni une offre de crédit.
 
 *Ce point demande une validation par un professionnel du droit ; il ne s'agit pas ici d'un avis juridique.*
+
+## 11. Le second objectif : ce que ce dépôt démontre
+
+*Ajouté le 23 août 2026. Ce projet a deux destinataires, et il faut l'écrire parce que
+ça change des arbitrages.*
+
+Le premier destinataire est l'utilisateur décrit au §5 : le primo-accédant qui doit
+décider. Tout ce qui précède est écrit pour lui, et rien de ce qui suit ne l'entame.
+
+Le second destinataire est **le lecteur professionnel du dépôt et de l'application
+publiée** — quelqu'un qui vient voir de quoi l'auteur est capable. Ce projet est aussi
+un exercice : construire vite, mettre en production pour de bon, et apprendre en le
+faisant. Il doit donc **se montrer**, y compris hors de son usage — dans une
+publication, une capture, une démonstration de trois minutes.
+
+### Ce que le projet doit démontrer, dans cet ordre
+
+1. **Un moteur de calcul non trivial, juste et gardé.** Le décimal en centimes, le
+   TAEG par équivalence actuarielle, la formule fermée du levier corrigée par les
+   tests, le cas dénormal trouvé par test de propriétés. C'est le cœur, et c'est ce qui
+   ne s'improvise pas.
+2. **Une architecture tenue par des règles qu'on peut faire respecter.** La frontière
+   `src/core/` gardée par le lint, les valeurs réglementaires séparées des règles,
+   l'état dans l'URL, les portes de vérification. Voir `docs/ADR.md` : les décisions
+   sont écrites avec leur raison, ce qui est l'objet de la démonstration autant que le
+   code.
+3. **Une démarche de design conduite, pas subie.** Une charte graphique dont chaque
+   couleur porte un sens fixe, des jetons nommés par rôle et gardés par un test, une
+   taxonomie visuelle qui enseigne. C'est ce volet-là qui était le moins visible
+   jusqu'ici, et c'est celui qu'on renforce.
+
+### Ce que ça change concrètement
+
+**L'interface a le droit d'être remarquable.** Un produit qui ne se laisse pas
+regarder ne démontre pas la troisième compétence, même s'il excelle sur les deux
+premières. La sobriété reste la règle des écrans de travail ; elle cesse d'être une
+excuse pour ne rien dessiner.
+
+**Ce qui n'est pas négociable pour autant** : l'application reste **fonctionnelle
+d'abord**. Aucun ornement ne s'interpose entre l'utilisateur et son résultat, n'allonge
+une attente, ne cache un texte derrière une interaction, ni ne dégrade un contraste. Un
+écran qui impressionne et qu'on ne peut pas utiliser échoue **deux fois** : comme
+produit, et comme démonstration — un recruteur attentif voit le défaut d'usage avant
+l'effet.
+
+**La sémantique des couleurs, en particulier, se renforce au lieu de se diluer.** Une
+charte où le vert veut dire capital et la brique intérêts, partout, sans exception, est
+précisément le genre de rigueur qui distingue une démarche de design d'un empilement
+d'effets. C'est un argument, pas une contrainte à contourner.
+
+**L'économie de moyens reste un critère.** Hébergement gratuit, aucun backend, aucune
+donnée personnelle, dépendances comptées. Faire beaucoup avec peu fait partie de ce
+qu'on montre.
+
+La direction artistique qui découle de ce §11 est écrite dans `docs/01-brief-design.md`
+§10, et la décision qui l'a ouverte dans `docs/ADR.md`, ADR-021.

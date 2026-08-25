@@ -40,6 +40,14 @@ dans `src/core/fiscal/`, datés et sourcés.
 
 **Le sens des couleurs est fixe.** Vert pour le capital et les gains, brique pour les intérêts
 et les coûts, violet pour l'assurance, bleu pour les marchés. Identique dans tous les modules.
+**Ces quatre couleurs ne servent jamais d'ornement.** L'ornement se construit sur encre,
+papier, panneau, filet, accent et les jetons `--ornement-*`. Voir ADR-021.
+
+**L'interface a le droit d'être remarquable, jamais au prix de l'usage.** Le dépôt a un
+second destinataire — le lecteur professionnel — et le volet design fait partie de ce qu'il
+démontre. Les bornes sont écrites et vérifiables : `docs/01-brief-design.md` §10, dont les
+cinq contrôles du §10.6 — contraste dans les deux thèmes, clavier, doigt,
+`prefers-reduced-motion`, et l'écran arrêté qui se tient seul.
 
 **On travaille sur une branche, jamais sur `main`.** Une branche par ticket,
 `npm run porte` avant toute fusion, fusion en `--no-ff`. La porte enchaîne typecheck,
