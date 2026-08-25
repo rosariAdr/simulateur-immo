@@ -263,6 +263,79 @@ export interface FiscalParams {
   };
 
   /**
+   * Imposition des revenus locatifs — les régimes micro du module « louer plutôt
+   * que vendre » (`FIS-010`, vérifié le 25 août 2026).
+   *
+   * Le taux de prélèvements sociaux N'EST PAS ici : il se lit dans `socialLevies`,
+   * et le régime commande lequel. La location NUE est au taux dérogatoire
+   * (`realEstate`, 17,2 %) : le IV de l'art. L136-8 vise les revenus fonciers du
+   * a du I de l'art. L136-6. La location MEUBLÉE non professionnelle est au droit
+   * commun (`patrimony`, 18,6 %) : ses bénéfices relèvent du f du même I, que la
+   * dérogation ne cite pas. Une nue à 17,2 % et une meublée à 18,6 % — la
+   * différence est contre-intuitive, vérifiée, et fait partie de ce que le module
+   * enseigne.
+   * @source Code de la sécurité sociale, art. L136-8, IV — liste limitative de la
+   *         dérogation. Version en vigueur au 21 février 2026.
+   * @see https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000042683546
+   */
+  readonly rentalIncome: {
+    /**
+     * Micro-foncier — location nue. Seuil de revenu brut foncier annuel du foyer,
+     * écrit en dur dans l'article, sans clause d'actualisation.
+     * @source Code général des impôts, art. 32 — revenu brut qui « n'excède pas
+     *         15 000 € », « abattement de 30 % ». Version en vigueur au
+     *         21 février 2026 (loi n° 2026-103 du 19 février 2026).
+     * @see https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000048847610
+     */
+    readonly microFoncier: {
+      /** Seuil de revenu brut foncier annuel du foyer fiscal. */
+      readonly grossIncomeThresholdCents: Cents;
+      readonly allowancePct: number;
+    };
+
+    /**
+     * Micro-BIC — location meublée. L'article range la longue durée et le meublé
+     * de tourisme CLASSÉ au même seuil actualisable (2°), et le meublé de tourisme
+     * NON CLASSÉ au 1° bis, dont le seuil est expressément exclu de
+     * l'actualisation triennale — aligné sur le micro-foncier par la loi Le Meur.
+     * Les chambres d'hôtes sont hors périmètre du module.
+     * @source Code général des impôts, art. 50-0 — version en vigueur au
+     *         1er juillet 2026, actualisation triennale du décret n° 2026-562 du
+     *         29 juin 2026 : 83 600 € (2°), 15 000 € (1° bis), abattements 50 %
+     *         et 30 %, abattement minimum de 305 €.
+     * @source Loi n° 2024-1039 du 19 novembre 2024, dite Le Meur — meublés de
+     *         tourisme non classés au 1° bis, 15 000 € et 30 %.
+     * @source service-public.gouv.fr, fiche F32744 vérifiée le 15 avril 2026 —
+     *         table des revenus 2026 : 83 600 € / 50 % pour la longue durée et
+     *         les classés, 15 000 € / 30 % pour les non classés.
+     * @see https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000048844097
+     * @see https://www.service-public.gouv.fr/particuliers/vosdroits/F32744
+     */
+    readonly microBic: {
+      readonly longTermThresholdCents: Cents;
+      readonly longTermAllowancePct: number;
+      readonly classifiedTourismThresholdCents: Cents;
+      readonly classifiedTourismAllowancePct: number;
+      readonly unclassifiedTourismThresholdCents: Cents;
+      readonly unclassifiedTourismAllowancePct: number;
+      readonly minimumAllowanceCents: Cents;
+    };
+
+    /**
+     * Location meublée de COURTE durée : au-delà de ce seuil de recettes
+     * annuelles, l'affiliation à la sécurité sociale des indépendants remplace
+     * les prélèvements sociaux. Un autre monde de cotisations, que le module ne
+     * modélise pas et doit signaler au franchissement.
+     * @source Code de la sécurité sociale, art. L611-1, 6° — location « à une
+     *         clientèle y effectuant un séjour à la journée, à la semaine ou au
+     *         mois », par renvoi au seuil du 1° du 2 du IV de l'art. 155 du CGI,
+     *         soit 23 000 €. Version en vigueur au 21 février 2026.
+     * @see https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000042683852
+     */
+    readonly shortTermSocialAffiliationThresholdCents: Cents;
+  };
+
+  /**
    * Plus-value immobilière des particuliers, hors résidence principale.
    *
    * @source Code général des impôts, art. 150 U à 150 VH.
@@ -482,6 +555,23 @@ export const PARAMS_2026: FiscalParams = {
       totalPct: 17.2,
     },
     eeaReducedPct: 7.5,
+  },
+
+  rentalIncome: {
+    microFoncier: {
+      grossIncomeThresholdCents: euros(15_000),
+      allowancePct: 30,
+    },
+    microBic: {
+      longTermThresholdCents: euros(83_600),
+      longTermAllowancePct: 50,
+      classifiedTourismThresholdCents: euros(83_600),
+      classifiedTourismAllowancePct: 50,
+      unclassifiedTourismThresholdCents: euros(15_000),
+      unclassifiedTourismAllowancePct: 30,
+      minimumAllowanceCents: euros(305),
+    },
+    shortTermSocialAffiliationThresholdCents: euros(23_000),
   },
 
   realEstateCapitalGains: {

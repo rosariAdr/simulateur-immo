@@ -127,6 +127,20 @@ Le découpage en versions, le modèle de branches et les portes sont dans
       indemnité sous son double plafond légal, mainlevée, restitution du fonds. Le total
       peut être négatif, et il l'est rendu tel quel. Le cas imposable entre par une union
       discriminée `RegimePlusValue`, jamais importé. Voir ADR-014
+- [x] `FIS-010` Vérification à la source des régimes locatifs et report dans `params.ts`
+      → `docs/reference/FIS-010-verification.md` et `rentalIncome` dans `params.ts` :
+      micro-foncier 15 000 € / 30 % (art. 32 — le point que la recherche n'avait « pas
+      retrouvé »), micro-BIC au millésime 2026 actualisé par le décret n° 2026-562
+      (83 600 € / 50 % pour la longue durée et les classés, 15 000 € / 30 % non indexé
+      pour les non classés, minimum 305 €), seuil d'affiliation de la courte durée
+      23 000 € (art. L611-1, 6°). **Deux croyances du dépôt corrigées par les textes** :
+      les amortissements LMNP réintégrés BÉNÉFICIENT des abattements pour durée de
+      détention — minoration du prix d'acquisition, pas de scission d'assiette (RM
+      n° 10097 du 24 mars 2026, `04-regles-calcul.md` §8 affirmait le contraire) — et
+      la location meublée paie 18,6 % de prélèvements sociaux quand la nue reste à
+      17,2 % (le f du I de l'art. L136-6 n'est pas dans la dérogation du IV de
+      l'art. L136-8). Aucun `TODO_VERIFY` ajouté ; ajout pur au fichier gelé, raison
+      écrite (ADR-004), gardé par `params-regimes-locatifs.test.ts`
 - [ ] `ENG-013` Régimes fiscaux locatifs
 - [x] `ENG-014` Plus-value hors résidence principale, abattements par durée
       → `src/core/compare/plus-value.ts`. **Deux abattements, deux assiettes** —
@@ -2741,3 +2755,54 @@ de production, et `RELEASES.md` est son lieu.
 **Ensuite** : v0.3.1 « Louer plutôt que vendre » démarre par la vérification fiscale
 à la source — la spécification signale elle-même les régimes micro comme le terrain
 le plus incertain du module.
+
+---
+
+### 25 août 2026 — FIS-010 : les régimes locatifs à la source, deux croyances corrigées
+
+Première vague de v0.3.1, sur le modèle de v0.3.0 : les valeurs d'abord, les moteurs
+ensuite. Cinq points vérifiés sur Légifrance et service-public, consignés dans
+`docs/reference/FIS-010-verification.md` ; `rentalIncome` ajouté à `params.ts` —
+fichier gelé, ajout pur sur le précédent de `FIS-007`, aucune entrée existante
+modifiée.
+
+**Ce que les textes ont confirmé.** Micro-foncier 15 000 € / 30 % (art. 32 — le point
+que la recherche d'août n'avait « pas retrouvé » est le plus simple de tous) ;
+micro-BIC actualisé au 1er juillet 2026 par le décret n° 2026-562 : 83 600 € / 50 %
+pour la longue durée ET les meublés classés — même 2° de l'art. 50-0 —, 15 000 € /
+30 % pour les non classés, seuil expressément exclu de l'actualisation triennale ;
+abattement minimum 305 € ; affiliation de la courte durée à 23 000 € (art. L611-1, 6°).
+
+**Ce que les textes ont démenti.** Deux affirmations de `docs/04-regles-calcul.md`,
+corrigées dans le document même :
+
+- **Les amortissements LMNP réintégrés bénéficient des abattements pour durée de
+  détention.** La note affirmait le contraire — « aucun abattement », « base scindée
+  en deux composantes » — et ce mécanisme-là aurait été codé dans `ENG-013` si on
+  l'avait crue. Le III de l'art. 150 VB minore le **prix d'acquisition** : une seule
+  plus-value brute, les abattements de droit commun dessus (RM n° 10097, AN,
+  24 mars 2026, qui confirme aussi la portée rétroactive aux amortissements
+  antérieurs à 2025). L'effet s'éteint sur les détentions longues — l'inverse de ce
+  que la note laissait attendre.
+- **La location meublée paie 18,6 % de prélèvements sociaux, la nue 17,2 %.** La
+  dérogation du IV de l'art. L136-8 vise les revenus fonciers (a du I de
+  l'art. L136-6) ; les BIC non professionnels de la meublée (f du même I) n'y sont
+  pas. La note « la hausse ne concerne pas l'immobilier » était vraie du foncier,
+  fausse de la meublée. Aucun taux nouveau : `ENG-013` choisira entre les deux
+  entrées que `FIS-007` avait déjà écrites.
+
+**Découvert en passant.** La LF 2026 (art. 47) crée un amortissement en location
+nue — statut du bailleur privé, art. 31, i et j — réintégré lui aussi au 150 VB, et
+c'est pour lui que l'art. 32 a été retouché en février. Hors périmètre v0.3.1, à
+déclarer non modélisé.
+
+**Gardes.** `params-regimes-locatifs.test.ts`, 14 tests sur le modèle de `FIS-007` :
+relations entre valeurs (les deux alignements que les textes imposent), montants que
+les articles écrivent en toutes lettres, sourçage par bloc JSDoc accolé. **Cassées
+deux fois avant d'être déclarées** : le seuil ramené à 77 700 € — 2 rouges, le
+montant 2026 et l'égalité de catégorie tombent ensemble — puis un `@source` maquillé
+en `@src` — 1 rouge, la garde de sourçage seule. Un accroc instructif au passage :
+`microFoncier.thresholdCents` entrait en collision avec le `thresholdCents` de la
+surtaxe dans la garde de sourçage de `FIS-007`, qui cherche la première occurrence.
+Renommé `grossIncomeThresholdCents` — plus juste, c'est un seuil de revenu brut — et
+on ne corrige pas un test qui a raison.
