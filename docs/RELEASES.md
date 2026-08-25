@@ -99,7 +99,17 @@ le lecteur ne s'en aperçoive.
 
 `FIS-010` valeurs des régimes locatifs, vérifiées à la source · `ENG-013` régimes
 fiscaux locatifs · `ENG-029` scénario de location longue durée · `ENG-015` scénario
-de location courte durée · `TST-031`.
+de location courte durée · `UI-024` étude du câblage des trois sorties ·
+`UI-025` réalisation · `TST-031`.
+
+**État au 25 août 2026.** Le moteur de la version est complet — les quatre tickets
+`FIS` et `ENG` sont fusionnés, 1 067 tests Vitest. Ce qui reste est l'écran :
+`/comparaison/patrimoine` déclare encore les deux sorties locatives absentes, et
+c'est une garde qui le vérifie. Le câblage touche un écran dessiné (ADR-020) et
+suit donc le rituel de la phase 8 — une étude (`UI-024`), puis la réalisation
+(`UI-025`) — plutôt qu'une fin de chantier pressée. **La version ne s'étiquette
+pas avant** : une version est un produit utilisable, pas un lot de moteurs.
+`TST-031` clôt, avec le critère de sortie exécuté sur l'écran câblé.
 
 **Pourquoi ils sortent de v0.3.0.** Ils décrivent ce qu'on fait *après* avoir acheté,
 et non le choix d'acheter — une autre question, posée par quelqu'un d'autre. Et c'est

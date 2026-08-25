@@ -198,6 +198,16 @@ Le découpage en versions, le modèle de branches et les portes sont dans
       saisonnalité, réglementation locale (les 120 nuits), taxe de séjour, TVA
       para-hôtelière. 16 tests, deux sabotages, chacun tombé sur sa garde.
       Livré le 25 août 2026
+- [ ] `UI-024` **Étude** — le câblage des trois sorties dans
+      `/comparaison/patrimoine` : où vivent le choix de la sortie et celui du
+      régime, quels champs nouveaux l'URL porte (loyer de marché, tarif,
+      occupation, TMI…), comment les alertes de seuil et les réserves des
+      scénarios s'affichent sans écraser l'écran, et ce que deviennent les
+      gardes « déclarées absentes ». L'écran est dessiné (ADR-020) : l'étude
+      précède le geste, comme en phase 8
+- [ ] `UI-025` Réalisation du câblage — dépend de `UI-024`. Les trois moteurs
+      sont prêts : `ENG-027` (vente), `ENG-029` (longue durée), `ENG-015`
+      (courte durée). La version v0.3.1 s'étiquette après lui, par `TST-031`
 - [x] `ENG-016` Statut de résidence fiscale et prélèvements sociaux applicables
       → même fichier. `RegimeSocialDuCedant` commande le taux, et lui seul : taux plein du
       régime dérogatoire immobilier, ou taux réduit pour l'affilié EEE/Suisse. Ce que la
