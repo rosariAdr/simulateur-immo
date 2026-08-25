@@ -98,7 +98,8 @@ le lecteur ne s'en aperçoive.
 ### v0.3.1 — « Louer plutôt que vendre »
 
 `FIS-010` valeurs des régimes locatifs, vérifiées à la source · `ENG-013` régimes
-fiscaux locatifs · `ENG-015` scénario de location courte durée · `TST-031`.
+fiscaux locatifs · `ENG-029` scénario de location longue durée · `ENG-015` scénario
+de location courte durée · `TST-031`.
 
 **Pourquoi ils sortent de v0.3.0.** Ils décrivent ce qu'on fait *après* avoir acheté,
 et non le choix d'acheter — une autre question, posée par quelqu'un d'autre. Et c'est

@@ -789,3 +789,63 @@ describe("invariants", () => {
     }
   });
 });
+
+/* ══ 7. Réintégration des amortissements — art. 150 VB, III (`ENG-013`) ═════ */
+
+describe("réintégration des amortissements déduits", () => {
+  const avecAmortissements = (montant: number) => ({
+    ...cessionNue({
+      prixAcquisition: euros(200_000),
+      prixDeCession: euros(260_000),
+      dureeDetentionMois: 120,
+    }),
+    amortissementsDeduits: montant,
+  });
+
+  it("minore le prix d'acquisition, jamais une seconde assiette", () => {
+    // 200 000 € d'acquisition, 40 000 € amortis : le prix retenu tombe à
+    // 160 000 €, la plus-value brute passe de 60 000 € à 100 000 €.
+    const r = calculerPlusValue(avecAmortissements(euros(40_000)));
+    expect(r.assiette.minorationAmortissements).toBe(euros(40_000));
+    expect(r.assiette.prixAcquisitionMajore).toBe(euros(160_000));
+    expect(r.assiette.plusValueBrute).toBe(euros(100_000));
+  });
+
+  it("fait traverser les abattements à la plus-value majorée — pas de barème parallèle", () => {
+    // La croyance corrigée par FIS-010 : la RM n° 10097 (24 mars 2026) applique
+    // les abattements de droit commun à l'ensemble. À dix ans de détention, le
+    // taux d'abattement doit être LE MÊME avec et sans amortissements — seule
+    // l'assiette change.
+    const sans = calculerPlusValue(avecAmortissements(0));
+    const avec = calculerPlusValue(avecAmortissements(euros(40_000)));
+    expect(avec.abattementImpotRevenu.tauxPct).toBe(sans.abattementImpotRevenu.tauxPct);
+    expect(avec.abattementPrelevementsSociaux.tauxPct).toBe(sans.abattementPrelevementsSociaux.tauxPct);
+    // 10 années révolues : 5 × 6 % = 30 % à l'impôt sur le revenu.
+    expect(avec.abattementImpotRevenu.tauxPct).toBe(30);
+    expect(sans.baseImpotRevenu).toBe(euros(42_000));
+    expect(avec.baseImpotRevenu).toBe(euros(70_000));
+  });
+
+  it("vaut zéro par défaut : l'entrée d'hier calcule comme avant", () => {
+    const implicite = calculerPlusValue(
+      cessionNue({ prixAcquisition: euros(200_000), prixDeCession: euros(260_000), dureeDetentionMois: 120 }),
+    );
+    const explicite = calculerPlusValue(avecAmortissements(0));
+    expect(implicite.assiette).toEqual(explicite.assiette);
+    expect(implicite.total).toBe(explicite.total);
+  });
+
+  it("échange sa réserve : « à saisir » sans montant, les exceptions avec", () => {
+    const sans = calculerPlusValue(avecAmortissements(0));
+    expect(sans.nonModelise).toContain(HORS_MODELE.amortissementsLmnp);
+    expect(sans.nonModelise).not.toContain(HORS_MODELE.amortissementsExceptions);
+
+    const avec = calculerPlusValue(avecAmortissements(euros(40_000)));
+    expect(avec.nonModelise).toContain(HORS_MODELE.amortissementsExceptions);
+    expect(avec.nonModelise).not.toContain(HORS_MODELE.amortissementsLmnp);
+  });
+
+  it("refuse un montant négatif", () => {
+    expect(() => calculerPlusValue(avecAmortissements(euros(-1)))).toThrow(RangeError);
+  });
+});
