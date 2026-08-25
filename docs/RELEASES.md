@@ -120,17 +120,51 @@ incertaine de ses parties.
 
 `ENG-026`, `FIS-003`, `FIS-004`, `UI-010`, `TST-060`.
 
-### v1.0.0 — « Publiable sans réserve »
+### v0.7.0 — « L'interface se montre »
+
+La refonte du design, de A à Z. Décidée le 25 août 2026 en préparant le lancement :
+la séquence retenue est fonctionnalités d'abord, refonte ensuite, mécanique du
+lancement enfin. Elle absorbe la phase 8 (charte d'ornement et motifs d'interface,
+huit tickets) et s'étend à l'ensemble des écrans. `TST-070` porte de version.
+
+**Porte d'entrée : la revue des manques fonctionnels.** On fige le périmètre avant
+de redessiner — les écrans refondus doivent couvrir le produit final, pas celui
+d'une étape. Ce qui manque devient tickets avant que la refonte ne commence.
+
+**Première conversation de la refonte** : délimiter ce qui se rediscute — mise en
+page, typographie, ornement, thèmes — et ce que les règles actuelles protègent — la
+sémantique des quatre couleurs, les contrastes gardés par tests, ADR-021. On peut y
+déroger, mais par décision écrite, jamais par accident.
+
+**Critère de sortie.** Les cinq contrôles de `docs/01-brief-design.md` §10.6,
+exécutés sur chaque écran : contraste dans les deux thèmes, clavier, doigt,
+`prefers-reduced-motion`, et l'écran arrêté qui se tient seul. Et les parcours des
+versions précédentes re-passés tels quels : une refonte qui casse un usage échoue
+deux fois — comme produit, et comme démonstration.
+
+### v1.0.0 — « Publiable sans réserve » — la version du lancement
 
 Ce qui distingue v1.0 des v0.x n'est pas une fonctionnalité de plus : c'est que
-**plus rien n'est en attente de vérification**.
+**plus rien n'est en attente de vérification** — et que le site devient trouvable.
 
 - `FIS-002` résolu — la liste des départements à taux réduit, à la source
 - `FIS-005` arbitré — les barèmes de caution sortis de `params.ts`
-- `LEG-001` et `LEG-002` relus par un juriste
+- `LEG-003` — le dossier de relecture préparé, et `LEG-001` / `LEG-002` relus par
+  un juriste. Délai externe : la relecture peut partir à tout moment sur signal
+  d'Adrian, au plus tard au début de v0.7.0
+- `LEG-004` — la licence du dépôt tranchée
+- `FIS-009` — la procédure trimestrielle du taux d'usure en place
 - `INF-005` mesure d'audience sans cookie, `INF-006` métadonnées de partage
+- `INF-008` — la bascule `INDEXABLE`, l'inversion de la garde de
+  `verif-deploiement` — qui vérifie aujourd'hui que le site n'est **pas**
+  indexable —, le sitemap, la déclaration en Search Console
 - `ENG-001`…`ENG-009` cochés après audit ticket par ticket
 - `TST-100` porte de version v1.0
+
+**L'annonce suit l'étiquette.** `CNT-004` — README du dépôt en vitrine, démo de
+trois minutes, publications vers les deux destinataires — se prépare pendant v0.7
+et v1.0, et se publie une fois l'étiquette posée et `verif-deploiement` vert sur le
+site indexable.
 
 ---
 
