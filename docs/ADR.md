@@ -2040,3 +2040,104 @@ annoncées comme non modélisées » s'inverse — les trois sont chiffrées, le
 sélecteur fonctionne au clavier, une saisie de loyer change l'impôt affiché,
 l'écart 17,2 / 18,6 % de prélèvements sociaux se lit, les alertes de seuil
 apparaissent avec leur seuil, et les clés voyagent par URL sur les deux profils.
+
+---
+
+## ADR-023 — `impeccable` est un outil, les documents du dépôt restent l'autorité
+
+**Date** : 25 août 2026 · **Statut** : adoptée · **Tickets** : `UI-016` à `UI-025`, v0.7.0
+
+### Contexte
+
+Une compétence de design d'interface, `impeccable`, est disponible sur le compte qui
+développe ce projet. Elle couvre exactement le terrain des huit tickets de la phase 8
+et de la refonte v0.7.0 : hiérarchie visuelle, charge cognitive, accessibilité,
+typographie, espacement, couleur, mouvement, copie d'interface, états d'erreur, jetons.
+
+Elle apporte trois choses que le dépôt n'a pas écrites. Un **vocabulaire de
+sous-commandes** — `critique`, `audit`, `shape`, `polish`, `typeset`, `layout`,
+`animate`, `clarify`, `adapt`, `harden`, `distill` — qui nomme précisément le geste
+attendu. Une **notion de mode** — Persuade, Operate, Read, Experience — qui décrit ce
+que réussir veut dire sur un écran donné. Et un **plancher de qualité** explicite,
+chargé juste avant d'écrire de l'interface.
+
+Elle apporte aussi ses propres artefacts. Sa commande `init` écrit un `PRODUCT.md`, sa
+commande `document` un `DESIGN.md`, et son script de contexte les lit à chaque session.
+**Ce dépôt possède déjà ces deux documents, sous d'autres noms** : `docs/CONTEXT.md`
+pour le produit, `docs/01-brief-design.md` et `docs/06-design-system.md` pour le design.
+
+La question n'était donc pas s'il faut employer la compétence, mais à quelle place —
+et ce qu'on fait de ses artefacts.
+
+### Décision
+
+**1. Elle s'invoque sur les tickets d'interface, par sous-commande nommée.** Pas « fais
+du design » : `critique` sur un écran qu'on évalue, `audit` sur ce qui se mesure,
+`layout` ou `typeset` sur ce qu'on retouche. Le geste attendu est nommé, donc le
+résultat est relisible.
+
+**2. Elle n'écrit ni `PRODUCT.md` ni `DESIGN.md`, et c'est le cœur de cette décision.**
+Deux descriptions d'une même chose divergent au premier changement, et la seconde n'est
+découverte périmée que par l'erreur qu'elle a causée. C'est le motif d'ADR-008 — les
+hypothèses de marché sorties de `params.ts` parce que rien ne les en distinguait — et
+d'ADR-010 — l'ancre d'un terme calculée aux deux bouts plutôt qu'écrite deux fois. Le
+jour où une session lance `init` par réflexe, ce paragraphe dit pourquoi elle ne doit
+pas, et un test le vérifie.
+
+**3. Les documents du dépôt sont l'autorité, la compétence est l'outil.** Ce qu'elle
+propose et qui touche une décision déjà écrite — la sémantique des quatre couleurs, la
+place des hypothèses sans valeur centrale, l'ordre du document — ne se change pas en
+silence : ça devient un ADR, ou ça ne se fait pas. La compétence pose d'ailleurs cette
+subordination elle-même : le brief l'emporte, et infléchir un brief clair vers son
+propre goût est un échec, y compris quand le brief contredit ses propres avertissements.
+
+**4. Le mode se lit dans le vocabulaire de la compétence, et il recoupe le §10.1 du
+brief.** Les écrans où l'on décide d'un engagement — `/credit`, `/comparaison`,
+`/comparaison/patrimoine` — sont en mode **Operate** : lisibilité, constance et scène
+d'usage réelle passent avant l'expression. Les écrans qui expliquent — `/glossaire`,
+`/credit/comprendre`, `/avertissement`, les pages légales, la galerie `/composants` —
+sont en mode **Read**. Les trois écrans de la phase 8 sont ceux où l'ornement coûte le
+moins, ce que le brief appelait déjà « hors travail ». La convergence est utile : deux
+vocabulaires qui tombent d'accord valent mieux qu'un seul.
+
+**5. Les cinq contrôles du §10.6 jugent, et la porte tranche.** La compétence propose ;
+contraste dans les deux thèmes, clavier, doigt, `prefers-reduced-motion` et l'écran
+arrêté qui se tient seul décident. Rien de ce qu'elle rend n'entre sans passer
+`npm run porte`.
+
+**6. Deux de ses mécanismes restent fermés pour l'instant.** Son **hook détecteur**,
+qui s'exécute après chaque édition d'un fichier d'interface : le dépôt a déjà sa garde
+de jetons, et deux détecteurs qui se contredisent coûteraient plus qu'ils ne rendent —
+à rouvrir quand `UI-023` aura livré la famille `--ornement-*`. Et son **mode `live`**,
+qui itère dans le navigateur : mesuré le 25 août 2026, l'aperçu interactif de cette
+machine ne compose aucune image et les clics tombent sur un DOM inerte. La vérification
+d'écran de ce projet passe par le build de production et Playwright.
+
+### Justification
+
+**Pourquoi ne pas l'employer sans écrire de règle.** Une compétence de design générique
+propose des palettes, des accords de polices et des tendances — c'est son travail. Ce
+dépôt a une charte où le vert veut dire capital et la brique intérêts, partout, sans
+exception, et ADR-021 a fait de cette rigueur la contrepartie exacte de la liberté
+graphique accordée. Le risque n'est pas théorique : c'est très précisément ce que la
+règle 4 d'ADR-021 protège, et une compétence qui ignore un brief non écrit ne fait
+aucune faute — c'est le brief qui manquait.
+
+**Pourquoi ne pas s'en passer.** Le dépôt a un second destinataire (`CONTEXT.md` §11),
+et le volet design est celui qu'il démontre le moins bien. Un vocabulaire de critique
+et un plancher de qualité écrits par ailleurs sont exactement ce qui manque à des
+tickets d'étude dont l'objet est de décider d'une forme. Refuser l'outil pour protéger
+la charte reviendrait à protéger le troisième volet en l'empêchant d'exister.
+
+### Ce qui la garde
+
+`src/app/__tests__/documents-de-design.test.ts` — aucun `PRODUCT.md` ni `DESIGN.md` à
+la racine ni dans `docs/`, et le message d'échec renvoie ici plutôt que d'annoncer un
+fichier manquant. La règle elle-même est vérifiée présente dans `CLAUDE.md` : une règle
+de procédé qui disparaît d'un fichier de contexte cesse d'être appliquée sans que rien
+ne rougisse.
+
+**Ce qu'aucun test ne garde** : que la compétence soit réellement subordonnée en séance.
+Un agent peut suivre sa proposition contre le brief sans qu'un fichier bouge. Le seul
+rempart est la relecture, et les cinq contrôles à l'arrivée — même partage qu'ADR-017
+entre ce qu'une garde attrape et ce qu'elle ne peut pas.

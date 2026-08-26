@@ -139,6 +139,37 @@ Elles s'appliquent sans être répétées dans chaque ticket.
 - **Aucun texte n'est écrit dans un composant** : les contenus rejoignent
   `src/content/`, typés. Voir ADR-007.
 
+### La compétence `impeccable` sur ces huit tickets
+
+Adoptée le 25 août 2026, **subordonnée aux documents** — ADR-023 dit pourquoi et ce
+qu'elle n'a pas le droit d'écrire. Elle s'invoque par **sous-commande nommée**, jamais
+par une demande vague : le geste attendu est nommé, donc le résultat est relisible.
+
+| Ticket | Sous-commande | Ce qu'on lui demande |
+| --- | --- | --- |
+| `UI-022` étude | `critique` | Relire l'existant : huit fichiers où les `<button>` sont écrits à la main, des cartes d'accueil en balisage direct. Ce qu'elle rend nourrit la charte, elle ne la décide pas. |
+| `UI-023` réalisation | `extract`, `layout` | Sortir les primitives réutilisables. **Sa sortie va dans `globals.css` et `src/components/ui/`**, jamais dans un fichier de système de design nouveau — ADR-023, point 2. |
+| `UI-016` étude | `critique` | Où le produit fait attendre, et ce que l'attente coûte au lecteur. |
+| `UI-017` réalisation | `animate` | Le mouvement, et la règle `prefers-reduced-motion` qui doit exister avant lui. |
+| `UI-020` étude | `critique` | Ce que sert une adresse inconnue, mesuré sur le déployé. |
+| `UI-021` réalisation | `shape` | Un écran qui n'existe pas encore : la forme se décide avant le code. |
+| `UI-018` étude | `critique` | Quarante-huit entrées à rendre lisibles — architecture de l'information, charge cognitive. |
+| `UI-019` réalisation | `layout`, `typeset` | La présentation et la typographie du glossaire. |
+
+**`audit` se rapproche des cinq contrôles du §10.6** — contraste, clavier, doigt,
+mouvement réduit — et sert donc en fin de ticket, sur ce qui se mesure. Il ne remplace
+pas la porte : `npm run porte` reste ce qui tranche.
+
+**Trois choses qu'on ne lui demande pas.** `init` et `document`, qui écriraient des
+documents que le dépôt possède déjà. Le mode `live`, qui itère dans le navigateur — non
+fonctionnel sur cette machine, l'aperçu ne compose aucune image. Et son hook détecteur,
+fermé jusqu'à ce qu'`UI-023` ait livré la famille `--ornement-*`.
+
+**Le mode, dans son vocabulaire.** Ces trois écrans sont en mode **Read** — le visiteur
+comprend quelque chose — et non **Operate**, qui est celui des écrans où l'on décide
+d'un engagement. C'est ce que le §10.1 appelait déjà « hors travail », et c'est ce qui
+autorise ici la marge la plus large du produit.
+
 ---
 
 ## 3. L'attente
@@ -542,6 +573,14 @@ nouvelle surface — dégradé compris, **aux deux extrémités**.
 | `UI-021` | réalisation | `not-found.tsx` | `UI-020` | `v0.3.2` |
 | `UI-018` | étude | La lecture de quarante-huit entrées de glossaire | `UI-022` | `v0.4.0` |
 | `UI-019` | réalisation | Nouvelle présentation du glossaire | `UI-018` | `v0.4.0` |
+
+**La colonne « version visée » date de l'ouverture de ces tickets, le 23 août 2026, et
+elle est périmée.** Le plan de lancement du 25 août a créé `v0.7.0 « L'interface se
+montre »` et lui a donné toute la phase 8 — voir `docs/RELEASES.md`. Les huit tickets y
+vont donc, à une réserve près : le lot C d'`UI-017` attend le module « pierre ou
+marchés », et ne peut pas sortir avant `v0.5.0` quelle que soit la version qui l'héberge.
+La colonne est laissée telle quelle plutôt que réécrite : elle dit ce qui était prévu, et
+cette phrase dit ce qui a changé.
 
 **Ordre conseillé — c'est celui du tableau.**
 

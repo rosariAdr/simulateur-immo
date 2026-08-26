@@ -3044,3 +3044,53 @@ rouges, toute la chaîne dérivée tombe ensemble — et les alertes débranché
 panneau courte durée — 2 rouges, la garde des seuils seule.
 
 **Reste pour v0.3.1** : `TST-031`, la porte de version.
+
+---
+
+### 25 août 2026 — La compétence `impeccable` entre, subordonnée
+
+**La décision, en ADR-023.** Une compétence de design d'interface est disponible sur le
+compte et couvre exactement le terrain de la phase 8 et de v0.7.0. Elle est adoptée,
+avec trois choses écrites : elle s'invoque **par sous-commande nommée** — `critique` et
+`shape` sur une étude, `audit`, `polish`, `layout`, `typeset`, `clarify`, `adapt` sur une
+réalisation —, les documents du dépôt restent l'autorité, et les cinq contrôles du §10.6
+jugent ce qu'elle rend.
+
+**Le point dur, et ce qui a demandé de la lire avant d'écrire à son sujet.** Deux de ses
+commandes écrivent des fichiers que ce dépôt possède déjà sous d'autres noms : `init`
+produit un `PRODUCT.md`, `document` un `DESIGN.md`, quand le produit se décrit dans
+`docs/CONTEXT.md` et le design dans `docs/01-brief-design.md`. Les laisser faire aurait
+créé deux descriptions d'une même décision — le motif exact d'ADR-008 et d'ADR-010,
+appliqué cette fois à de la documentation. **C'est refusé, et gardé par un test.**
+
+**Ce qu'ouvrir la compétence a appris**, et qui n'aurait pas été deviné : elle pose
+elle-même la subordination qu'on allait lui imposer — le brief l'emporte, et infléchir
+un brief clair vers son propre goût est un échec de sa part. Son vocabulaire de modes
+recoupe le §10.1 du brief : les écrans où l'on décide d'un engagement sont en mode
+**Operate**, ceux qui expliquent en mode **Read**, et les trois écrans de la phase 8
+sont ceux que le brief appelait déjà « hors travail ». Deux vocabulaires qui tombent
+d'accord valent mieux qu'un seul.
+
+**Deux mécanismes restent fermés** : son hook détecteur, jusqu'à ce qu'`UI-023` ait
+livré la famille `--ornement-*`, et son mode `live` — l'aperçu interactif de cette
+machine ne compose aucune image, ce qui a coûté une demi-heure à `UI-025` avant d'être
+compris.
+
+**Gardes.** `src/app/__tests__/documents-de-design.test.ts`, 8 tests : aucun
+`PRODUCT.md` ni `DESIGN.md` à la racine, dans `docs/` ou dans `src/`, avec un message
+d'échec qui renvoie à la décision plutôt que d'annoncer un fichier manquant ; et la
+règle vérifiée présente dans `CLAUDE.md`, parce qu'une règle de procédé retirée de son
+fichier de contexte cesse d'être appliquée sans qu'aucun code ne bouge. **Cassées deux
+fois** : un `docs/DESIGN.md` créé — 1 rouge —, le renvoi à ADR-023 retiré de
+`CLAUDE.md` — 1 rouge. À inscrire dans `docs/REGISTRE-TESTS.md` à la porte de version,
+avec les compteurs.
+
+**Une incohérence corrigée au passage.** Le récapitulatif de `docs/TICKETS-MOTIFS-UI.md`
+§7 visait `v0.3.2` et `v0.4.0` pour les huit tickets, ce que le plan de lancement du
+jour même a remplacé par v0.7.0. La colonne est laissée telle quelle — elle dit ce qui
+était prévu — et une phrase datée dit ce qui a changé.
+
+**Un défaut d'outillage rencontré et consigné** : réécrire un fichier avec
+`Set-Content -Encoding utf8` sous PowerShell 5.1 ajoute un **BOM** en tête. Il a été
+introduit par un sabotage, vu en relisant le diff, et retiré. Préférer les outils
+d'édition, ou `System.Text.UTF8Encoding($false)` quand il faut passer par le shell.
