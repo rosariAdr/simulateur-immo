@@ -146,6 +146,11 @@ page, typographie, ornement, thèmes — et ce que les règles actuelles protèg
 sémantique des quatre couleurs, les contrastes gardés par tests, ADR-021. On peut y
 déroger, mais par décision écrite, jamais par accident.
 
+**L'outillage de cette version** : la compétence `impeccable`, adoptée le 25 août 2026
+et subordonnée aux documents du dépôt — ADR-023. Elle s'invoque par sous-commande
+nommée, elle n'écrit aucun document de design concurrent, et les cinq contrôles du
+§10.6 jugent ce qu'elle rend.
+
 **Critère de sortie.** Les cinq contrôles de `docs/01-brief-design.md` §10.6,
 exécutés sur chaque écran : contraste dans les deux thèmes, clavier, doigt,
 `prefers-reduced-motion`, et l'écran arrêté qui se tient seul. Et les parcours des

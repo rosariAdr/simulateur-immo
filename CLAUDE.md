@@ -49,6 +49,15 @@ démontre. Les bornes sont écrites et vérifiables : `docs/01-brief-design.md` 
 cinq contrôles du §10.6 — contraste dans les deux thèmes, clavier, doigt,
 `prefers-reduced-motion`, et l'écran arrêté qui se tient seul.
 
+**La compétence `impeccable` sert les tickets d'interface, subordonnée aux documents.**
+S'invoquer par sous-commande nommée — `critique` et `shape` sur une étude, `audit`,
+`polish`, `layout`, `typeset`, `clarify` ou `adapt` sur une réalisation — et non par une
+demande vague. Les documents du dépôt restent l'autorité : ce qu'elle propose et qui
+touche une décision écrite devient un ADR, ou ne se fait pas. **Elle n'écrit ni
+`PRODUCT.md` ni `DESIGN.md`** : `docs/CONTEXT.md` et `docs/01-brief-design.md` sont déjà
+ces documents, et deux descriptions d'une même décision divergent. Les cinq contrôles du
+§10.6 jugent le résultat. Voir ADR-023.
+
 **On travaille sur une branche, jamais sur `main`.** Une branche par ticket,
 `npm run porte` avant toute fusion, fusion en `--no-ff`. La porte enchaîne typecheck,
 lint, Vitest, build et Playwright ; elle n'est pas facultative parce que le
