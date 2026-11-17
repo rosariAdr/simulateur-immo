@@ -1,74 +1,10 @@
-# CLAUDE.md
+@AGENTS.md
 
-Simulateur d'acquisition et de pilotage patrimonial immobilier. Application web française,
-publique, gratuite, sans compte ni backend.
+<!-- CLAUDE.md = pointeur : les conventions ET les règles du projet vivent dans AGENTS.md, lu aussi par Codex. Ne pas dupliquer de règle ici — l'ajouter dans AGENTS.md. Seules restent ci-dessous les notes propres à Claude Code. -->
 
-## Avant toute intervention
+## Notes Claude Code
 
-Lire dans cet ordre :
-
-1. `docs/INDEX.md` — récapitulatif de l'état du projet et inventaire des livrables
-2. `docs/CONTEXT.md` — positionnement, thèse produit, cartographie des modules
-3. `docs/02-architecture.md` — stack, structure du dépôt, conventions
-4. `docs/03-spec-domaine.md` — formules, règles fiscales, invariants
-5. `docs/ADR.md` — décisions d'architecture et leurs raisons
-6. `docs/TASKS.md` — tickets ouverts
-7. `docs/RELEASES.md` — versions, branches, portes de vérification
-
-## Règles non négociables
-
-**`src/core/` ne connaît pas l'interface.** Aucun import de `react`, `next` ou d'une API navigateur.
-Fonctions pures uniquement. La règle de lint est là pour ça, ne pas la contourner.
-
-**Le moteur crédit est gelé, le reste du moteur est ouvert.** `src/core/money.ts`,
-`src/core/fiscal/params.ts` et `src/core/credit/**` ont été écrits et vérifiés hors dépôt :
-leurs 95 tests et la traçabilité réglementaire de leurs commentaires ne se retouchent pas
-sans raison explicite. Les nouveaux répertoires — `compare/`, `prepayment/`, `markets/`,
-`aides/`, `types.ts` — s'écrivent normalement. Voir `docs/ADR.md`, ADR-004.
-
-**Toute modification du moteur s'accompagne d'un test.** Les invariants listés dans `docs/03-spec-domaine.md`
-doivent continuer de passer.
-
-**Aucune valeur réglementaire écrite en dur.** Taux, seuils, abattements et barèmes vivent
-dans `src/core/fiscal/`, datés et sourcés.
-
-**Aucune recommandation personnalisée.** Le produit calcule des scénarios, l'utilisateur décide.
-Écrire « dans cette configuration, l'écart est de X », jamais « vous devriez ».
-
-**Calculs en centimes entiers.** Arrondi uniquement à l'affichage. Vérifier que la dernière
-échéance solde exactement.
-
-**Le sens des couleurs est fixe.** Vert pour le capital et les gains, brique pour les intérêts
-et les coûts, violet pour l'assurance, bleu pour les marchés. Identique dans tous les modules.
-**Ces quatre couleurs ne servent jamais d'ornement.** L'ornement se construit sur encre,
-papier, panneau, filet, accent et les jetons `--ornement-*`. Voir ADR-021.
-
-**L'interface a le droit d'être remarquable, jamais au prix de l'usage.** Le dépôt a un
-second destinataire — le lecteur professionnel — et le volet design fait partie de ce qu'il
-démontre. Les bornes sont écrites et vérifiables : `docs/01-brief-design.md` §10, dont les
-cinq contrôles du §10.6 — contraste dans les deux thèmes, clavier, doigt,
-`prefers-reduced-motion`, et l'écran arrêté qui se tient seul.
-
-**La compétence `impeccable` sert les tickets d'interface, subordonnée aux documents.**
-S'invoquer par sous-commande nommée — `critique` et `shape` sur une étude, `audit`,
-`polish`, `layout`, `typeset`, `clarify` ou `adapt` sur une réalisation — et non par une
-demande vague. Les documents du dépôt restent l'autorité : ce qu'elle propose et qui
-touche une décision écrite devient un ADR, ou ne se fait pas. **Elle n'écrit ni
-`PRODUCT.md` ni `DESIGN.md`** : `docs/CONTEXT.md` et `docs/01-brief-design.md` sont déjà
-ces documents, et deux descriptions d'une même décision divergent. Les cinq contrôles du
-§10.6 jugent le résultat. Voir ADR-023.
-
-**On travaille sur une branche, jamais sur `main`.** Une branche par ticket,
-`npm run porte` avant toute fusion, fusion en `--no-ff`. La porte enchaîne typecheck,
-lint, Vitest, build et Playwright ; elle n'est pas facultative parce que le
-changement est petit. Toute branche apporte ses tests, ou dit dans le message de
-fusion pourquoi elle n'en a pas besoin. Voir `docs/RELEASES.md` et ADR-006.
-
-**Une garde ne vaut que cassée au moins une fois.** Avant de déclarer qu'un test
-protège quelque chose, le faire échouer exprès, puis rétablir. Les gardes ainsi
-vérifiées sont listées dans `docs/REGISTRE-TESTS.md`.
-
-## Fin de session
-
-Consigner dans `docs/TASKS.md` l'état d'avancement et les décisions prises.
-Toute décision d'architecture rejoint `docs/ADR.md` avec sa justification.
+- **La compétence `impeccable` sert les tickets d'interface, subordonnée aux documents.** L'invoquer par sous-commande nommée — `critique` et `shape` sur une étude, `audit`, `polish`, `layout`, `typeset`, `clarify` ou `adapt` sur une réalisation — et non par une demande vague. Les documents du dépôt restent l'autorité : ce qu'elle propose et qui touche une décision écrite devient un ADR, ou ne se fait pas. **Elle n'écrit ni `PRODUCT.md` ni `DESIGN.md`** : `docs/CONTEXT.md` et `docs/01-brief-design.md` sont déjà ces documents, et deux descriptions d'une même décision divergent. Les cinq contrôles du §10.6 jugent le résultat. Voir ADR-023.
+- **Commits** : ne jamais committer automatiquement. Proposer le message, laisser le dev committer (GitKraken). **Aucun `Co-Authored-By`** (AGENTS.md §0).
+- **Avant d'ouvrir une PR** : `npm run porte`, puis `/code-review`.
+- **Worktrees** : avec `--worktree`, renommer la branche à la convention (`feat|fix|chore/…` — le défaut `worktree-<nom>` ne la respecte pas) et fixer `PORT_E2E`.

@@ -132,8 +132,8 @@ Elles s'appliquent sans être répétées dans chaque ticket.
   disparaissent, et l'écran reste complet et lisible sans elles.
 - **Jamais la couleur seule.** Un état signalé par une teinte porte aussi un libellé,
   une position ou un motif.
-- **La porte de branche** (`npm run porte`) avant fusion, branche `feat/` par ticket,
-  fusion `--no-ff`.
+- **La porte de branche** (`npm run porte`) avant fusion, branche `feat/` par ticket
+  partie de `dev`, fusion en squash dans `dev` (ADR-024).
 - **Chaque garde est cassée une fois** avant d'être déclarée, puis inscrite dans
   `docs/REGISTRE-TESTS.md`. Voir ADR-019.
 - **Aucun texte n'est écrit dans un composant** : les contenus rejoignent

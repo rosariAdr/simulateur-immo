@@ -138,7 +138,7 @@ describe("invariants de toutes les entrées", () => {
   });
 
   it("aucune entrée ne recommande quoi que ce soit", () => {
-    // « Le produit calcule des scénarios, l'utilisateur décide » — CLAUDE.md.
+    // « Le produit calcule des scénarios, l'utilisateur décide » — AGENTS.md.
     // La formule est grossière et ne remplace pas une relecture ; elle attrape
     // la rechute la plus probable, celle du conseil déguisé en pédagogie.
     const injonctions = /\bvous devriez\b|\bnous (?:vous )?recommandons\b|\bil (?:vous )?faut (?:absolument|impérativement)\b|\bpréférez\b|\bchoisissez\b/iu;

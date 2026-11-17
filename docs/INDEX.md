@@ -120,7 +120,8 @@ Un taux dénormal de 3×10⁻³²¹ % annule le dénominateur de l'annuité — 
 | `04-regles-calcul.md` | Règles vérifiées par recherche, avec sources et points de divergence |
 | `reference/parametres-2026.json` | Paramètres réglementaires versionnés, chaque entrée sourcée |
 | `05-plan-production.md` | Processus de production détaillé |
-| `CLAUDE.md` | Fichier de contexte minimal pour Claude Code |
+| `AGENTS.md` | Conventions de travail et règles du projet, lues par Codex et par Claude Code (via `CLAUDE.md`) — socle commun aux projets + §7 propre à ce dépôt |
+| `CLAUDE.md` | Pointeur vers `AGENTS.md` + notes propres à Claude Code (compétence `impeccable`, ADR-023) |
 | `TASKS.md` | Tickets par phase, convention de préfixes |
 | `TICKETS-MOTIFS-UI.md` | La charte d'ornement et trois motifs d'interface — boutons et cartes, page introuvable, attente, glossaire. Une étude puis une réalisation par sujet |
 | `RELEASES.md` | Découpage en versions, modèle de branches, portes de vérification |

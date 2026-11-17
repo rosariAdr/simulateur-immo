@@ -25,7 +25,7 @@ import { ENTREES, VALEURS } from "../valeurs";
  * bulle qu'il prolonge.
  *
  * SUR LE FOND : aucun chiffre réglementaire écrit à la main, aucune
- * recommandation. Ce sont les deux règles de `CLAUDE.md` qu'un contenu long
+ * recommandation. Ce sont les deux règles d'`AGENTS.md` qu'un contenu long
  * enfreint le plus facilement, parce que la place ne manque plus.
  */
 
@@ -36,7 +36,7 @@ const JETON = /\{(\w+)\}/u;
  * Un nombre suivi d'une unité réglementaire, écrit à la main.
  *
  * « 35 % », « 25 ans », « 200 000 € », « 6 mois » : exactement ce que
- * `CLAUDE.md` interdit d'écrire dans un texte, et qui doit venir de
+ * `AGENTS.md` interdit d'écrire dans un texte, et qui doit venir de
  * `src/core/fiscal/params.ts` par un jeton. La date « 1er janvier » n'est pas
  * concernée : elle ne porte aucune de ces unités.
  */

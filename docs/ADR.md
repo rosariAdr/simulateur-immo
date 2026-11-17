@@ -330,7 +330,7 @@ personne l'ait voulu.
 
 ## ADR-006 — Une porte de vérification, pas une intention de vérifier
 
-**Date** : 22 août 2026 · **Statut** : adoptée
+**Date** : 22 août 2026 · **Statut** : adoptée — volet branches remplacé par ADR-024 (15 novembre 2026)
 
 ### Contexte
 
@@ -2141,3 +2141,60 @@ ne rougisse.
 Un agent peut suivre sa proposition contre le brief sans qu'un fichier bouge. Le seul
 rempart est la relecture, et les cinq contrôles à l'arrivée — même partage qu'ADR-017
 entre ce qu'une garde attrape et ce qu'elle ne peut pas.
+
+## ADR-024 — Le modèle de branches rejoint le socle commun : `dev`, squash, Conventional Commits
+
+**Date** : 15 novembre 2026 · **Statut** : adoptée · **Remplace** : le volet branches
+d'ADR-006 — la porte de branche, la porte de version et la règle « toute branche apporte
+ses tests » restent en vigueur
+
+### Contexte
+
+Le dépôt suivait son propre modèle (ADR-006, `docs/RELEASES.md` §2) : une branche par
+ticket fusionnée en `--no-ff` directement dans `main`, des branches `release/vX.Y.Z`
+pour les portes de version, des messages de commit en prose préfixés par l'identifiant
+du ticket.
+
+Les autres projets du même auteur partagent désormais un socle de conventions commun,
+écrit dans leur `AGENTS.md` — le fichier que lisent nativement Claude Code et Codex. Un
+agent qui passe d'un dépôt à l'autre doit y trouver les mêmes règles : un modèle de
+branches par dépôt est une source d'erreurs, pas une richesse. Et ce dépôt a désormais
+deux agents, ce qu'ADR-006 annonçait comme le moment où la convention ne suffirait plus.
+
+### Décision
+
+- **`main`** reste la branche stable, toujours déployable et toujours verte : Vercel la
+  publie. On n'y arrive que par une PR `dev → main` — une release —, fusionnée en
+  **merge classique**, puis étiquetée.
+- **`dev`** devient la branche d'intégration. Les branches de travail (`feat/`, `fix/`,
+  `chore/`) en partent et y reviennent par PR, en **squash merge**, après la porte de
+  branche. Le préfixe `docs/` rejoint `chore/`.
+- **Plus de branches `release/*`** : la porte de version s'exécute sur `dev`, avant la
+  PR `dev → main`.
+- **Messages en Conventional Commits**, l'identifiant du ticket en tête de description :
+  `feat(moteur): ENG-015 — la courte durée, du tarif de nuit à la revente`.
+- **Après chaque release**, `dev` est resynchronisée sur `main` (`git merge --ff-only main`).
+
+### Justification
+
+Ce que le `--no-ff` apportait est conservé autrement. Un lot livré reste un geste
+unique : un commit de squash sur `dev`, qui s'annule d'un seul `git revert`. Et
+l'histoire de `main` ne reçoit plus que des releases — elle devient plus lisible encore
+que celle qu'ADR-006 voulait obtenir.
+
+La porte, elle, ne change pas. Elle reste la condition de toute fusion : c'est la partie
+d'ADR-006 qui protégeait le code, et elle est désormais écrite dans le socle commun de
+tous les projets.
+
+### Conséquences acceptées
+
+- Une étape de plus avant la production : un correctif n'atteint le site qu'avec une
+  release `dev → main`. Un correctif urgent passe par une release de correctif
+  (`vX.Y.Z+1`), jamais par un commit direct sur `main`.
+- Vercel publie des aperçus de `dev` et des branches ; seule `main` est la production,
+  et `npm run verif-deploiement` vise toujours elle.
+- L'histoire antérieure garde ses fusions `--no-ff` et ses messages en prose : on ne
+  réécrit pas l'histoire.
+- ADR-006 prévoyait qu'avec un second auteur, une règle côté serveur deviendrait
+  nécessaire. `💡 [proposé — à valider]` protéger `main` et `dev` côté GitHub (PR
+  obligatoire, porte rejouée en CI).

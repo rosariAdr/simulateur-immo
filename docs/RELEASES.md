@@ -4,7 +4,7 @@ Ce document dit **quand une version sort**, **comment on y travaille**, et **ce 
 doit être vert avant de fusionner ou de poser une étiquette**.
 
 Il se lit avec `docs/TASKS.md` (les tickets), `docs/REGISTRE-TESTS.md` (ce que la
-suite couvre à chaque version) et `docs/ADR.md` (ADR-006, pourquoi ce modèle).
+suite couvre à chaque version) et `docs/ADR.md` (ADR-006 pour la porte, ADR-024 pour les branches).
 
 ---
 
@@ -185,13 +185,17 @@ site indexable.
 
 ## 2. Le modèle de branches
 
+Aligné sur le socle commun des projets (`AGENTS.md` §1) par ADR-024, qui remplace le
+modèle `--no-ff` direct sur `main` et les branches `release/*` d'ADR-006.
+
 ### Règles
 
-- **`main` est toujours déployable et toujours verte.** Vercel la publie.
-- **Aucun commit direct sur `main`**, hormis la correction d'un document de release.
-- **Une branche par ticket** ou par groupe de tickets qui n'a pas de sens séparé.
-- **Fusion en `--no-ff`.** L'histoire garde la trace de la branche : on voit d'un
-  coup d'œil ce qui a été livré ensemble, et on peut annuler un lot d'un seul geste.
+- **`main` est toujours déployable et toujours verte.** Vercel la publie. On n'y arrive
+  que par une PR `dev → main` — une release —, en merge classique, suivie d'une étiquette.
+- **`dev` est la branche d'intégration.** Aucun commit direct sur `main` ni sur `dev`.
+- **Une branche par ticket** ou par groupe de tickets qui n'a pas de sens séparé : elle
+  part de `dev` et y revient par PR, en **squash merge**, après la porte de branche. Un
+  lot livré reste un seul geste — un commit sur `dev`, qui s'annule d'un `git revert`.
 - La branche est **supprimée après fusion**. Elle vit dans l'histoire, pas dans la
   liste des branches.
 
@@ -201,41 +205,35 @@ site indexable.
 | --- | --- | --- |
 | `feat/` | un ticket qui ajoute quelque chose | `feat/UI-005-infobulles` |
 | `fix/` | une correction | `fix/tableau-debordement` |
-| `docs/` | documentation seule | `docs/versions-et-branches` |
-| `chore/` | outillage, dépendances, configuration | `chore/playwright-traces` |
-| `release/` | préparation d'une version | `release/v0.1.0` |
+| `chore/` | outillage, dépendances, configuration, documentation | `chore/playwright-traces` |
+
+Messages de commit : Conventional Commits, l'identifiant du ticket en tête de
+description — `feat(ui): UI-005 — les infobulles sur les termes techniques`. Scopes :
+`AGENTS.md` §7.
 
 ### Le cycle d'un ticket
 
 ```bash
-git checkout main && git pull
+git checkout dev && git pull
 git checkout -b feat/UI-005-infobulles
 ```
 
-Puis : écrire le code **et ses tests**, faire passer la porte de branche, et
-
-```bash
-git checkout main
-git merge --no-ff feat/UI-005-infobulles
-git branch -d feat/UI-005-infobulles
-git push
-```
+Puis : écrire le code **et ses tests**, faire passer la porte de branche, pousser la
+branche et ouvrir une PR vers `dev`, fusionnée en **squash**. La branche est supprimée
+après fusion.
 
 ### Le cycle d'une version
 
-```bash
-git checkout -b release/v0.1.0
-```
-
-Sur cette branche : la porte de version (`TST-0X0`), la mise à jour du registre des
-tests, celle de `docs/TASKS.md` et du journal. Aucune fonctionnalité nouvelle — si
-un manque apparaît, il devient un ticket de la version suivante.
+Sur `dev`, une fois tous les tickets de la version fusionnés : la porte de version
+(`TST-0X0`), la mise à jour du registre des tests, celle de `docs/TASKS.md` et du
+journal. Aucune fonctionnalité nouvelle — si un manque apparaît, il devient un ticket
+de la version suivante. Puis une PR `dev → main`, fusionnée en merge classique, et :
 
 ```bash
-git checkout main
-git merge --no-ff release/v0.1.0
+git checkout main && git pull
 git tag -a v0.1.0 -m "Le crédit se calcule"
 git push --follow-tags
+git checkout dev && git merge --ff-only main && git push origin dev
 ```
 
 ---
@@ -244,7 +242,7 @@ git push --follow-tags
 
 ### Porte de branche — `TST-000`
 
-**Avant toute fusion dans `main`**, sans exception :
+**Avant toute fusion dans `dev`**, sans exception :
 
 ```bash
 npm run porte
@@ -264,7 +262,7 @@ par écrit dans le message de fusion, ou ne se fusionne pas.
 
 **Avant toute étiquette**, en plus de la porte de branche :
 
-1. `npm run porte` sur `release/vX.Y.Z`, à froid — `rm -rf .next` d'abord, pour que
+1. `npm run porte` sur `dev`, à froid — `rm -rf .next` d'abord, pour que
    le build ne parte pas d'un cache.
 2. **Toute la suite enregistrée jusqu'à cette version passe.** Elle est cumulative
    par construction : aucun test n'est supprimé d'une version à l'autre. Le registre
@@ -351,7 +349,7 @@ passée là où on attendait une valeur de loi.
 **Les agents ne touchent pas à `docs/REGISTRE-TESTS.md`.** Un compteur relevé sur une
 branche est périmé dès la fusion suivante : sur v0.2.0, le registre s'est retrouvé
 avec quatre relevés empilés, tous faux sauf un. Ce n'était pas seulement coûteux en
-conflits, c'était **inexact**. Les compteurs se relèvent une fois, sur `main`, après
+conflits, c'était **inexact**. Les compteurs se relèvent une fois, sur `dev`, après
 la dernière fusion.
 
 **Les entrées de journal, elles, restent de leur main**, ajoutées en fin de fichier :
