@@ -580,40 +580,52 @@ test("le tableau large défile dans son cadre, pas dans la page", async ({ page 
 
 /* ── Robustesse de l'adresse, et parcours au clavier ──────────────────────── */
 
-test("aucun des dix-sept paramètres d'URL ne fait dérailler le calcul", async ({ page }) => {
-  /*
-    Le module crédit avait cette garde depuis `UI-002` ; la comparaison ne l'avait
-    pas, et elle porte **dix-sept** paramètres au lieu de huit. C'est le seul
-    endroit du produit où une chaîne arbitraire entre dans le moteur : l'adresse
-    est publique, elle se partage, elle se tronque en la recopiant, et un
-    correspondant bien intentionné peut en modifier un chiffre à la main.
+/*
+  Le module crédit avait cette garde depuis `UI-002` ; la comparaison ne l'avait
+  pas, et elle porte **dix-sept** paramètres au lieu de huit. C'est le seul
+  endroit du produit où une chaîne arbitraire entre dans le moteur : l'adresse
+  est publique, elle se partage, elle se tronque en la recopiant, et un
+  correspondant bien intentionné peut en modifier un chiffre à la main.
 
-    Chaque clé reçoit tour à tour une valeur illisible, une valeur négative et une
-    valeur démesurée. Aucune ne doit produire de `NaN`, de cadre vide, ni de page
-    blanche — le pire des trois, parce qu'il emporte l'avertissement avec lui.
-  */
-  const CLES = "px ap tx du as hz tf cc ah pt fe ly cl al il it ic".split(" ");
-  const VALEURS = ["abc", "-9999", "999999999", "", "1e400", "NaN"];
+  Chaque clé reçoit tour à tour une valeur illisible, une valeur négative et une
+  valeur démesurée. Aucune ne doit produire de `NaN`, de cadre vide, ni de page
+  blanche — le pire des trois, parce qu'il emporte l'avertissement avec lui.
 
-  for (const cle of CLES) {
-    for (const valeur of VALEURS) {
-      await page.goto(`/comparaison?${cle}=${encodeURIComponent(valeur)}`);
+  **Un test par clé, et non un seul pour les dix-sept — `TST-004`.** La garde
+  d'origine enchaînait ses 102 navigations (17 clés × 6 valeurs) dans un seul
+  test, donc dans le budget par défaut de 30 s. Ce budget-là avait tort, pas le
+  calcul : sur une machine plus lente, ou chargée par la porte qui fait tourner
+  toute la suite en parallèle, le test dépassait à chaque essai — et passait en
+  35 s dès qu'on lui accordait plus de temps. Les assertions sont inchangées.
+  Découpé, chaque test ne porte plus que six navigations, les clés se vérifient
+  en parallèle, et un échec nomme la clé fautive dans son titre au lieu de la
+  laisser dans le message d'une boucle.
+*/
+const CLES_URL = "px ap tx du as hz tf cc ah pt fe ly cl al il it ic".split(" ");
+const VALEURS_HOSTILES = ["abc", "-9999", "999999999", "", "1e400", "NaN"];
 
-      // La page s'est rendue : le module est sous `Suspense`, et une exception au
-      // rendu laisserait la frontière vide sans que rien d'autre ne le signale.
-      await expect(page.locator("[data-limite]"), `${cle}=${valeur} : page vide`).toBeVisible();
+test.describe("aucun des dix-sept paramètres d'URL ne fait dérailler le calcul", () => {
+  for (const cle of CLES_URL) {
+    test(`la clé ${cle} résiste aux six valeurs hostiles`, async ({ page }) => {
+      for (const valeur of VALEURS_HOSTILES) {
+        await page.goto(`/comparaison?${cle}=${encodeURIComponent(valeur)}`);
 
-      for (const chiffreCle of ["proprietaire", "locataire", "capital"]) {
-        const texte = await chiffre(page, chiffreCle).textContent();
-        expect(texte, `${cle}=${valeur} : ${chiffreCle} vide`).toBeTruthy();
-        expect(texte, `${cle}=${valeur} : ${chiffreCle} = ${texte}`).not.toContain("NaN");
-        expect(texte, `${cle}=${valeur} : ${chiffreCle} = ${texte}`).not.toContain("Infinity");
+        // La page s'est rendue : le module est sous `Suspense`, et une exception au
+        // rendu laisserait la frontière vide sans que rien d'autre ne le signale.
+        await expect(page.locator("[data-limite]"), `${cle}=${valeur} : page vide`).toBeVisible();
+
+        for (const chiffreCle of ["proprietaire", "locataire", "capital"]) {
+          const texte = await chiffre(page, chiffreCle).textContent();
+          expect(texte, `${cle}=${valeur} : ${chiffreCle} vide`).toBeTruthy();
+          expect(texte, `${cle}=${valeur} : ${chiffreCle} = ${texte}`).not.toContain("NaN");
+          expect(texte, `${cle}=${valeur} : ${chiffreCle} = ${texte}`).not.toContain("Infinity");
+        }
+
+        // L'avertissement survit : c'est l'exigence de `LEG-002`, et une adresse
+        // trafiquée ne doit pas être le moyen de s'en débarrasser.
+        await expect(page.locator("[data-avertissement]")).toBeVisible();
       }
-
-      // L'avertissement survit : c'est l'exigence de `LEG-002`, et une adresse
-      // trafiquée ne doit pas être le moyen de s'en débarrasser.
-      await expect(page.locator("[data-avertissement]")).toBeVisible();
-    }
+    });
   }
 });
 
