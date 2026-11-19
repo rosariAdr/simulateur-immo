@@ -356,6 +356,15 @@ Le découpage en versions, le modèle de branches et les portes sont dans
       **délibérément hors de `npm run porte`** — une porte qui interroge un tiers rougit
       quand l'hébergeur tousse. 46 vérifications sur https://simulateur-immo-snowy.vercel.app/,
       dont la seule dont l'échec soit irréversible : le site n'est pas indexable
+- [x] `TST-004` **La porte rougissait sur un autre poste**, à cause de deux tests de bout
+      en bout indépendants du code livré : la garde des dix-sept paramètres d'URL de
+      `/comparaison` dépassait son budget de 30 s à chaque essai, et le curseur du taux de
+      `/composants` perdait sa saisie une fois sur six sur le profil mobile
+      → la garde d'URL est découpée en un test par clé, assertions inchangées ;
+      `comparaison.spec.ts` passe de 32 à 48 tests par profil **sans couverture
+      nouvelle**, à reprendre au prochain relevé du registre. La galerie expose un signal
+      `data-hydratee` que `composants.spec.ts` attend avant chaque test, et une garde
+      vérifie que le HTML du serveur dit « non » : 13 à 14 tests par profil
 - [ ] `UI-010` Assistant d'éligibilité
 
 ## Portes de vérification
@@ -3094,3 +3103,43 @@ jour même a remplacé par v0.7.0. La colonne est laissée telle quelle — elle
 `Set-Content -Encoding utf8` sous PowerShell 5.1 ajoute un **BOM** en tête. Il a été
 introduit par un sabotage, vu en relisant le diff, et retiré. Préférer les outils
 d'édition, ou `System.Text.UTF8Encoding($false)` quand il faut passer par le shell.
+
+### 18 novembre 2026 — `TST-004` : deux tests instables, deux attentes mal posées
+
+La porte rougissait sur un autre poste que celui où la suite a été écrite, à cause de
+deux tests de bout en bout, alors que le code livré était identique à `main`. Aucun des
+deux ne se trompait sur le produit : l'un se trompait de budget, l'autre d'attente.
+
+**La garde des dix-sept paramètres d'URL** enchaînait ses 102 navigations dans un seul
+test, donc dans le budget par défaut de 30 s : six échecs sur six, et un passage en 35 s
+dès qu'on lui accordait plus de temps. Elle est découpée en un test par clé, assertions
+inchangées — six navigations chacun, les clés en parallèle, et un échec qui nomme sa clé
+dans son titre. **Le découpage a montré ce qu'il valait dès le premier sabotage** :
+retirer le plafonnement de `borne()` fait rougir **huit clés sur dix-sept** — `tx`, `as`,
+`pt`, `du`, `hz`, `il`, `it`, `ic` —, quand l'ancien test s'arrêtait à la première,
+`tx=1e400`, la seule que le registre cite.
+
+**Le curseur du taux** perdait sa saisie une fois sur six sur le profil mobile. Le
+curseur n'y était pour rien. La galerie est la seule page du site rendue côté serveur
+hors `Suspense` : ses contrôles sont visibles avant que React ne les reprenne, et à
+l'hydratation React garde la valeur du DOM et cale sur elle son suivi des changements
+— `onChange` ne part jamais. Refaire la saisie en boucle n'y changerait rien : la valeur
+ne bouge plus. Reproduit **vingt fois sur vingt** sous un processeur ralenti six fois.
+La galerie expose désormais `data-hydratee`, « non » au serveur, « oui » au premier
+rendu qui suit l'hydratation, et `composants.spec.ts` l'attend avant chaque test :
+**cinquante sur cinquante** sous le même ralentissement.
+
+**Gardes, cassées une fois chacune.** Curseur débranché : rouge sur les deux profils.
+Plafonnement retiré : huit clés rouges. « Oui » écrit dès le serveur : la nouvelle garde
+du HTML rougit, et la saisie perdue revient six fois sur dix sous ralentissement — c'est
+ce qui prouve que l'attente ne vaut que parce qu'elle part de « non ». À inscrire dans
+`docs/REGISTRE-TESTS.md` au prochain relevé, avec les compteurs : `comparaison.spec.ts`
+de 32 à 48 tests par profil, `composants.spec.ts` de 13 à 14, sans autre couverture
+nouvelle que cette garde.
+
+**Les visites voisines de `/composants` restent telles quelles, et c'est vérifié.**
+Trois tests d'`infobulles.spec.ts` et un de `glossaire.spec.ts` donnent le focus à une
+pastille de la galerie sans attendre le signal. Un focus n'a pas de suivi de valeur :
+React le met en file pendant l'hydratation et le rejoue. Éprouvé sous le même
+ralentissement — focus posé alors que la galerie disait encore « non », bulle ouverte
+vingt fois sur vingt. Seules les valeurs de champ se perdent.

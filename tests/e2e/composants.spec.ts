@@ -14,6 +14,15 @@ const ESPACE = "[\\s\\u00a0\\u202f]";
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/composants");
+  // Visible n'est pas hydraté — `TST-004`. La galerie est rendue côté serveur,
+  // hors `Suspense` : ses contrôles s'affichent avant que React ne les reprenne,
+  // et une saisie faite dans cet intervalle est perdue pour de bon (voir le
+  // signal dans `Galerie.tsx`). Le curseur du taux en a fait les frais une fois
+  // sur six sur le profil mobile ; sous un processeur ralenti six fois, il
+  // échouait vingt fois sur vingt. Six tests de ce fichier touchent un contrôle —
+  // saisie, curseur, flèches, barre d'espace, focus — et partagent ce risque :
+  // l'attente est posée une fois ici, et ne coûte rien aux sept qui ne font que lire.
+  await expect(page.locator("[data-galerie]")).toHaveAttribute("data-hydratee", "oui");
 });
 
 test("les cinq primitives sont présentes avec leurs cinq états", async ({ page }) => {
@@ -143,4 +152,12 @@ test("la page ne déborde jamais horizontalement", async ({ page }) => {
 test("la galerie reste hors de l'indexation", async ({ page }) => {
   const robots = page.locator('meta[name="robots"]');
   await expect(robots).toHaveAttribute("content", /noindex/);
+});
+
+test("le HTML du serveur déclare la galerie non hydratée", async ({ request }) => {
+  // Le signal d'hydratation ne vaut que s'il part de « non » — `TST-004`. Un
+  // « oui » écrit dès le serveur ferait passer l'attente du `beforeEach` à vide,
+  // avant l'hydratation, et la saisie perdue reviendrait sans un seul rouge.
+  const html = await (await request.get("/composants")).text();
+  expect(html).toContain('data-hydratee="non"');
 });

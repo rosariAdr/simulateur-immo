@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import {
   CaseACocher,
   ChampMontant,
@@ -59,7 +59,33 @@ const TRAVAUX = avec(GLOSSAIRE_PARAMETRE.travaux, {
   derogatoire: formatDuree(PARAMS_2026.hcsf.maxDurationDerogatoryMonths),
 });
 
+/**
+ * SIGNAL D'HYDRATATION — `TST-004`
+ *
+ * Les modules du produit vivent sous `Suspense` : leurs contrôles n'existent
+ * qu'une fois la page hydratée, et un test qui les voit peut s'en servir. La
+ * galerie, elle, est rendue en entier côté serveur. Ses contrôles sont visibles
+ * — et manipulables — avant que React ne les ait repris, et une saisie faite
+ * dans cet intervalle est perdue sans bruit : à l'hydratation, React garde la
+ * valeur du DOM et cale sur elle son suivi des changements, si bien que
+ * `onChange` ne part jamais. Le curseur affiche 4,5 quand l'état dit 3,2.
+ *
+ * `data-hydratee` passe à « oui » au premier rendu qui suit l'hydratation :
+ * le serveur et le rendu d'hydratation lisent « non », le client relit
+ * aussitôt « oui ». `composants.spec.ts` l'attend avant chacun de ses tests, et
+ * vérifie que le HTML du serveur dit bien « non ». Sans abonnement : la valeur
+ * ne change qu'une fois.
+ */
+const sansAbonnement = () => () => {};
+const useHydratee = () =>
+  useSyncExternalStore(
+    sansAbonnement,
+    () => true,
+    () => false,
+  );
+
 export function Galerie() {
+  const hydratee = useHydratee();
   const [prix, setPrix] = useState(euros(205_000));
   const [taux, setTaux] = useState(3.2);
   const [base, setBase] = useState<(typeof BASES)[number]["valeur"]>("initial");
@@ -69,7 +95,11 @@ export function Galerie() {
   const familles: readonly Famille[] = ["negociable", "contraint", "reglementaire"];
 
   return (
-    <div className="min-h-full bg-papier px-8 py-7 text-encre">
+    <div
+      data-galerie
+      data-hydratee={hydratee ? "oui" : "non"}
+      className="min-h-full bg-papier px-8 py-7 text-encre"
+    >
       <header className="mb-6 border-b border-filet pb-4">
         <h1 className="font-titre text-[22px] font-bold tracking-[-0.022em]">Primitives de saisie</h1>
         <p className="mt-1 max-w-[92ch] text-[13px] leading-[1.55] text-encre-secondaire">
