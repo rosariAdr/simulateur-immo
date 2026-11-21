@@ -102,10 +102,21 @@ export interface FiscalParams {
   readonly verifiedAt: string;
 
   /**
-   * Taux d'usure — TAEG maximal légal.
-   * @source Banque de France, avis publié au JO fin juin 2026 (T3 2026).
+   * Taux d'usure — TAEG maximal légal, 4e trimestre 2026.
+   * @source Avis du 25 septembre 2026 relatif à l'application des articles L. 314-6 du
+   *         code de la consommation et L. 313-5-1 du code monétaire et financier
+   *         concernant l'usure, JORF n° 0225 du 26 septembre 2026, NOR ECOT2625422V —
+   *         seuils du crédit immobilier « applicable[s] à compter du 1er octobre 2026 ».
+   *         Consulté sur Légifrance le 19 novembre 2026 (`FIS-011`).
+   * @see https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000054903528
+   * @source Avis du JORF n° 0260 du 6 novembre 2026, NOR ECOT2628305V, applicable au
+   *         20 novembre 2026 : republie à l'identique les cinq seuils du crédit
+   *         immobilier (il change les catégories du crédit à la consommation).
+   * @see https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000055064545
    * @source Code de la consommation, art. L314-6 (calcul : taux moyens pratiqués majorés d'un tiers).
-   * @see https://www.banque-france.fr/fr/statistiques/taux-et-cours/taux-dusure-2026-q3
+   *
+   * L'avis ne porte qu'une date d'effet. La fin du trimestre civil est celle à
+   * laquelle l'avis suivant, publié chaque trimestre, prend le relais.
    */
   readonly usury: UsuryThresholds;
 
@@ -496,14 +507,14 @@ export const PARAMS_2026: FiscalParams = {
   verifiedAt: "2026-08-19",
 
   usury: {
-    quarter: "2026-T3",
-    from: "2026-07-01",
-    to: "2026-09-30",
-    fixedUnder10y: 4.07,
-    fixed10to20y: 4.57,
-    fixed20yPlus: 5.29,
-    variable: 5.28,
-    bridge: 6.39,
+    quarter: "2026-T4",
+    from: "2026-10-01",
+    to: "2026-12-31",
+    fixedUnder10y: 4.09,
+    fixed10to20y: 4.68,
+    fixed20yPlus: 5.4,
+    variable: 5.52,
+    bridge: 6.49,
   },
 
   hcsf: {

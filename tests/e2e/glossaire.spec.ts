@@ -33,7 +33,7 @@ test.describe("la page", () => {
     // Le millésime vient de `params.ts`. Une page de contenu réglementaire qui
     // ne dit pas sur quel millésime elle porte ne se vérifie pas.
     await expect(page.locator("main")).toContainText("millésime 2026");
-    await expect(page.locator("main")).toContainText("2026-T3");
+    await expect(page.locator("main")).toContainText("2026-T4");
   });
 
   test("chaque terme de l'index mène à une définition de la page", async ({ page }) => {

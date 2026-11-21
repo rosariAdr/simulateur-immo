@@ -410,49 +410,62 @@ describe("Société Générale — exemple représentatif, 200 000 € / 3,30 % 
  * ══════════════════════════════════════════════════════════════════════════════ */
 
 /**
- * SOURCE — Avis du 26 juin 2026 relatif à l'application des articles L. 314-6 du code
- * de la consommation et L. 313-5-1 du code monétaire et financier concernant l'usure,
- * publié au Journal officiel.
- * @see https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000054323743
- * Consulté le 22 août 2026.
+ * SOURCE — Avis du 25 septembre 2026 relatif à l'application des articles L. 314-6 du
+ * code de la consommation et L. 313-5-1 du code monétaire et financier concernant
+ * l'usure, JORF n° 0225 du 26 septembre 2026, texte n° 79, NOR ECOT2625422V.
+ * @see https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000054903528
+ * Consulté le 19 novembre 2026.
  *
- * PARAMÈTRES PUBLIÉS — prêts immobiliers aux particuliers, taux effectifs moyens
- * pratiqués au 2e trimestre 2026 et seuils applicables à compter du 1er juillet 2026 :
+ * PARAMÈTRES PUBLIÉS — « contrats de crédits consentis à des consommateurs destinés à
+ * financer les opérations entrant dans le champ d'application du 1° de l'article
+ * L. 313-1 du code de la consommation, relatif au crédit immobilier », taux effectifs
+ * pratiqués au cours des trois mois précédant le 1er octobre 2026 et seuils
+ * applicables à compter du 1er octobre 2026 :
  *
  *   catégorie                          | taux moyen | seuil de l'usure
- *   prêts à taux fixe < 10 ans         |   3,05 %   |      4,07 %
- *   prêts à taux fixe de 10 à < 20 ans |   3,43 %   |      4,57 %
- *   prêts à taux fixe de 20 ans et plus|   3,97 %   |      5,29 %
- *   prêts à taux variable              |   3,96 %   |      5,28 %
- *   prêts-relais                       |   4,79 %   |      6,39 %
+ *   prêts à taux fixe < 10 ans         |   3,07 %   |      4,09 %
+ *   prêts à taux fixe de 10 à < 20 ans |   3,51 %   |      4,68 %
+ *   prêts à taux fixe de 20 ans et plus|   4,05 %   |      5,4 %
+ *   prêts à taux variable              |   4,14 %   |      5,52 %
+ *   prêts-relais                       |   4,87 %   |      6,49 %
+ *
+ * L'avis du JORF n° 0260 du 6 novembre 2026 (NOR ECOT2628305V), pris après l'arrêté
+ * du 7 août 2026 sur les catégories de l'usure et applicable au 20 novembre 2026,
+ * republie ces cinq lignes à l'identique : il change le plafond des catégories de
+ * crédit à la consommation, pas les seuils du crédit immobilier.
+ * @see https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000055064545
+ *
+ * Le cas précédent, l'avis du 26 juin 2026 (3e trimestre, JORFTEXT000054323743), est
+ * remplacé et non conservé : ce test dit ce que vaut le millésime EN VIGUEUR. Son
+ * historique est dans Git. `FIS-011`.
  *
  * Deux choses distinctes sont vérifiées ici, et il faut les séparer.
  */
-describe("Avis du 26 juin 2026 — seuils de l'usure du 3e trimestre 2026", () => {
-  const AVIS_26_JUIN_2026 = {
-    fixedUnder10y: { moyen: 3.05, seuil: 4.07 },
-    fixed10to20y: { moyen: 3.43, seuil: 4.57 },
-    fixed20yPlus: { moyen: 3.97, seuil: 5.29 },
-    variable: { moyen: 3.96, seuil: 5.28 },
-    bridge: { moyen: 4.79, seuil: 6.39 },
+describe("Avis du 25 septembre 2026 — seuils de l'usure du 4e trimestre 2026", () => {
+  const AVIS_25_SEPTEMBRE_2026 = {
+    fixedUnder10y: { moyen: 3.07, seuil: 4.09 },
+    fixed10to20y: { moyen: 3.51, seuil: 4.68 },
+    fixed20yPlus: { moyen: 4.05, seuil: 5.4 },
+    variable: { moyen: 4.14, seuil: 5.52 },
+    bridge: { moyen: 4.87, seuil: 6.49 },
   } as const;
 
   /**
    * Les valeurs du millésime sont-elles celles du Journal officiel ?
    *
-   * TOLÉRANCE : aucune. `params.ts` a été écrit en août 2026 à partir d'une recherche
-   * distincte ; ce test le confronte au texte publié, catégorie par catégorie. C'est
-   * la seule manière de savoir qu'une donnée réglementaire est juste plutôt que
-   * seulement plausible, et c'est ce que réclame `docs/02-architecture.md`, section 4.
+   * TOLÉRANCE : aucune. `params.ts` est confronté au texte publié, catégorie par
+   * catégorie. C'est la seule manière de savoir qu'une donnée réglementaire est juste
+   * plutôt que seulement plausible, et c'est ce que réclame `docs/02-architecture.md`,
+   * section 4.
    */
   it("fige les cinq seuils publiés au Journal officiel", () => {
-    expect(P.usury.quarter).toBe("2026-T3");
-    expect(P.usury.from).toBe("2026-07-01");
-    expect(P.usury.fixedUnder10y).toBe(AVIS_26_JUIN_2026.fixedUnder10y.seuil);
-    expect(P.usury.fixed10to20y).toBe(AVIS_26_JUIN_2026.fixed10to20y.seuil);
-    expect(P.usury.fixed20yPlus).toBe(AVIS_26_JUIN_2026.fixed20yPlus.seuil);
-    expect(P.usury.variable).toBe(AVIS_26_JUIN_2026.variable.seuil);
-    expect(P.usury.bridge).toBe(AVIS_26_JUIN_2026.bridge.seuil);
+    expect(P.usury.quarter).toBe("2026-T4");
+    expect(P.usury.from).toBe("2026-10-01");
+    expect(P.usury.fixedUnder10y).toBe(AVIS_25_SEPTEMBRE_2026.fixedUnder10y.seuil);
+    expect(P.usury.fixed10to20y).toBe(AVIS_25_SEPTEMBRE_2026.fixed10to20y.seuil);
+    expect(P.usury.fixed20yPlus).toBe(AVIS_25_SEPTEMBRE_2026.fixed20yPlus.seuil);
+    expect(P.usury.variable).toBe(AVIS_25_SEPTEMBRE_2026.variable.seuil);
+    expect(P.usury.bridge).toBe(AVIS_25_SEPTEMBRE_2026.bridge.seuil);
   });
 
   /**
@@ -462,15 +475,15 @@ describe("Avis du 26 juin 2026 — seuils de l'usure du 3e trimestre 2026", () =
    *   effectif moyen pratiqué au cours du trimestre précédent, « augmenté d'un tiers ».
    *
    * TOLÉRANCE : aucune, après arrondi à deux décimales — c'est la précision à laquelle
-   * l'avis publie ses taux. Les cinq catégories tombent juste : 3,05 × 4/3 = 4,0667 → 4,07 ;
-   * 3,43 → 4,57 ; 3,97 → 5,29 ; 3,96 → 5,28 ; 4,79 → 6,39.
+   * l'avis publie ses taux. Les cinq catégories tombent juste : 3,07 × 4/3 = 4,0933 → 4,09 ;
+   * 3,51 → 4,68 ; 4,05 → 5,40 ; 4,14 → 5,52 ; 4,87 → 6,4933 → 6,49.
    *
    * Ce test ne vérifie pas notre code — il vérifie que les deux colonnes de l'avis sont
    * bien liées par la règle que le moteur explique à l'utilisateur. Si un jour elles ne
    * l'étaient plus, notre pédagogie serait fausse avant nos calculs.
    */
   it("retrouve chaque seuil par la majoration d'un tiers du taux moyen", () => {
-    for (const { moyen, seuil } of Object.values(AVIS_26_JUIN_2026)) {
+    for (const { moyen, seuil } of Object.values(AVIS_25_SEPTEMBRE_2026)) {
       expect(Number(((moyen * 4) / 3).toFixed(2))).toBe(seuil);
     }
   });
@@ -484,12 +497,12 @@ describe("Avis du 26 juin 2026 — seuils de l'usure du 3e trimestre 2026", () =
    * intermédiaire. Ce test fixe les deux basculements au mois près.
    */
   it("place chaque durée dans la tranche publiée, aux bornes exactes", () => {
-    expect(usuryThreshold("fixed", 119, P)).toBe(AVIS_26_JUIN_2026.fixedUnder10y.seuil);
-    expect(usuryThreshold("fixed", 120, P)).toBe(AVIS_26_JUIN_2026.fixed10to20y.seuil);
-    expect(usuryThreshold("fixed", 239, P)).toBe(AVIS_26_JUIN_2026.fixed10to20y.seuil);
-    expect(usuryThreshold("fixed", 240, P)).toBe(AVIS_26_JUIN_2026.fixed20yPlus.seuil);
-    expect(usuryThreshold("variable", 240, P)).toBe(AVIS_26_JUIN_2026.variable.seuil);
-    expect(usuryThreshold("bridge", 24, P)).toBe(AVIS_26_JUIN_2026.bridge.seuil);
+    expect(usuryThreshold("fixed", 119, P)).toBe(AVIS_25_SEPTEMBRE_2026.fixedUnder10y.seuil);
+    expect(usuryThreshold("fixed", 120, P)).toBe(AVIS_25_SEPTEMBRE_2026.fixed10to20y.seuil);
+    expect(usuryThreshold("fixed", 239, P)).toBe(AVIS_25_SEPTEMBRE_2026.fixed10to20y.seuil);
+    expect(usuryThreshold("fixed", 240, P)).toBe(AVIS_25_SEPTEMBRE_2026.fixed20yPlus.seuil);
+    expect(usuryThreshold("variable", 240, P)).toBe(AVIS_25_SEPTEMBRE_2026.variable.seuil);
+    expect(usuryThreshold("bridge", 24, P)).toBe(AVIS_25_SEPTEMBRE_2026.bridge.seuil);
   });
 });
 

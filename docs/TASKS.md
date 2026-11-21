@@ -357,6 +357,24 @@ Le découpage en versions, le modèle de branches et les portes sont dans
       quand l'hébergeur tousse. 46 vérifications sur https://simulateur-immo-snowy.vercel.app/,
       dont la seule dont l'échec soit irréversible : le site n'est pas indexable
 - [ ] `UI-010` Assistant d'éligibilité
+- [x] `FIS-011` **Le taux d'usure appliqué avait expiré le 30 septembre 2026** : le module
+      crédit jugeait encore les dossiers sur les seuils du 3e trimestre (revue system
+      design du 18 novembre 2026, constat SIM-03) — `fix/FIS-011-usure-t4-2026`
+      → les cinq seuils de l'avis du 25 septembre 2026 (JORF n° 0225, NOR ECOT2625422V),
+      applicables au 1er octobre 2026 : 4,09 / 4,68 / 5,4 / 5,52 / 6,49 %. L'avis du
+      6 novembre 2026, applicable au 20 novembre, republie ces cinq lignes à l'identique.
+      Fichiers gelés, raison écrite : le cas de référence 6 suit le nouvel avis, et
+      `params-usure.test.ts` refuse une mise à jour faite à moitié — dates ou source
+      restées au trimestre précédent. Trois gardes cassées une fois. La procédure et
+      l'alerte de péremption restent `FIS-009`
+- [ ] `FIS-012` **Dix-sept valeurs réglementaires écrites à la main dans les composants du
+      module patrimoine** (constat SIM-02), et le barème de l'impôt sur le revenu sans
+      source dans `src/lib/patrimoine.ts` — livré sur `fix/FIS-012-valeurs-en-dur-composants`,
+      à cocher à sa fusion
+      → les textes d'aide lisent `VALEURS`, le barème entre dans `params.ts` (CGI, art. 197,
+      I, 1, loi n° 2026-103) et la garde anti-chiffre s'étend à `src/components/**`. Hors
+      de sa portée : `Galerie.tsx` écrit encore le seuil d'usure du 3e trimestre, nombre
+      sans unité que la garde ne voit pas — à reprendre après la fusion de `TST-004`
 
 ## Portes de vérification
 
@@ -3094,3 +3112,29 @@ jour même a remplacé par v0.7.0. La colonne est laissée telle quelle — elle
 `Set-Content -Encoding utf8` sous PowerShell 5.1 ajoute un **BOM** en tête. Il a été
 introduit par un sabotage, vu en relisant le diff, et retiré. Préférer les outils
 d'édition, ou `System.Text.UTF8Encoding($false)` quand il faut passer par le shell.
+
+### 20 novembre 2026 — `FIS-011` et `FIS-012` : l'usure du trimestre, les chiffres des composants
+
+Deux constats de la revue system design du 18 novembre 2026, deux branches depuis `dev`.
+
+**`FIS-011`, l'usure.** Les seuils appliqués étaient ceux du 3e trimestre, échus depuis le
+30 septembre. Les nouveaux ont été lus sur Légifrance, source de droit, le 19 novembre :
+avis du 25 septembre 2026 pour le 4e trimestre, puis avis du 6 novembre 2026 — pris après
+l'arrêté du 7 août 2026 sur les catégories — qui republie à l'identique les cinq lignes du
+crédit immobilier. Les cinq seuils retrouvent la majoration d'un tiers de leur taux moyen.
+`params.ts` et le cas de référence 6 sont gelés : la raison est le report trimestriel
+d'une valeur datée. `docs/reference/` suit, et la garde du glossaire attend « 2026-T4 ».
+
+**`FIS-012`, les composants.** La garde anti-chiffre ne lisait que `src/content/`. Étendue
+à `src/components/**`, commentaires exclus, elle a rougi sur les dix-sept valeurs que la
+revue citait, plus le « 0 % » du choix de tranche marginale. Les textes lisent désormais
+`VALEURS` ; effet visible, les taux portent une décimale comme dans le glossaire
+(« 30,0 % »). Le barème de l'impôt sur le revenu entre dans `params.ts` avec sa source.
+
+**Gardes, cassées une fois chacune** — trois pour `FIS-011`, cinq pour `FIS-012`. À
+inscrire dans `docs/REGISTRE-TESTS.md` au prochain relevé sur `dev`.
+
+**Ce qui reste ouvert.** `Galerie.tsx` après `TST-004` ; l'affichage « 30 % » ou
+« 30,0 % » est une décision ; deux propositions attendent un accord — l'alerte de
+péremption de l'usure dans le module crédit (`FIS-009`), et un fichier voisin non gelé
+pour le barème de l'impôt sur le revenu.

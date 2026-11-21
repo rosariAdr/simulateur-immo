@@ -39,11 +39,11 @@ Toutes dans `src/core/fiscal/params.ts`, millésime 2026.
 
 | Donnée | Valeur | Source | Niv. |
 |---|---|---|---|
-| Usure, taux fixe < 10 ans | 4,07 % | Banque de France, avis JO fin juin 2026, T3 2026 | B |
-| Usure, taux fixe 10–20 ans | 4,57 % | idem | B |
-| Usure, taux fixe ≥ 20 ans | 5,29 % | idem | B |
-| Usure, taux variable | 5,28 % | idem | B |
-| Usure, prêt relais | 6,39 % | idem | B |
+| Usure, taux fixe < 10 ans | 4,09 % | Avis du 25 septembre 2026 relatif à l'usure, JORF n° 0225 du 26 septembre 2026, NOR ECOT2625422V — seuils applicables au 1er octobre 2026, T4 2026. Consulté sur Légifrance le 19 novembre 2026 (`FIS-011`) | A |
+| Usure, taux fixe 10–20 ans | 4,68 % | idem | A |
+| Usure, taux fixe ≥ 20 ans | 5,4 % | idem | A |
+| Usure, taux variable | 5,52 % | idem | A |
+| Usure, prêt relais | 6,49 % | idem | A |
 | Méthode de calcul de l'usure | taux moyens pratiqués majorés d'un tiers | Art. L314-6 du Code de la consommation | A |
 | Taux d'effort maximal | 35 %, assurance comprise | HCSF, maintien confirmé en mars 2026 | B |
 | Durée maximale | 25 ans | HCSF | B |

@@ -5,16 +5,16 @@
   "avertissement": "Valeurs collectées par recherche web en août 2026. Chaque entrée porte sa source. À revérifier avant mise en ligne et à chaque loi de finances.",
 
   "usure": {
-    "_source": "Banque de France, avis publié au JO fin juin 2026",
+    "_source": "Avis du 25 septembre 2026 relatif à l'usure, JORF n° 0225 du 26 septembre 2026, NOR ECOT2625422V, https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000054903528 — consulté le 19 novembre 2026 (FIS-011)",
     "_note": "TAEG maximal légal. Révisé chaque trimestre. Le dépassement rend le prêt impossible.",
-    "trimestre": "2026-T3",
-    "applicableDu": "2026-07-01",
-    "applicableAu": "2026-09-30",
-    "tauxFixeMoins10ans": 4.07,
-    "tauxFixe10a20ans": 4.57,
-    "tauxFixe20ansEtPlus": 5.29,
-    "tauxVariable": 5.28,
-    "pretRelais": 6.39,
+    "trimestre": "2026-T4",
+    "applicableDu": "2026-10-01",
+    "applicableAu": "2026-12-31",
+    "tauxFixeMoins10ans": 4.09,
+    "tauxFixe10a20ans": 4.68,
+    "tauxFixe20ansEtPlus": 5.4,
+    "tauxVariable": 5.52,
+    "pretRelais": 6.49,
     "historique": {
       "2026-T1": { "moins10": 4.12, "de10a20": 4.59, "plus20": 5.13, "variable": 4.99, "relais": 6.15 },
       "2026-T2": { "moins10": 4.0, "de10a20": 4.48, "plus20": 5.19 }
