@@ -8,6 +8,7 @@ import {
 } from "../developpements";
 import { ancre, CLES_GLOSSAIRE, lienGlossaire, type CleGlossaire } from "../glossaire";
 import { ENTREES, VALEURS } from "../valeurs";
+import { VALEUR_EN_DUR } from "./valeur-en-dur";
 
 /**
  * LE TEXTE LONG DU GLOSSAIRE — `CNT-001`
@@ -31,16 +32,6 @@ import { ENTREES, VALEURS } from "../valeurs";
 
 /** Un jeton qui n'a pas trouvé sa valeur : il ne doit jamais atteindre l'écran. */
 const JETON = /\{(\w+)\}/u;
-
-/**
- * Un nombre suivi d'une unité réglementaire, écrit à la main.
- *
- * « 35 % », « 25 ans », « 200 000 € », « 6 mois » : exactement ce que
- * `CLAUDE.md` interdit d'écrire dans un texte, et qui doit venir de
- * `src/core/fiscal/params.ts` par un jeton. La date « 1er janvier » n'est pas
- * concernée : elle ne porte aucune de ces unités.
- */
-const VALEUR_EN_DUR = /\d+(?:[.,\s  ]\d+)*\s*(?:%|€|\bans?\b|\bmois\b)/u;
 
 const nommes: readonly (readonly [CleGlossaire, Developpement])[] = Object.entries(
   DEVELOPPEMENTS,

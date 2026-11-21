@@ -18,6 +18,7 @@ import {
   type SortieLocativeAnalysee,
   type SortieRegardee,
 } from "@/lib/patrimoine";
+import { VALEURS } from "@/content/valeurs";
 import { ChampMontant, ChampTaux, ListeDeroulante, SelecteurSegmente } from "@/components/ui";
 import type { DefinirLocation } from "./usePatrimoine";
 
@@ -225,16 +226,19 @@ function MotifNonChiffrable({ motif }: { motif: string }) {
 
 /* ── Les libellés des régimes ─────────────────────────────────────────────── */
 
+// Les abattements et seuils cités ici viennent de `params.ts` par `VALEURS`
+// (`FIS-012`) : une loi de finances qui les change change aussi ces libellés.
+
 const REGIMES_LD_LIBELLES: readonly { valeur: RegimeLongueDuree; libelle: string }[] = [
-  { valeur: "micro-foncier", libelle: "Micro-foncier — nue, abattement de 30 %" },
+  { valeur: "micro-foncier", libelle: `Micro-foncier — nue, abattement de ${VALEURS.abattementMicroFoncier}` },
   { valeur: "reel-nu", libelle: "Réel — nue, charges et intérêts déduits" },
-  { valeur: "micro-bic", libelle: "Micro-BIC — meublée, abattement de 50 %" },
+  { valeur: "micro-bic", libelle: `Micro-BIC — meublée, abattement de ${VALEURS.abattementMicroBic}` },
   { valeur: "reel-meuble", libelle: "Réel meublé — amortissement du bien" },
 ];
 
 const REGIMES_CD_LIBELLES: readonly { valeur: RegimeCourteDuree; libelle: string }[] = [
-  { valeur: "tourisme-classe", libelle: "Meublé de tourisme classé — micro, 50 %" },
-  { valeur: "tourisme-non-classe", libelle: "Meublé de tourisme non classé — micro, 30 %" },
+  { valeur: "tourisme-classe", libelle: `Meublé de tourisme classé — micro, ${VALEURS.abattementTourismeClasse}` },
+  { valeur: "tourisme-non-classe", libelle: `Meublé de tourisme non classé — micro, ${VALEURS.abattementTourismeNonClasse}` },
   { valeur: "reel-meuble", libelle: "Réel meublé — amortissement du bien" },
 ];
 
@@ -291,7 +295,7 @@ function PanneauLongueDuree({
           options={REGIMES_LD_LIBELLES.map((x) => ({ valeur: x.valeur, libelle: x.libelle }))}
           valeur={location.regimeLongueDuree}
           onChange={(v) => void definir({ regimeLongueDuree: v })}
-          aide="La location nue paie 17,2 % de prélèvements sociaux, la meublée 18,6 % : la dérogation de l'art. L136-8 du code de la sécurité sociale vise les revenus fonciers, pas les bénéfices du meublé."
+          aide={`La location nue paie ${VALEURS.prelevementsFonciers} de prélèvements sociaux, la meublée ${VALEURS.prelevementsPatrimoine} : la dérogation de l'art. L136-8 du code de la sécurité sociale vise les revenus fonciers, pas les bénéfices du meublé.`}
         />
         <ChampMontant
           id="loyer-marche"
@@ -316,7 +320,7 @@ function PanneauLongueDuree({
           famille="contraint"
           options={TAUX_MARGINAUX.map((t) => ({
             valeur: String(t),
-            libelle: t === 0 ? "0 % — foyer non imposable" : `${t} %`,
+            libelle: t === 0 ? `${t} % — foyer non imposable` : `${t} %`,
           }))}
           valeur={String(location.tmi)}
           onChange={(v) => void definir({ tmi: Number(v) })}
@@ -407,7 +411,7 @@ function PanneauCourteDuree({
           options={REGIMES_CD_LIBELLES.map((x) => ({ valeur: x.valeur, libelle: x.libelle }))}
           valeur={location.regimeCourteDuree}
           onChange={(v) => void definir({ regimeCourteDuree: v })}
-          aide="Depuis la loi du 19 novembre 2024, le meublé de tourisme non classé est au micro le plus étroit : 15 000 € de seuil et 30 % d'abattement, contre 83 600 € et 50 % pour le classé."
+          aide={`Depuis la loi du 19 novembre 2024, le meublé de tourisme non classé est au micro le plus étroit : ${VALEURS.seuilTourismeNonClasse} de seuil et ${VALEURS.abattementTourismeNonClasse} d'abattement, contre ${VALEURS.seuilTourismeClasse} et ${VALEURS.abattementTourismeClasse} pour le classé.`}
         />
         <ChampMontant
           id="tarif-nuitee"
@@ -458,7 +462,7 @@ function PanneauCourteDuree({
           famille="contraint"
           options={TAUX_MARGINAUX.map((t) => ({
             valeur: String(t),
-            libelle: t === 0 ? "0 % — foyer non imposable" : `${t} %`,
+            libelle: t === 0 ? `${t} % — foyer non imposable` : `${t} %`,
           }))}
           valeur={String(location.tmi)}
           onChange={(v) => void definir({ tmi: Number(v) })}

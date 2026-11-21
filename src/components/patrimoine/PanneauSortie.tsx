@@ -4,6 +4,7 @@ import { MARKET_2026 } from "@/core/assumptions/market";
 import { motifExclusionForfaitTravaux } from "@/core/compare/plus-value";
 import { PARAMS_2026 } from "@/core/fiscal/params";
 import { euros, toEuros } from "@/core/money";
+import { VALEURS } from "@/content/valeurs";
 import { ChampMontant, ListeDeroulante } from "@/components/ui";
 import { ChampHypothese } from "@/components/comparaison/ChampHypothese";
 import type { ModeSaisi, RegimeSortie, Sortie } from "@/lib/patrimoine";
@@ -116,7 +117,7 @@ export function PanneauSortie({ sortie, definir, horizonMois }: Props) {
             options={modes(null)}
             valeur={sortie.modeFrais}
             onChange={(v) => void definir({ modeFrais: v })}
-            aide="Le forfait est de 7,5 % du prix d'acquisition. Le réel suppose de produire les justificatifs — droits de mutation, émoluments, frais de dossier."
+            aide={`Le forfait est de ${VALEURS.forfaitFraisAcquisition} du prix d'acquisition. Le réel suppose de produire les justificatifs — droits de mutation, émoluments, frais de dossier.`}
           />
 
           {sortie.modeFrais === "reel" && (
@@ -138,7 +139,7 @@ export function PanneauSortie({ sortie, definir, horizonMois }: Props) {
             onChange={(v) => void definir({ modeTravaux: v })}
             aide={
               motifTravaux === null
-                ? "Le forfait est de 15 % du prix d'acquisition, sans avoir à justifier de travaux. Choisi ici, il ferme les cinq premières années du graphique : la condition de durée n'y est pas remplie, et le moteur refuse plutôt que d'approximer."
+                ? `Le forfait est de ${VALEURS.forfaitTravaux} du prix d'acquisition, sans avoir à justifier de travaux. Choisi ici, il ferme les ${VALEURS.anneesForfaitTravaux} premières années du graphique : la condition de durée n'y est pas remplie, et le moteur refuse plutôt que d'approximer.`
                 : `Forfait indisponible à cet horizon : ${motifTravaux}.`
             }
           />

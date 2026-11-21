@@ -34,6 +34,7 @@ import { MARKET_2026 } from "@/core/assumptions/market";
 import { formatDuree, formatEurosCourt, formatPourcentage } from "@/lib/format";
 
 const P = PARAMS_2026;
+const PV = PARAMS_2026.realEstateCapitalGains;
 const M = MARKET_2026;
 
 /** Une fourchette « 7,0 % à 8,5 % », telle que les hypothèses de marché les expriment. */
@@ -92,6 +93,38 @@ export const VALEURS = {
   usureLongue: formatPourcentage(P.usury.fixed20yPlus, 2),
   usureVariable: formatPourcentage(P.usury.variable, 2),
   usureRelais: formatPourcentage(P.usury.bridge, 2),
+
+  /*
+   * Les valeurs que citent les textes d'aide du module patrimoine — `FIS-012`.
+   * Elles y étaient recopiées à la main ; la garde
+   * `__tests__/composants-sans-valeur-en-dur.test.ts` l'interdit désormais.
+   */
+
+  /* Prélèvements sociaux : la nue au taux dérogatoire, la meublée au droit commun. */
+  prelevementsFonciers: formatPourcentage(P.socialLevies.realEstate.totalPct, 1),
+  prelevementsPatrimoine: formatPourcentage(P.socialLevies.patrimony.totalPct, 1),
+
+  /* Régimes micro des revenus locatifs. */
+  abattementMicroFoncier: formatPourcentage(P.rentalIncome.microFoncier.allowancePct, 1),
+  abattementMicroBic: formatPourcentage(P.rentalIncome.microBic.longTermAllowancePct, 1),
+  abattementTourismeClasse: formatPourcentage(P.rentalIncome.microBic.classifiedTourismAllowancePct, 1),
+  seuilTourismeClasse: formatEurosCourt(P.rentalIncome.microBic.classifiedTourismThresholdCents),
+  abattementTourismeNonClasse: formatPourcentage(
+    P.rentalIncome.microBic.unclassifiedTourismAllowancePct,
+    1,
+  ),
+  seuilTourismeNonClasse: formatEurosCourt(P.rentalIncome.microBic.unclassifiedTourismThresholdCents),
+
+  /* Plus-value immobilière : forfaits, durées d'exonération, surtaxe. */
+  forfaitFraisAcquisition: formatPourcentage(PV.acquisitionPriceUplift.acquisitionCostsFlatPct, 1),
+  forfaitTravaux: formatPourcentage(PV.acquisitionPriceUplift.worksFlatPct, 1),
+  /** Un nombre nu : la phrase qui le cite dit « les {n} premières années ». */
+  anneesForfaitTravaux: String(PV.acquisitionPriceUplift.worksFlatMinHoldingYears),
+  exonerationImpotRevenu: formatDuree(PV.incomeTaxAllowance.fullExemptionYear * 12),
+  exonerationPrelevementsSociaux: formatDuree(PV.socialLevyAllowance.fullExemptionYear * 12),
+  seuilSurtaxe: formatEurosCourt(PV.surtax.thresholdCents),
+  /** Un nombre nu : « barème à {n} tranches ». */
+  tranchesSurtaxe: String(PV.surtax.brackets.length),
 } as const satisfies Readonly<Record<string, string>>;
 
 /** Les noms de jetons qu'un contenu a le droit d'employer. */

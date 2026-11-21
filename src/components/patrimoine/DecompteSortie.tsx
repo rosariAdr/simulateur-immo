@@ -3,6 +3,7 @@
 import type { CessionChiffree } from "@/core/compare/cession";
 import type { Portefeuille } from "@/core/compare/portefeuille";
 import type { Cents } from "@/core/money";
+import { VALEURS } from "@/content/valeurs";
 import { formatEuros, formatPourcentage } from "@/lib/format";
 
 /**
@@ -148,7 +149,7 @@ export function DecompteSortie({ annee, cession, portefeuille, motifForfait }: P
                 montant={p.postes.indemniteRemboursementAnticipe}
                 note={
                   p.parametres.avantTermeDuCredit
-                    ? "le plus faible des deux plafonds légaux : 3 % du capital restant dû, ou six mois d'intérêts sur la somme remboursée"
+                    ? `le plus faible des deux plafonds légaux : ${VALEURS.plafondIra} du capital restant dû, ou ${VALEURS.moisInteretsIra} d'intérêts sur la somme remboursée`
                     : "nulle : la vente intervient après la dernière échéance, il n'y a plus rien à rembourser par anticipation"
                 }
               />
@@ -237,10 +238,11 @@ export function DecompteSortie({ annee, cession, portefeuille, motifForfait }: P
           </p>
           <p className="mb-2 max-w-[96ch] text-[12px] leading-[1.55]">
             <span className="font-semibold">Deux abattements, deux assiettes.</span> Le barème de
-            l&apos;impôt sur le revenu exonère totalement à 22 ans, celui des prélèvements sociaux à
-            30 ans : les deux bases ne sont donc pas les mêmes, et l&apos;écran ne les fond pas en
-            une « plus-value imposable » unique. La surtaxe est assise sur la base de l&apos;impôt
-            sur le revenu, et s&apos;éteint donc à 22 ans elle aussi.
+            l&apos;impôt sur le revenu exonère totalement à {VALEURS.exonerationImpotRevenu}, celui
+            des prélèvements sociaux à {VALEURS.exonerationPrelevementsSociaux} : les deux bases ne
+            sont donc pas les mêmes, et l&apos;écran ne les fond pas en une « plus-value imposable »
+            unique. La surtaxe est assise sur la base de l&apos;impôt sur le revenu, et s&apos;éteint
+            donc à {VALEURS.exonerationImpotRevenu} elle aussi.
           </p>
           <div className="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
             <Ligne
@@ -283,7 +285,7 @@ export function DecompteSortie({ annee, cession, portefeuille, motifForfait }: P
               montant={cession.plusValue.surtaxe}
               note={
                 cession.plusValue.surtaxeApplicable
-                  ? "due au-delà de 50 000 € de base d'impôt sur le revenu, barème à dix tranches avec décotes"
+                  ? `due au-delà de ${VALEURS.seuilSurtaxe} de base d'impôt sur le revenu, barème à ${VALEURS.tranchesSurtaxe} tranches avec décotes`
                   : "sans objet pour ce bien"
               }
             />

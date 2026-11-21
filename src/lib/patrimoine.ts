@@ -504,8 +504,11 @@ export type RegimeLongueDuree = (typeof REGIMES_LONGUE_DUREE)[number];
 export const REGIMES_COURTE_DUREE = ["tourisme-classe", "tourisme-non-classe", "reel-meuble"] as const;
 export type RegimeCourteDuree = (typeof REGIMES_COURTE_DUREE)[number];
 
-/** Les cinq taux du barème de l'impôt sur le revenu. Une liste dit d'où ils viennent. */
-export const TAUX_MARGINAUX = [0, 11, 30, 41, 45] as const;
+/**
+ * Les taux du barème de l'impôt sur le revenu, lus dans `params.ts` — datés et
+ * sourcés là-bas (CGI, art. 197), jamais recopiés ici (`FIS-012`).
+ */
+export const TAUX_MARGINAUX: readonly number[] = PARAMS_2026.incomeTax.marginalRatesPct;
 
 /** Durées de mise en location proposées, en années. */
 export const DUREES_LOCATION = [1, 2, 3, 5, 8, 10, 15, 20] as const;
@@ -574,7 +577,7 @@ export function assainirLocation(brut: Location): Location {
   const duree = (DUREES_LOCATION as readonly number[]).includes(brut.dureeLocationAnnees)
     ? brut.dureeLocationAnnees
     : DEFAUTS_LOCATION.dureeLocationAnnees;
-  const tmi = (TAUX_MARGINAUX as readonly number[]).includes(brut.tmi)
+  const tmi = TAUX_MARGINAUX.includes(brut.tmi)
     ? brut.tmi
     : DEFAUTS_LOCATION.tmi;
   return {

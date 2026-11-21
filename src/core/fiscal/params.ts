@@ -263,6 +263,32 @@ export interface FiscalParams {
   };
 
   /**
+   * Impôt sur le revenu — barème progressif (`FIS-012`, vérifié le 19 novembre 2026).
+   *
+   * Report dans ce fichier gelé (ADR-004) d'une valeur qui vivait sans source dans
+   * `src/lib/patrimoine.ts` : la seule valeur réglementaire du simulateur hors de
+   * `src/core/fiscal/` (revue system design du 18 novembre 2026, constat SIM-02).
+   */
+  readonly incomeTax: {
+    /**
+     * Taux marginaux du barème, en pourcentage, dans l'ordre des fractions.
+     *
+     * Le premier, 0 %, n'est pas écrit dans l'article : il est la fraction que
+     * l'article n'impose pas, « la fraction de chaque part de revenu qui excède »
+     * le premier seuil étant seule taxée. Les quatre suivants y sont en toutes lettres.
+     *
+     * Les LIMITES des fractions ne sont pas reportées : revalorisées chaque année,
+     * elles ne servent à aucun calcul du simulateur, où la tranche marginale est
+     * choisie par l'utilisateur.
+     * @source Code général des impôts, art. 197, I, 1 — « 11 % », « 30 % », « 41 % »,
+     *         « 45 % ». Version en vigueur depuis le 21 février 2026, modifiée par la
+     *         loi n° 2026-103 du 19 février 2026 de finances pour 2026, art. 4.
+     * @see https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000053542636
+     */
+    readonly marginalRatesPct: readonly number[];
+  };
+
+  /**
    * Imposition des revenus locatifs — les régimes micro du module « louer plutôt
    * que vendre » (`FIS-010`, vérifié le 25 août 2026).
    *
@@ -555,6 +581,10 @@ export const PARAMS_2026: FiscalParams = {
       totalPct: 17.2,
     },
     eeaReducedPct: 7.5,
+  },
+
+  incomeTax: {
+    marginalRatesPct: [0, 11, 30, 41, 45],
   },
 
   rentalIncome: {
