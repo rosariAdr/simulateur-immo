@@ -2141,3 +2141,70 @@ ne rougisse.
 Un agent peut suivre sa proposition contre le brief sans qu'un fichier bouge. Le seul
 rempart est la relecture, et les cinq contrôles à l'arrivée — même partage qu'ADR-017
 entre ce qu'une garde attrape et ce qu'elle ne peut pas.
+
+## ADR-024 — La charte se réchauffe, la sémantique des couleurs ne bouge pas
+
+**Date** : 26 novembre 2026 · **Statut** : proposée · **Tickets** : refonte v0.7.0 (suite d'ADR-021 et ADR-023)
+
+### Contexte
+
+Le thème par défaut est sombre depuis ADR-003, et il l'a été en « ardoise bleutée » — un
+gris froid. À l'usage, et dès qu'on a ouvert le chantier de l'accueil (v0.7.0), ce froid
+s'est révélé le premier responsable d'une impression d'austérité. Or l'austérité n'est pas
+une règle du brief : ADR-021 accorde une liberté graphique réelle, et le §10.4 autorise la
+matière et la profondeur. Le froid venait d'un choix de neutres, pas d'un interdit.
+
+Trois directions de charte moins austères ont été prototypées sur l'accueil — « Chaud »
+(encre chaude, laiton en filets), « Matière » (relief doux), « Clair » (papier greige). La
+direction retenue est « Chaud ». Elle ne demande qu'une chose au système : réchauffer les
+neutres. C'est le seul levier qui réchauffe tout l'écran sans toucher à ce qui est verrouillé.
+
+### Décision
+
+**1. Les neutres passent du gris bleuté au charbon chaud, sur les deux thèmes.** Papier,
+panneau, encre, encre secondaire, filets, survol et fonds d'état sont réchauffés vers le
+brun ; le laiton d'accent gagne un cran de présence. Le thème sombre reste le défaut
+(ADR-003 intact), et le thème clair, toujours choisi et non dérivé, se réchauffe vers un
+papier greige — délibérément pas le crème que produit une charte générique.
+
+**2. Les quatre couleurs sémantiques ne bougent pas.** Capital, intérêts, assurance,
+marchés et leurs variantes texte gardent exactement leurs valeurs. La règle 4 d'ADR-021
+tient sans retouche : le vert dit capital partout, la brique les intérêts. La chaleur se
+construit sur les neutres et le laiton — la famille d'ornement d'ADR-021 — jamais sur les
+quatre couleurs. La famille `--ornement-*` (UI-023) reste fermée ; ce réchauffement ne
+l'ouvre pas.
+
+**3. Le test de contraste a tranché la palette, pas le goût.** Les valeurs restent choisies
+par calcul, comme l'exige ADR-002. Chaque neutre a été retenu pour que les sept jetons
+texte tiennent 4,5:1 et les quatre remplissages 3:1 sur le nouveau papier, dans les deux
+thèmes. Un premier papier clair faisait tomber le vert texte à 4,49:1 ; c'est la garde qui
+a imposé un papier plus lumineux, pas une préférence.
+
+**4. L'austérité se corrige d'abord par le neutre.** Avant d'ajouter de la matière, du
+relief ou d'ouvrir l'ornement, le simple passage au charbon chaud fait le gros du travail.
+Le reste — la mise en page de l'accueil, les filets, un éventuel relief — vient ensuite,
+par tickets, et chacun repasse les cinq contrôles du §10.6 et la porte.
+
+### Justification
+
+**Pourquoi réchauffer plutôt que colorer.** Une charte générique répond à « moins austère »
+par de la couleur. Ici la couleur est déjà prise : elle enseigne. Ajouter une teinte
+décorative entrerait en collision avec la sémantique qu'ADR-021 protège. Le neutre, lui, est
+libre : le réchauffer réconcilie « moins austère » et la discipline des couleurs au lieu de
+les opposer.
+
+**Pourquoi un ADR et pas un ajustement silencieux.** Le changement touche les valeurs de
+jetons d'ADR-002 et la description « ardoise bleutée » d'ADR-003. La règle 3 d'ADR-023 est
+explicite : ce qui touche une décision écrite devient un ADR, ou ne se fait pas.
+
+**Pourquoi « proposée ».** La direction est choisie, mais la charte n'est pas finie :
+l'accueil doit encore recevoir sa mise en page authorée, les autres écrans n'ont pas été
+relus sous le charbon chaud, et rien n'est passé par `npm run porte`. L'ADR passe à
+« adoptée » quand la v0.7.0 l'a fait.
+
+### Ce qui la garde
+
+`src/app/__tests__/design-tokens.test.ts` — le même test de contraste, inchangé : il valide
+désormais les neutres chauds (4,5:1 pour le texte, 3:1 pour les remplissages, séparation
+série/texte des marchés) dans les deux thèmes. Une régression esthétique qui ferait repasser
+un texte sous son seuil rougit la porte.

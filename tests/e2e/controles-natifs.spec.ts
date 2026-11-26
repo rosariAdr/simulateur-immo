@@ -64,6 +64,9 @@ test("le texte des options reste celui de l'encre du thème", async ({ page }) =
   });
 
   expect(option, "aucune option dans la liste des durées").toBeTruthy();
-  expect(encre).toBe("#e6eaef");
-  expect(option).toBe("rgb(230, 234, 239)");
+  // Charte « Chaud » (ADR-024) : l'encre du thème sombre est le charbon chaud.
+  // Le test suit la valeur de la charte ; ce qu'il garde, c'est que l'option
+  // reprenne cette encre, pas une teinte en particulier.
+  expect(encre).toBe("#efe6db");
+  expect(option).toBe("rgb(239, 230, 219)");
 });

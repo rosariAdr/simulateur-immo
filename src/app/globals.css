@@ -37,21 +37,23 @@
    */
   color-scheme: dark;
 
-  /* Surfaces et encre — ardoise nocturne */
-  --papier: #161c24;
-  --panneau: #1e2632;
-  --encre: #e6eaef;
-  --encre-secondaire: #a9b3bd;
-  --filet: #2f3945;
-  --filet-grille: #232c36;
-  --survol-fond: #262f3a;
-  --accent: #c79a46;
-  --accent-survol: #dcb267;
+  /* Surfaces et encre — charbon chaud (charte « Chaud », v0.7.0 ; voir ADR-024).
+     Neutres réchauffés hors du gris bleuté ; les quatre couleurs sémantiques ne
+     bougent pas, et le test de contraste reste la garde. */
+  --papier: #1a1510;
+  --panneau: #241d15;
+  --encre: #efe6db;
+  --encre-secondaire: #b8aa9a;
+  --filet: #352a20;
+  --filet-grille: #281f17;
+  --survol-fond: #2d2419;
+  --accent: #d8a74f;
+  --accent-survol: #e8bd67;
 
   /* États */
-  --erreur-fond: #2a1f1c;
-  --desactive-encre: #6b757f;
-  --desactive-filet: #2a333d;
+  --erreur-fond: #2c1d17;
+  --desactive-encre: #776b5d;
+  --desactive-filet: #2e2419;
 
   /* Pédagogie — la pastille « i » et sa bulle */
   --infobulle-fond: #2e2718;
@@ -89,19 +91,19 @@
     /* Les contrôles natifs suivent le thème. Voir UI-012, plus haut. */
     color-scheme: light;
 
-    --papier: #dfe5ed;
-    --panneau: #eef2f7;
-    --encre: #14181c;
-    --encre-secondaire: #4a555f;
-    --filet: #b9c2cd;
-    --filet-grille: #ccd4de;
-    --survol-fond: #d5dce6;
-    --accent: #7e5f26;
+    --papier: #ebe6dc;
+    --panneau: #f4efe6;
+    --encre: #1a1712;
+    --encre-secondaire: #5a5247;
+    --filet: #cfc6b7;
+    --filet-grille: #dbd3c6;
+    --survol-fond: #e0d9cc;
+    --accent: #7a5a22;
     --accent-survol: #5f4718;
 
-    --erreur-fond: #efe0db;
-    --desactive-encre: #8b949d;
-    --desactive-filet: #cbd3dd;
+    --erreur-fond: #efe4d8;
+    --desactive-encre: #938b7d;
+    --desactive-filet: #d6cdbf;
 
     --infobulle-fond: #f2e7ca;
     --infobulle-filet: #d9c48c;
