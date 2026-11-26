@@ -1,6 +1,28 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { buildCreditPlan, type CreditPlanInput } from "@/core/credit/plan";
+import { PARAMS_2026 } from "@/core/fiscal/params";
+import { euros } from "@/core/money";
 import { FAMILLES, type Famille } from "@/components/ui/taxonomie";
+import { formatEuros } from "@/lib/format";
+
+/**
+ * L'exemple du héros rejoue le scénario par défaut qui ouvre `/credit` (le même
+ * que `DEFAUTS` dans `lib/scenario`), mais construit son entrée moteur à la main.
+ * La page d'accueil est un composant serveur ; importer `lib/scenario` y tirerait
+ * `nuqs` — l'état d'URL —, qui est client. Les chiffres de la ventilation, eux,
+ * restent calculés par le moteur, à la compilation.
+ */
+const ENTREE_EXEMPLE: CreditPlanInput = {
+  loans: [{ id: "principal", label: "Prêt principal", principal: euros(180_000), annualRatePct: 3.2, months: 240 }],
+  insurance: { annualRatePct: 0.3, basis: "initial", coveragePct: 100 },
+  guarantee: "suretyship",
+  arrangementFee: euros(900),
+  propertyPrice: euros(205_000),
+  netMonthlyIncome: euros(3_800),
+  otherDebtService: euros(0),
+};
+const EXEMPLE = buildCreditPlan(ENTREE_EXEMPLE, PARAMS_2026);
 
 export const metadata: Metadata = {
   title: "Simulateur d'acquisition immobilière — calculer et comprendre",
@@ -43,43 +65,142 @@ export default function PageAccueil() {
 
 /* -------------------------------------------------------------------------- */
 
-/** L'annonce. Trois phrases, pas quatre, et un lien qui mène au calcul. */
+/**
+ * Petit intitulé éditorial, réutilisé par les sections : un tiret d'accent
+ * laiton (ornement, jamais une couleur sémantique — voir §10.2) suivi du label
+ * en capitales. Il donne un point d'attaque régulier à chaque bloc.
+ */
+function Intitule({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="flex items-center gap-2.5 text-[11px] uppercase tracking-[0.08em] text-encre-secondaire">
+      <span aria-hidden="true" className="h-px w-7 shrink-0 bg-accent" />
+      {children}
+    </p>
+  );
+}
+
+/**
+ * L'annonce. Trois phrases, pas quatre, et un lien qui mène au calcul.
+ *
+ * L'accueil est un « moment de bascule » (brief §10.1) : le héros a droit à un
+ * geste graphique. Il est posé sur un panneau à filet (une élévation, §10.4),
+ * ouvert par un intitulé à tiret d'accent, et son explication est répartie sur
+ * deux colonnes pour occuper la largeur au lieu de s'entasser à gauche. Le texte
+ * ne change pas ; seul l'agencement.
+ */
 function These() {
   return (
-    <header className="border-b border-filet py-12 lg:py-14">
-      <h1 className="max-w-[22ch] font-titre text-[34px] font-bold leading-[1.12] tracking-[-0.028em] lg:text-[46px]">
-        Un simulateur qui explique d&apos;où viennent ses chiffres.
-      </h1>
+    <header className="py-7 lg:py-10">
+      <div className="border border-filet bg-panneau px-6 py-12 sm:px-10 lg:px-14 lg:py-16">
+        <Intitule>Acquisition immobilière</Intitule>
 
-      <p className="mt-5 max-w-[62ch] text-[16px] leading-[1.6] lg:text-[17px]">
-        Ce site calcule une acquisition immobilière — crédit, frais, aides, comparaison avec la
-        location, remboursements anticipés — et explique chaque paramètre à l&apos;endroit où il
-        apparaît.
-      </p>
-      <p className="mt-3 max-w-[62ch] text-[16px] leading-[1.6] lg:text-[17px]">
-        Il distingue partout ce qui se négocie, ce qui dépend de votre projet, et ce que la
-        réglementation impose.
-      </p>
-      <p className="mt-3 max-w-[62ch] text-[15px] leading-[1.6] text-encre-secondaire">
-        Il ne recommande rien : il calcule des scénarios à partir des hypothèses que vous posez, et
-        vous décidez.
-      </p>
+        <h1 className="mt-5 max-w-[20ch] font-titre text-[34px] font-bold leading-[1.08] tracking-[-0.03em] lg:text-[50px]">
+          Un simulateur qui explique d&apos;où viennent ses chiffres.
+        </h1>
 
-      <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3">
-        <Link
-          href="/credit"
-          data-vers-credit
-          className="inline-flex items-center gap-2 border border-accent px-5 py-2.5 text-[14px]
-                     text-accent transition-colors hover:bg-survol-fond hover:text-accent-survol
-                     focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
-                     focus-visible:outline-accent"
-        >
-          Calculer un crédit
-          <span aria-hidden="true">→</span>
-        </Link>
-        <p className="text-[13px] text-encre-secondaire">Deux minutes, six paramètres.</p>
+        <div className="mt-7 grid gap-x-12 gap-y-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.82fr)]">
+          <p className="text-[16px] leading-[1.6] lg:text-[17px]">
+            Ce site calcule une acquisition immobilière — crédit, frais, aides, comparaison avec la
+            location, remboursements anticipés — et explique chaque paramètre à l&apos;endroit où il
+            apparaît.
+          </p>
+          <div className="space-y-3 lg:border-l lg:border-filet lg:pl-8">
+            <p className="text-[15px] leading-[1.6]">
+              Il distingue partout ce qui se négocie, ce qui dépend de votre projet, et ce que la
+              réglementation impose.
+            </p>
+            <p className="text-[14px] leading-[1.6] text-encre-secondaire">
+              Il ne recommande rien : il calcule des scénarios à partir des hypothèses que vous
+              posez, et vous décidez.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-9 flex flex-wrap items-center gap-x-5 gap-y-3">
+          <Link
+            href="/credit"
+            data-vers-credit
+            className="group inline-flex items-center gap-2 border border-accent px-6 py-3 text-[15px]
+                       font-medium text-accent transition-colors hover:bg-survol-fond
+                       hover:text-accent-survol focus-visible:outline focus-visible:outline-2
+                       focus-visible:outline-offset-2 focus-visible:outline-accent"
+          >
+            Calculer un crédit
+            <span aria-hidden="true" className="transition-transform group-hover:translate-x-0.5">
+              →
+            </span>
+          </Link>
+          <p className="text-[13px] text-encre-secondaire">Deux minutes, six paramètres.</p>
+        </div>
+
+        <p className="mt-7 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11px] tracking-[0.04em] text-encre-secondaire">
+          <span>Sans compte</span>
+          <span aria-hidden="true">·</span>
+          <span>Sans collecte</span>
+          <span aria-hidden="true">·</span>
+          <span>
+            L&apos;état d&apos;un scénario tient dans{" "}
+            <span className="text-accent-survol">l&apos;adresse de la page</span>
+          </span>
+        </p>
+
+        <ExempleVentilation />
       </div>
     </header>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Une ventilation RÉELLE, pas un décor. Elle rejoue le poste par poste du module
+ * crédit — capital, intérêts, assurance, frais —, mêmes couleurs de données,
+ * mêmes totaux, pour montrer d'un regard ce que l'outil produit. Les quatre
+ * couleurs sémantiques sont ici à leur place : une représentation de données.
+ * Voir docs/01-brief-design.md §10.2.
+ */
+function ExempleVentilation() {
+  const frais = EXEMPLE.upfrontFees + EXEMPLE.guarantee.cost;
+  const total = EXEMPLE.totalPrincipal + EXEMPLE.totalInterest + EXEMPLE.totalInsurance + frais;
+  const part = (v: number) => (total > 0 ? (v / total) * 100 : 0);
+  // Le scénario par défaut : 205 000 € − 25 000 € d'apport, sur 240 mois, à 3,2 %.
+  const capital = 180_000;
+  const ans = 20;
+  const taux = "3,2";
+
+  const postes = [
+    { cle: "capital", libelle: "Capital", valeur: EXEMPLE.totalPrincipal, fond: "bg-capital", texte: "text-capital-texte" },
+    { cle: "interets", libelle: "Intérêts", valeur: EXEMPLE.totalInterest, fond: "bg-interets", texte: "text-interets-texte" },
+    { cle: "assurance", libelle: "Assurance", valeur: EXEMPLE.totalInsurance, fond: "bg-assurance", texte: "text-assurance-texte" },
+    { cle: "frais", libelle: "Frais et garantie", valeur: frais, fond: "bg-encre-secondaire", texte: "text-encre-secondaire" },
+  ] as const;
+
+  return (
+    <figure className="mt-7 max-w-[560px] border border-filet bg-papier px-4 pb-3.5 pt-3">
+      <figcaption className="mb-2.5 font-mono text-[10px] uppercase tracking-[0.08em] text-encre-secondaire">
+        Exemple — {capital.toLocaleString("fr-FR")} € empruntés sur {ans} ans à {taux} %
+      </figcaption>
+      <div className="flex h-7 overflow-hidden rounded-[2px]">
+        {postes.map((p) => (
+          <div
+            key={p.cle}
+            data-poste={p.cle}
+            style={{ width: `${part(p.valeur)}%` }}
+            className={p.fond}
+            title={`${p.libelle} — ${formatEuros(p.valeur)}`}
+          />
+        ))}
+      </div>
+      <dl className="mt-2.5 flex flex-wrap gap-x-5 gap-y-1.5">
+        {postes.map((p) => (
+          <div key={p.cle} className="flex items-baseline gap-2">
+            <span className={`inline-block h-2.5 w-2.5 shrink-0 ${p.fond}`} aria-hidden="true" />
+            <dt className="text-[11px] text-encre-secondaire">{p.libelle}</dt>
+            <dd className={`font-mono text-[11px] tabular-nums ${p.texte}`}>{formatEuros(p.valeur)}</dd>
+          </div>
+        ))}
+      </dl>
+    </figure>
   );
 }
 
